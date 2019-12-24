@@ -4,7 +4,7 @@ schema:
   - internal/gql/schemas/*.graphql
 
 exec:
-  filename: internal/gql/generated.go
+  filename: internal/gql/main.go
   package: gql
 
 model:

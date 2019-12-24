@@ -1,9 +1,7 @@
 #!/bin/bash
 source scripts/_utils.sh
 
-printf "\nRegenerating gqlgen files\n"
-rm -f internal/gql/generated.go \
+rm -f internal/gql/main.go \
     internal/gql/models/generated.go \
-    internal/gql/resolvers/generated.go
-time go run -v github.com/99designs/gqlgen $1
-printf "\nDone.\n\n"
+    internal/gql/resolvers/update_then_delete_me.go
+go run -v github.com/99designs/gqlgen $1
