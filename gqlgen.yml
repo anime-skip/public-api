@@ -1,0 +1,19 @@
+# Refer to https://gqlgen.com/config/ for more config
+
+schema:
+  - internal/gql/schemas/*.graphql
+
+exec:
+  filename: internal/gql/generated.go
+  package: gql
+
+model:
+  filename: internal/gql/models/generated.go
+  package: models
+  
+resolver:
+  filename: internal/gql/resolvers/generated.go
+  type: Resolver
+  package: resolvers
+
+autobind: []

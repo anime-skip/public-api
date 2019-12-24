@@ -1,16 +1,17 @@
 package utils
 
 import (
-	"log"
 	"os"
 	"strconv"
+
+	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
 )
 
-// EnvString will return the env or panic if it is not present
+// EnvString will return the env as a boolean or default to false
 func EnvString(k string) string {
 	v := os.Getenv(k)
 	if v == "" {
-		log.Panicln("ENV missing, key: " + k)
+		log.Panic("ENV missing, key: " + k)
 	}
 	return v
 }
@@ -19,11 +20,12 @@ func EnvString(k string) string {
 func EnvBool(k string) bool {
 	v := os.Getenv(k)
 	if v == "" {
-		log.Panicln("ENV missing, key: " + k)
+		log.D("%s missing from ENV, defaulting to false", k)
+		return false
 	}
 	b, err := strconv.ParseBool(v)
 	if err != nil {
-		log.Panicln("ENV err: [" + k + "]\n" + err.Error())
+		log.Panic("ENV err: [" + k + "]\n" + err.Error())
 	}
 	return b
 }

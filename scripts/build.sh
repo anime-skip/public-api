@@ -2,7 +2,7 @@
 srcPath="cmd"
 pkgFile="main.go"
 outputPath="build"
-app="server"
+app="anime-skip"
 output="$outputPath/$app"
 src="$srcPath/$app/$pkgFile"
 
