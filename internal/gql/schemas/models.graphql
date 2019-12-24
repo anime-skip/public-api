@@ -1,0 +1,12 @@
+# User
+type User {
+  id: ID
+  email: String
+  userId: String
+}
+input UserInput {
+  email: String
+  userId: String
+}
+
+# Preferences

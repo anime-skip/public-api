@@ -1,7 +1,7 @@
 #!/bin/sh
 srcPath="cmd"
 pkgFile="main.go"
-app="server"
+app="anime-skip"
 src="$srcPath/$app/$pkgFile"
 
 printf "\nStart running: $app\n"
