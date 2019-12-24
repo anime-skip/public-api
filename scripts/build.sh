@@ -1,13 +1,9 @@
 #!/bin/sh
-srcPath="cmd"
-pkgFile="main.go"
-outputPath="build"
-app="anime-skip"
-output="$outputPath/$app"
-src="$srcPath/$app/$pkgFile"
+INPUT="cmd/anime-skip-backend/main.go"
+OUTPUT="build/anime-skip-backend"
 
-printf "\nBuilding: $app\n"
-time go build -o $output $src
-printf "\nBuilt: $app size:"
-ls -lah $output | awk '{print $5}'
-printf "\nDone building: $app\n\n"
+go build -o $OUTPUT $INPUT
+SIZE="$(ls -lah $OUTPUT | awk '{print $5}')"
+
+echo "$OUTPUT"
+echo "Size: $SIZE"
