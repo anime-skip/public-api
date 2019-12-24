@@ -12,7 +12,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-var autoMigrate, logMode, seedDB bool
+var autoMigrate, seedDB bool
 var connectionString, dialect string
 
 // ORM struct to store the gorm pointer to db
@@ -35,7 +35,6 @@ func init() {
 		sslmode,
 	)
 	seedDB = utils.EnvBool("POSTGRES_ENABLE_SEEDING")
-	logMode = utils.EnvBool("POSTGRES_ENABLE_LOGS")
 	autoMigrate = utils.EnvBool("POSTGRES_ENABLE_AUTO_MIGRATE")
 }
 
@@ -45,18 +44,20 @@ func Factory() (*ORM, error) {
 	if err != nil {
 		log.Panic("[ORM] err: ", err)
 	}
+	log.V("Connected to PostgreSQL")
 	orm := &ORM{
 		DB: db,
 	}
 
 	// Enable SQL logs
-	db.LogMode(logMode)
+	db.LogMode(utils.EnvBool("POSTGRES_ENABLE_LOGS"))
 
 	// Automigrate tables
+	log.V("Running migrations if necessary")
 	if autoMigrate {
 		err = migrations.ServiceAutoMigration(orm.DB)
 	}
 
-	log.D("[ORM] Database connection initialized.")
+	fmt.Println()
 	return orm, err
 }

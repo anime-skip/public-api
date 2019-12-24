@@ -1,4 +1,6 @@
 #!/bin/bash
+source scripts/_utils.sh
+
 printf "\nRegenerating gqlgen files\n"
 rm -f internal/gql/generated.go \
     internal/gql/models/generated.go \

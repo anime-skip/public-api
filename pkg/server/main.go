@@ -6,10 +6,11 @@ import (
 	"github.com/aklinker1/anime-skip-backend/pkg/utils"
 	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 var host, port, graphqlPath, playgroundPath string
-var enablePlayground bool
+var enablePlayground, isDev bool
 
 func init() {
 	host = utils.EnvString("HOST")
@@ -17,11 +18,16 @@ func init() {
 	graphqlPath = "/graphql"
 	enablePlayground = utils.EnvBool("ENABLE_PLAYGROUND")
 	playgroundPath = utils.EnvString("PLAYGROUND_PATH")
+	isDev = utils.EnvBool("IS_DEV")
 }
 
 // Run the web server
-func Run(orm *database.ORM) {
-	server := gin.Default()
+func Run(orm *database.ORM, startedAt time.Time) {
+	server := gin.New()
+	if isDev {
+		server.Use(customLogger)
+	}
+	server.Use(gin.Recovery())
 
 	// REST endpoints
 	server.GET("/status", handlers.Status())
@@ -32,5 +38,6 @@ func Run(orm *database.ORM) {
 	}
 	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 
+	log.V("Started web server in %s @ \x1b[4mhttp://%s:%s", time.Since(startedAt), host, port)
 	log.Panic(server.Run(host + ":" + port))
 }

@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/cmelgarejo/go-gql-server v0.0.0-20191210205900-dcf7db2f156c
+	github.com/cortesi/modd v0.0.0-20191202231957-98a770274f90 // indirect
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
@@ -16,5 +17,4 @@ require (
 	golang.org/x/sys v0.0.0-20191220220014-0732a990476f // indirect
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/gormigrate.v1 v1.6.0
-	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
