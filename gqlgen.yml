@@ -12,7 +12,7 @@ model:
   package: models
   
 resolver:
-  filename: internal/gql/resolvers/generated.go
+  filename: internal/gql/resolvers/update_then_delete_me.go
   type: Resolver
   package: resolvers
 
