@@ -8,9 +8,11 @@ import (
 
 // BaseModel defines the common columns that all db structs should hold
 type BaseModel struct {
-	ID        uuid.UUID  `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	CreatedAt time.Time  `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt *time.Time `gorm:"index"`
+	ID              uuid.UUID  `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
+	CreatedAt       time.Time  `gorm:"index;not null;default:CURRENT_TIMESTAMP"`
+	CreatedByUserID time.Time  `gorm:"not null;type:uuid"`
+	UpdatedAt       *time.Time `gorm:"index"`
+	UpdatedByUserID time.Time  `gorm:"not null;type:uuid"`
 }
 
 // BaseModelSoftDelete prevents the rows from being deleted, it just marks it as deleted

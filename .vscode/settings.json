@@ -9,5 +9,6 @@
         "postgres",
         "structs",
         "uuid"
-    ]
+    ],
+    "editor.tabSize": 2
 }
