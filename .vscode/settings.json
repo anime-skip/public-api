@@ -1,8 +1,13 @@
 {
     "cSpell.words": [
+        "aklinker",
         "dbname",
         "gorm",
+        "gormigrate",
         "graphql",
-        "postgres"
+        "jinzhu",
+        "postgres",
+        "structs",
+        "uuid"
     ]
 }

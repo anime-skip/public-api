@@ -15,7 +15,7 @@ import (
 var autoMigrate, logMode, seedDB bool
 var connectionString, dialect string
 
-// ORM struct to holds the gorm pointer to db
+// ORM struct to store the gorm pointer to db
 type ORM struct {
 	DB *gorm.DB
 }
@@ -39,7 +39,7 @@ func init() {
 	autoMigrate = utils.EnvBool("POSTGRES_ENABLE_AUTO_MIGRATE")
 }
 
-// Factory creates a db connection with the selected dialect and connection string
+// Factory creates a db connection and returns the pointer to the GORM instance
 func Factory() (*ORM, error) {
 	db, err := gorm.Open("postgres", connectionString)
 	if err != nil {
@@ -48,12 +48,15 @@ func Factory() (*ORM, error) {
 	orm := &ORM{
 		DB: db,
 	}
-	// Log every SQL command on dev, @prod: this should be disabled?
+
+	// Enable SQL logs
 	db.LogMode(logMode)
+
 	// Automigrate tables
 	if autoMigrate {
 		err = migrations.ServiceAutoMigration(orm.DB)
 	}
+
 	log.D("[ORM] Database connection initialized.")
 	return orm, err
 }

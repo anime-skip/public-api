@@ -30,7 +30,7 @@ func Run(orm *database.ORM) {
 	if enablePlayground {
 		server.GET(playgroundPath, handlers.PlaygroundHandler(graphqlPath))
 	}
-	server.POST(graphqlPath, handlers.GraphQLHandler())
+	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 
 	log.Panic(server.Run(host + ":" + port))
 }

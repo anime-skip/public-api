@@ -11,6 +11,7 @@ import (
 
 func updateMigration(db *gorm.DB) error {
 	return db.AutoMigrate(
+		// List models that will be automatically migrated
 		&models.User{},
 	).Error
 }
@@ -21,16 +22,13 @@ func ServiceAutoMigration(db *gorm.DB) error {
 	m := gormigrate.New(db, gormigrate.DefaultOptions, nil)
 	m.InitSchema(func(db *gorm.DB) error {
 		log.V("[Migration.InitSchema] Initializing database schema")
-		switch db.Dialect().GetName() {
-		case "postgres":
-			// Let's create the UUID extension, the user has to ahve superuser
-			// permission for now
-			db.Exec("create extension \"uuid-ossp\";")
-		}
+
+		// Add the UUID extension
+		db.Exec("create extension \"uuid-ossp\";")
+
 		if err := updateMigration(db); err != nil {
 			return fmt.Errorf("[Migration.InitSchema]: %v", err)
 		}
-		// Add more jobs, etc here
 		return nil
 	})
 	m.Migrate()
@@ -38,6 +36,7 @@ func ServiceAutoMigration(db *gorm.DB) error {
 	if err := updateMigration(db); err != nil {
 		return err
 	}
+	// Seed the database?
 	// m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 	// 	jobs.SeedUsers,
 	// })

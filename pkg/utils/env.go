@@ -7,7 +7,7 @@ import (
 	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
 )
 
-// EnvString will return the env or panic if it is not present
+// EnvString will return the env as a boolean or default to false
 func EnvString(k string) string {
 	v := os.Getenv(k)
 	if v == "" {
