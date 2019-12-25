@@ -12,6 +12,13 @@ import (
 func updateMigration(db *gorm.DB) error {
 	return db.AutoMigrate(
 		// List models that will be automatically migrated
+		&models.Episode{},
+		&models.EpisodeURL{},
+		&models.Preferences{},
+		&models.Show{},
+		&models.ShowAdmin{},
+		&models.Timestamp{},
+		&models.TimestampType{},
 		&models.User{},
 	).Error
 }

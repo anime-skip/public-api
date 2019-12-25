@@ -1,46 +1,88 @@
 interface BaseModel {
   id: ID!
-  createdAt: Date!
+  createdAt: Time!
   createdByUserId: ID!
   createdBy: User!
-  updatedAt: Date!
+  updatedAt: Time!
   updatedByUserId: ID!
   updatedBy: User!
-}
-
-interface BaseModelSoftDelete implements BaseModel {
-  deletedAt: Date
+  deletedAt: Time
   deletedByUserId: ID
   deletedBy: User
 }
 
 # Episode
-type Episode implements BaseModelSoftDelete {
+type Episode implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   season: Int
   number: Int
   absoluteNumber: Int
   name: String
-  show: Show
-  showId: ID
-  timestamps: [Timestamps!]!
+  show: Show!
+  showId: ID!
+  timestamps: [Timestamp!]!
 }
 
 # EpisodeUrl
-type EpisodeUrl implements BaseModel {
+type EpisodeUrl {
   url: String!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+
   episodeId: ID!
   episode: Episode!
 }
 
 # MyUser
-type MyUser implements User {
+type MyUser implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  username: String!
+  email: String!
+  profileUrl: String!
+  adminOfShows: [ShowAdmin!]!
+
   emailVerified: Boolean!
   role: Role!
   preferences: Preferences!
 }
 
 # Preferences
-type Preferences implements BaseModelSoftDelete {
+type Preferences implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   userId: ID!
   enableAutoSkip: Boolean!
   enableAutoPlay: Boolean!
@@ -58,9 +100,20 @@ type Preferences implements BaseModelSoftDelete {
 }
 
 # Show
-type Show implements BaseModelSoftDelete {
+type Show implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   name: String!
-  originalName: String!
+  originalName: String
   website: String
   image: String
   admins: [ShowAdmin!]!
@@ -68,7 +121,18 @@ type Show implements BaseModelSoftDelete {
 }
 
 # ShowAdmin 
-type ShowAdmin implements BaseModelSoftDelete {
+type ShowAdmin implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   showId: ID!
   show: Show!
   userId: ID!
@@ -76,21 +140,48 @@ type ShowAdmin implements BaseModelSoftDelete {
 }
 
 # Timestamp
-type Timestamp implements BaseModelSoftDelete {
+type Timestamp implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   at: Float!
+  typeId: ID!
   type: TimestampType!
   episodeId: ID!
   epiosde: Episode!
 }
 
 # TimestampType
-type TimestampType implements BaseModelSoftDelete {
+type TimestampType implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
   name: String
   description: String
 }
 
 # User
-type User implements BaseModelSoftDelete {
+type User {
+  id: ID!
+  createdAt: Time!
+  deletedAt: Time
+
   username: String!
   email: String!
   profileUrl: String!
