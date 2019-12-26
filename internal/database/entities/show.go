@@ -1,7 +1,7 @@
-package models
+package entities
 
 type Show struct {
-	BaseModel
+	BaseEntity
 	Name         string
 	OriginalName *string
 	Website      *string

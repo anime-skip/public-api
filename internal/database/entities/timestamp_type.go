@@ -1,8 +1,8 @@
-package models
+package entities
 
 // TimestampType represents the data public about a given user
 type TimestampType struct {
-	BaseModel
+	BaseEntity
 	Name        string
 	Description string
 }

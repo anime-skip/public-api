@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/99designs/gqlgen/graphql"
@@ -36,8 +37,16 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Episode() EpisodeResolver
+	EpisodeUrl() EpisodeUrlResolver
 	Mutation() MutationResolver
+	MyUser() MyUserResolver
+	Preferences() PreferencesResolver
 	Query() QueryResolver
+	Show() ShowResolver
+	ShowAdmin() ShowAdminResolver
+	Timestamp() TimestampResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -81,32 +90,21 @@ type ComplexityRoot struct {
 	}
 
 	MyUser struct {
-		AdminOfShows    func(childComplexity int) int
-		CreatedAt       func(childComplexity int) int
-		CreatedBy       func(childComplexity int) int
-		CreatedByUserID func(childComplexity int) int
-		DeletedAt       func(childComplexity int) int
-		DeletedBy       func(childComplexity int) int
-		DeletedByUserID func(childComplexity int) int
-		Email           func(childComplexity int) int
-		EmailVerified   func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Preferences     func(childComplexity int) int
-		ProfileURL      func(childComplexity int) int
-		Role            func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
-		UpdatedBy       func(childComplexity int) int
-		UpdatedByUserID func(childComplexity int) int
-		Username        func(childComplexity int) int
+		AdminOfShows  func(childComplexity int) int
+		CreatedAt     func(childComplexity int) int
+		DeletedAt     func(childComplexity int) int
+		Email         func(childComplexity int) int
+		EmailVerified func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Preferences   func(childComplexity int) int
+		ProfileURL    func(childComplexity int) int
+		Role          func(childComplexity int) int
+		Username      func(childComplexity int) int
 	}
 
 	Preferences struct {
 		CreatedAt        func(childComplexity int) int
-		CreatedBy        func(childComplexity int) int
-		CreatedByUserID  func(childComplexity int) int
 		DeletedAt        func(childComplexity int) int
-		DeletedBy        func(childComplexity int) int
-		DeletedByUserID  func(childComplexity int) int
 		EnableAutoPlay   func(childComplexity int) int
 		EnableAutoSkip   func(childComplexity int) int
 		ID               func(childComplexity int) int
@@ -122,13 +120,13 @@ type ComplexityRoot struct {
 		SkipTitleCard    func(childComplexity int) int
 		SkipTransitions  func(childComplexity int) int
 		UpdatedAt        func(childComplexity int) int
-		UpdatedBy        func(childComplexity int) int
-		UpdatedByUserID  func(childComplexity int) int
+		User             func(childComplexity int) int
 		UserID           func(childComplexity int) int
 	}
 
 	Query struct {
-		User func(childComplexity int, userID *string) int
+		FindUserByID       func(childComplexity int, userID string) int
+		FindUserByUsername func(childComplexity int, username string) int
 	}
 
 	Show struct {
@@ -179,24 +177,19 @@ type ComplexityRoot struct {
 		EpisodeID       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Type            func(childComplexity int) int
+		TypeID          func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 		UpdatedBy       func(childComplexity int) int
 		UpdatedByUserID func(childComplexity int) int
 	}
 
 	TimestampType struct {
-		CreatedAt       func(childComplexity int) int
-		CreatedBy       func(childComplexity int) int
-		CreatedByUserID func(childComplexity int) int
-		DeletedAt       func(childComplexity int) int
-		DeletedBy       func(childComplexity int) int
-		DeletedByUserID func(childComplexity int) int
-		Description     func(childComplexity int) int
-		ID              func(childComplexity int) int
-		Name            func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
-		UpdatedBy       func(childComplexity int) int
-		UpdatedByUserID func(childComplexity int) int
+		CreatedAt   func(childComplexity int) int
+		DeletedAt   func(childComplexity int) int
+		Description func(childComplexity int) int
+		ID          func(childComplexity int) int
+		Name        func(childComplexity int) int
+		UpdatedAt   func(childComplexity int) int
 	}
 
 	User struct {
@@ -210,11 +203,65 @@ type ComplexityRoot struct {
 	}
 }
 
+type EpisodeResolver interface {
+	CreatedBy(ctx context.Context, obj *models.Episode) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.Episode) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.Episode) (*models.User, error)
+}
+type EpisodeUrlResolver interface {
+	CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
+}
 type MutationResolver interface {
 	DeleteUser(ctx context.Context, userID string) (bool, error)
 }
+type MyUserResolver interface {
+	AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error)
+
+	Preferences(ctx context.Context, obj *models.MyUser) (*models.Preferences, error)
+}
+type PreferencesResolver interface {
+	User(ctx context.Context, obj *models.Preferences) (*models.User, error)
+}
 type QueryResolver interface {
-	User(ctx context.Context, userID *string) (*models.User, error)
+	FindUserByID(ctx context.Context, userID string) (*models.User, error)
+	FindUserByUsername(ctx context.Context, username string) (*models.User, error)
+}
+type ShowResolver interface {
+	CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.Show) (*models.User, error)
+
+	Admins(ctx context.Context, obj *models.Show) ([]*models.ShowAdmin, error)
+	Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error)
+}
+type ShowAdminResolver interface {
+	CreatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
+
+	Show(ctx context.Context, obj *models.ShowAdmin) (*models.Show, error)
+
+	User(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
+}
+type TimestampResolver interface {
+	CreatedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error)
+
+	Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error)
+}
+type UserResolver interface {
+	AdminOfShows(ctx context.Context, obj *models.User) ([]*models.ShowAdmin, error)
 }
 
 type executableSchema struct {
@@ -440,40 +487,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MyUser.CreatedAt(childComplexity), true
 
-	case "MyUser.createdBy":
-		if e.complexity.MyUser.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.MyUser.CreatedBy(childComplexity), true
-
-	case "MyUser.createdByUserId":
-		if e.complexity.MyUser.CreatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.MyUser.CreatedByUserID(childComplexity), true
-
 	case "MyUser.deletedAt":
 		if e.complexity.MyUser.DeletedAt == nil {
 			break
 		}
 
 		return e.complexity.MyUser.DeletedAt(childComplexity), true
-
-	case "MyUser.deletedBy":
-		if e.complexity.MyUser.DeletedBy == nil {
-			break
-		}
-
-		return e.complexity.MyUser.DeletedBy(childComplexity), true
-
-	case "MyUser.deletedByUserId":
-		if e.complexity.MyUser.DeletedByUserID == nil {
-			break
-		}
-
-		return e.complexity.MyUser.DeletedByUserID(childComplexity), true
 
 	case "MyUser.email":
 		if e.complexity.MyUser.Email == nil {
@@ -517,27 +536,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.MyUser.Role(childComplexity), true
 
-	case "MyUser.updatedAt":
-		if e.complexity.MyUser.UpdatedAt == nil {
-			break
-		}
-
-		return e.complexity.MyUser.UpdatedAt(childComplexity), true
-
-	case "MyUser.updatedBy":
-		if e.complexity.MyUser.UpdatedBy == nil {
-			break
-		}
-
-		return e.complexity.MyUser.UpdatedBy(childComplexity), true
-
-	case "MyUser.updatedByUserId":
-		if e.complexity.MyUser.UpdatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.MyUser.UpdatedByUserID(childComplexity), true
-
 	case "MyUser.username":
 		if e.complexity.MyUser.Username == nil {
 			break
@@ -552,40 +550,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.CreatedAt(childComplexity), true
 
-	case "Preferences.createdBy":
-		if e.complexity.Preferences.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.Preferences.CreatedBy(childComplexity), true
-
-	case "Preferences.createdByUserId":
-		if e.complexity.Preferences.CreatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.Preferences.CreatedByUserID(childComplexity), true
-
 	case "Preferences.deletedAt":
 		if e.complexity.Preferences.DeletedAt == nil {
 			break
 		}
 
 		return e.complexity.Preferences.DeletedAt(childComplexity), true
-
-	case "Preferences.deletedBy":
-		if e.complexity.Preferences.DeletedBy == nil {
-			break
-		}
-
-		return e.complexity.Preferences.DeletedBy(childComplexity), true
-
-	case "Preferences.deletedByUserId":
-		if e.complexity.Preferences.DeletedByUserID == nil {
-			break
-		}
-
-		return e.complexity.Preferences.DeletedByUserID(childComplexity), true
 
 	case "Preferences.enableAutoPlay":
 		if e.complexity.Preferences.EnableAutoPlay == nil {
@@ -692,19 +662,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.UpdatedAt(childComplexity), true
 
-	case "Preferences.updatedBy":
-		if e.complexity.Preferences.UpdatedBy == nil {
+	case "Preferences.user":
+		if e.complexity.Preferences.User == nil {
 			break
 		}
 
-		return e.complexity.Preferences.UpdatedBy(childComplexity), true
-
-	case "Preferences.updatedByUserId":
-		if e.complexity.Preferences.UpdatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.Preferences.UpdatedByUserID(childComplexity), true
+		return e.complexity.Preferences.User(childComplexity), true
 
 	case "Preferences.userId":
 		if e.complexity.Preferences.UserID == nil {
@@ -713,17 +676,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.UserID(childComplexity), true
 
-	case "Query.user":
-		if e.complexity.Query.User == nil {
+	case "Query.findUserById":
+		if e.complexity.Query.FindUserByID == nil {
 			break
 		}
 
-		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_findUserById_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.User(childComplexity, args["userId"].(*string)), true
+		return e.complexity.Query.FindUserByID(childComplexity, args["userId"].(string)), true
+
+	case "Query.findUserByUsername":
+		if e.complexity.Query.FindUserByUsername == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findUserByUsername_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindUserByUsername(childComplexity, args["username"].(string)), true
 
 	case "Show.admins":
 		if e.complexity.Show.Admins == nil {
@@ -1012,6 +987,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Timestamp.Type(childComplexity), true
 
+	case "Timestamp.typeId":
+		if e.complexity.Timestamp.TypeID == nil {
+			break
+		}
+
+		return e.complexity.Timestamp.TypeID(childComplexity), true
+
 	case "Timestamp.updatedAt":
 		if e.complexity.Timestamp.UpdatedAt == nil {
 			break
@@ -1040,40 +1022,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimestampType.CreatedAt(childComplexity), true
 
-	case "TimestampType.createdBy":
-		if e.complexity.TimestampType.CreatedBy == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.CreatedBy(childComplexity), true
-
-	case "TimestampType.createdByUserId":
-		if e.complexity.TimestampType.CreatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.CreatedByUserID(childComplexity), true
-
 	case "TimestampType.deletedAt":
 		if e.complexity.TimestampType.DeletedAt == nil {
 			break
 		}
 
 		return e.complexity.TimestampType.DeletedAt(childComplexity), true
-
-	case "TimestampType.deletedBy":
-		if e.complexity.TimestampType.DeletedBy == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.DeletedBy(childComplexity), true
-
-	case "TimestampType.deletedByUserId":
-		if e.complexity.TimestampType.DeletedByUserID == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.DeletedByUserID(childComplexity), true
 
 	case "TimestampType.description":
 		if e.complexity.TimestampType.Description == nil {
@@ -1102,20 +1056,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TimestampType.UpdatedAt(childComplexity), true
-
-	case "TimestampType.updatedBy":
-		if e.complexity.TimestampType.UpdatedBy == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.UpdatedBy(childComplexity), true
-
-	case "TimestampType.updatedByUserId":
-		if e.complexity.TimestampType.UpdatedByUserID == nil {
-			break
-		}
-
-		return e.complexity.TimestampType.UpdatedByUserID(childComplexity), true
 
 	case "User.adminOfShows":
 		if e.complexity.User.AdminOfShows == nil {
@@ -1264,8 +1204,8 @@ type Episode implements BaseModel {
   number: Int
   absoluteNumber: Int
   name: String
-  show: Show
-  showId: ID
+  show: Show!
+  showId: ID!
   timestamps: [Timestamp!]!
 }
 
@@ -1284,17 +1224,10 @@ type EpisodeUrl {
 }
 
 # MyUser
-type MyUser implements BaseModel {
+type MyUser {
   id: ID!
   createdAt: Time!
-  createdByUserId: ID!
-  createdBy: User!
-  updatedAt: Time!
-  updatedByUserId: ID!
-  updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
-  deletedBy: User
 
   username: String!
   email: String!
@@ -1307,19 +1240,14 @@ type MyUser implements BaseModel {
 }
 
 # Preferences
-type Preferences implements BaseModel {
+type Preferences {
   id: ID!
   createdAt: Time!
-  createdByUserId: ID!
-  createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
-  updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
-  deletedBy: User
 
   userId: ID!
+  user: User!
   enableAutoSkip: Boolean!
   enableAutoPlay: Boolean!
   skipBranding: Boolean!
@@ -1349,7 +1277,7 @@ type Show implements BaseModel {
   deletedBy: User
 
   name: String!
-  originalName: String!
+  originalName: String
   website: String
   image: String
   admins: [ShowAdmin!]!
@@ -1389,23 +1317,19 @@ type Timestamp implements BaseModel {
   deletedBy: User
 
   at: Float!
+  typeId: ID!
   type: TimestampType!
   episodeId: ID!
   epiosde: Episode!
 }
 
 # TimestampType
-type TimestampType implements BaseModel {
+type TimestampType {
   id: ID!
   createdAt: Time!
-  createdByUserId: ID!
-  createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
-  updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
-  deletedBy: User
+
   name: String
   description: String
 }
@@ -1431,7 +1355,8 @@ type User {
 `},
 	&ast.Source{Name: "internal/gql/schemas/queries.graphql", Input: `type Query {
   # Users
-  user(userId: ID): User
+  findUserById(userId: ID!): User
+  findUserByUsername(username: String!): User
 }
 `},
 	&ast.Source{Name: "internal/gql/schemas/scalars.graphql", Input: `scalar Time`},
@@ -1469,17 +1394,31 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_findUserById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 string
 	if tmp, ok := rawArgs["userId"]; ok {
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
 	return args, nil
 }
 
@@ -1643,13 +1582,13 @@ func (ec *executionContext) _Episode_createdBy(ctx context.Context, field graphq
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Episode().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1754,13 +1693,13 @@ func (ec *executionContext) _Episode_updatedBy(ctx context.Context, field graphq
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Episode().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1859,13 +1798,13 @@ func (ec *executionContext) _Episode_deletedBy(ctx context.Context, field graphq
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
+		return ec.resolvers.Episode().DeletedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2042,12 +1981,15 @@ func (ec *executionContext) _Episode_show(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.Show)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐShow(ctx, field.Selections, res)
+	return ec.marshalNShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐShow(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_showId(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
@@ -2076,12 +2018,15 @@ func (ec *executionContext) _Episode_showId(ctx context.Context, field graphql.C
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_timestamps(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
@@ -2245,13 +2190,13 @@ func (ec *executionContext) _EpisodeUrl_createdBy(ctx context.Context, field gra
 		Object:   "EpisodeUrl",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.EpisodeUrl().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2356,13 +2301,13 @@ func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field gra
 		Object:   "EpisodeUrl",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.EpisodeUrl().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2572,191 +2517,6 @@ func (ec *executionContext) _MyUser_createdAt(ctx context.Context, field graphql
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _MyUser_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_createdBy(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(time.Time)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_updatedBy(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _MyUser_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -2789,74 +2549,6 @@ func (ec *executionContext) _MyUser_deletedAt(ctx context.Context, field graphql
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _MyUser_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "MyUser",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MyUser_username(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
@@ -2983,13 +2675,13 @@ func (ec *executionContext) _MyUser_adminOfShows(ctx context.Context, field grap
 		Object:   "MyUser",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AdminOfShows, nil
+		return ec.resolvers.MyUser().AdminOfShows(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3094,13 +2786,13 @@ func (ec *executionContext) _MyUser_preferences(ctx context.Context, field graph
 		Object:   "MyUser",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Preferences, nil
+		return ec.resolvers.MyUser().Preferences(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3192,80 +2884,6 @@ func (ec *executionContext) _Preferences_createdAt(ctx context.Context, field gr
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Preferences_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Preferences_createdBy(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Preferences_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3303,80 +2921,6 @@ func (ec *executionContext) _Preferences_updatedAt(ctx context.Context, field gr
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Preferences_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Preferences_updatedBy(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Preferences_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3409,74 +2953,6 @@ func (ec *executionContext) _Preferences_deletedAt(ctx context.Context, field gr
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Preferences_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Preferences_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Preferences",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_userId(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
@@ -3514,6 +2990,43 @@ func (ec *executionContext) _Preferences_userId(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Preferences_user(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Preferences().User(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_enableAutoSkip(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
@@ -3997,7 +3510,7 @@ func (ec *executionContext) _Preferences_skipTitleCard(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_findUserById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4014,7 +3527,7 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	args, err := ec.field_Query_findUserById_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4023,7 +3536,48 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx, args["userId"].(*string))
+		return ec.resolvers.Query().FindUserByID(rctx, args["userId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findUserByUsername(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findUserByUsername_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindUserByUsername(rctx, args["username"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4237,13 +3791,13 @@ func (ec *executionContext) _Show_createdBy(ctx context.Context, field graphql.C
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Show().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4348,13 +3902,13 @@ func (ec *executionContext) _Show_updatedBy(ctx context.Context, field graphql.C
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Show().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4453,13 +4007,13 @@ func (ec *executionContext) _Show_deletedBy(ctx context.Context, field graphql.C
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
+		return ec.resolvers.Show().DeletedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4537,15 +4091,12 @@ func (ec *executionContext) _Show_originalName(ctx context.Context, field graphq
 		return graphql.Null
 	}
 	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_website(ctx context.Context, field graphql.CollectedField, obj *models.Show) (ret graphql.Marshaler) {
@@ -4629,13 +4180,13 @@ func (ec *executionContext) _Show_admins(ctx context.Context, field graphql.Coll
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Admins, nil
+		return ec.resolvers.Show().Admins(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4666,13 +4217,13 @@ func (ec *executionContext) _Show_episodes(ctx context.Context, field graphql.Co
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Episodes, nil
+		return ec.resolvers.Show().Episodes(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4814,13 +4365,13 @@ func (ec *executionContext) _ShowAdmin_createdBy(ctx context.Context, field grap
 		Object:   "ShowAdmin",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.ShowAdmin().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4925,13 +4476,13 @@ func (ec *executionContext) _ShowAdmin_updatedBy(ctx context.Context, field grap
 		Object:   "ShowAdmin",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.ShowAdmin().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5030,13 +4581,13 @@ func (ec *executionContext) _ShowAdmin_deletedBy(ctx context.Context, field grap
 		Object:   "ShowAdmin",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
+		return ec.resolvers.ShowAdmin().DeletedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5101,13 +4652,13 @@ func (ec *executionContext) _ShowAdmin_show(ctx context.Context, field graphql.C
 		Object:   "ShowAdmin",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Show, nil
+		return ec.resolvers.ShowAdmin().Show(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5175,13 +4726,13 @@ func (ec *executionContext) _ShowAdmin_user(ctx context.Context, field graphql.C
 		Object:   "ShowAdmin",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.ShowAdmin().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5323,13 +4874,13 @@ func (ec *executionContext) _Timestamp_createdBy(ctx context.Context, field grap
 		Object:   "Timestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.Timestamp().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5434,13 +4985,13 @@ func (ec *executionContext) _Timestamp_updatedBy(ctx context.Context, field grap
 		Object:   "Timestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.Timestamp().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5539,13 +5090,13 @@ func (ec *executionContext) _Timestamp_deletedBy(ctx context.Context, field grap
 		Object:   "Timestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
+		return ec.resolvers.Timestamp().DeletedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5597,7 +5148,7 @@ func (ec *executionContext) _Timestamp_at(ctx context.Context, field graphql.Col
 	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Timestamp_type(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
+func (ec *executionContext) _Timestamp_typeId(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -5616,7 +5167,44 @@ func (ec *executionContext) _Timestamp_type(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Type, nil
+		return obj.TypeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Timestamp_type(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Timestamp",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Timestamp().Type(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5782,80 +5370,6 @@ func (ec *executionContext) _TimestampType_createdAt(ctx context.Context, field 
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TimestampType_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TimestampType_createdBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _TimestampType_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -5893,80 +5407,6 @@ func (ec *executionContext) _TimestampType_updatedAt(ctx context.Context, field 
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _TimestampType_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TimestampType_updatedBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _TimestampType_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -5999,74 +5439,6 @@ func (ec *executionContext) _TimestampType_deletedAt(ctx context.Context, field 
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TimestampType_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TimestampType_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "TimestampType",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_name(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
@@ -6369,13 +5741,13 @@ func (ec *executionContext) _User_adminOfShows(ctx context.Context, field graphq
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.AdminOfShows, nil
+		return ec.resolvers.User().AdminOfShows(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7559,20 +6931,6 @@ func (ec *executionContext) _BaseModel(ctx context.Context, sel ast.SelectionSet
 			return graphql.Null
 		}
 		return ec._Episode(ctx, sel, obj)
-	case models.MyUser:
-		return ec._MyUser(ctx, sel, &obj)
-	case *models.MyUser:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._MyUser(ctx, sel, obj)
-	case models.Preferences:
-		return ec._Preferences(ctx, sel, &obj)
-	case *models.Preferences:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._Preferences(ctx, sel, obj)
 	case models.Show:
 		return ec._Show(ctx, sel, &obj)
 	case *models.Show:
@@ -7594,13 +6952,6 @@ func (ec *executionContext) _BaseModel(ctx context.Context, sel ast.SelectionSet
 			return graphql.Null
 		}
 		return ec._Timestamp(ctx, sel, obj)
-	case models.TimestampType:
-		return ec._TimestampType(ctx, sel, &obj)
-	case *models.TimestampType:
-		if obj == nil {
-			return graphql.Null
-		}
-		return ec._TimestampType(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -7624,44 +6975,71 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 		case "id":
 			out.Values[i] = ec._Episode_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Episode_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			out.Values[i] = ec._Episode_createdByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
-			out.Values[i] = ec._Episode_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._Episode_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			out.Values[i] = ec._Episode_updatedByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
-			out.Values[i] = ec._Episode_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "deletedAt":
 			out.Values[i] = ec._Episode_deletedAt(ctx, field, obj)
 		case "deletedByUserId":
 			out.Values[i] = ec._Episode_deletedByUserId(ctx, field, obj)
 		case "deletedBy":
-			out.Values[i] = ec._Episode_deletedBy(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "season":
 			out.Values[i] = ec._Episode_season(ctx, field, obj)
 		case "number":
@@ -7672,12 +7050,18 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Episode_name(ctx, field, obj)
 		case "show":
 			out.Values[i] = ec._Episode_show(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "showId":
 			out.Values[i] = ec._Episode_showId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "timestamps":
 			out.Values[i] = ec._Episode_timestamps(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7704,47 +7088,65 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 		case "url":
 			out.Values[i] = ec._EpisodeUrl_url(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._EpisodeUrl_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			out.Values[i] = ec._EpisodeUrl_createdByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
-			out.Values[i] = ec._EpisodeUrl_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EpisodeUrl_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._EpisodeUrl_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			out.Values[i] = ec._EpisodeUrl_updatedByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
-			out.Values[i] = ec._EpisodeUrl_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EpisodeUrl_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "episodeId":
 			out.Values[i] = ec._EpisodeUrl_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "episode":
 			out.Values[i] = ec._EpisodeUrl_episode(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -7788,7 +7190,7 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 	return out
 }
 
-var myUserImplementors = []string{"MyUser", "BaseModel"}
+var myUserImplementors = []string{"MyUser"}
 
 func (ec *executionContext) _MyUser(ctx context.Context, sel ast.SelectionSet, obj *models.MyUser) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, myUserImplementors)
@@ -7802,79 +7204,68 @@ func (ec *executionContext) _MyUser(ctx context.Context, sel ast.SelectionSet, o
 		case "id":
 			out.Values[i] = ec._MyUser_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._MyUser_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdByUserId":
-			out.Values[i] = ec._MyUser_createdByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdBy":
-			out.Values[i] = ec._MyUser_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedAt":
-			out.Values[i] = ec._MyUser_updatedAt(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedByUserId":
-			out.Values[i] = ec._MyUser_updatedByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedBy":
-			out.Values[i] = ec._MyUser_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "deletedAt":
 			out.Values[i] = ec._MyUser_deletedAt(ctx, field, obj)
-		case "deletedByUserId":
-			out.Values[i] = ec._MyUser_deletedByUserId(ctx, field, obj)
-		case "deletedBy":
-			out.Values[i] = ec._MyUser_deletedBy(ctx, field, obj)
 		case "username":
 			out.Values[i] = ec._MyUser_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._MyUser_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "profileUrl":
 			out.Values[i] = ec._MyUser_profileUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "adminOfShows":
-			out.Values[i] = ec._MyUser_adminOfShows(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MyUser_adminOfShows(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "emailVerified":
 			out.Values[i] = ec._MyUser_emailVerified(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "role":
 			out.Values[i] = ec._MyUser_role(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "preferences":
-			out.Values[i] = ec._MyUser_preferences(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._MyUser_preferences(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -7886,7 +7277,7 @@ func (ec *executionContext) _MyUser(ctx context.Context, sel ast.SelectionSet, o
 	return out
 }
 
-var preferencesImplementors = []string{"Preferences", "BaseModel"}
+var preferencesImplementors = []string{"Preferences"}
 
 func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionSet, obj *models.Preferences) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, preferencesImplementors)
@@ -7900,113 +7291,103 @@ func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionS
 		case "id":
 			out.Values[i] = ec._Preferences_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Preferences_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdByUserId":
-			out.Values[i] = ec._Preferences_createdByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdBy":
-			out.Values[i] = ec._Preferences_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedAt":
 			out.Values[i] = ec._Preferences_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedByUserId":
-			out.Values[i] = ec._Preferences_updatedByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedBy":
-			out.Values[i] = ec._Preferences_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "deletedAt":
 			out.Values[i] = ec._Preferences_deletedAt(ctx, field, obj)
-		case "deletedByUserId":
-			out.Values[i] = ec._Preferences_deletedByUserId(ctx, field, obj)
-		case "deletedBy":
-			out.Values[i] = ec._Preferences_deletedBy(ctx, field, obj)
 		case "userId":
 			out.Values[i] = ec._Preferences_userId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "user":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Preferences_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "enableAutoSkip":
 			out.Values[i] = ec._Preferences_enableAutoSkip(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "enableAutoPlay":
 			out.Values[i] = ec._Preferences_enableAutoPlay(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipBranding":
 			out.Values[i] = ec._Preferences_skipBranding(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipIntros":
 			out.Values[i] = ec._Preferences_skipIntros(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipNewIntros":
 			out.Values[i] = ec._Preferences_skipNewIntros(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipRecaps":
 			out.Values[i] = ec._Preferences_skipRecaps(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipFiller":
 			out.Values[i] = ec._Preferences_skipFiller(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipCanon":
 			out.Values[i] = ec._Preferences_skipCanon(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipTransitions":
 			out.Values[i] = ec._Preferences_skipTransitions(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipCredits":
 			out.Values[i] = ec._Preferences_skipCredits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipMixedCredits":
 			out.Values[i] = ec._Preferences_skipMixedCredits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipPreview":
 			out.Values[i] = ec._Preferences_skipPreview(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "skipTitleCard":
 			out.Values[i] = ec._Preferences_skipTitleCard(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8034,7 +7415,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
-		case "user":
+		case "findUserById":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -8042,7 +7423,18 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_user(ctx, field)
+				res = ec._Query_findUserById(ctx, field)
+				return res
+			})
+		case "findUserByUsername":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findUserByUsername(ctx, field)
 				return res
 			})
 		case "__type":
@@ -8074,68 +7466,110 @@ func (ec *executionContext) _Show(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._Show_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Show_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			out.Values[i] = ec._Show_createdByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
-			out.Values[i] = ec._Show_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._Show_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			out.Values[i] = ec._Show_updatedByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
-			out.Values[i] = ec._Show_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "deletedAt":
 			out.Values[i] = ec._Show_deletedAt(ctx, field, obj)
 		case "deletedByUserId":
 			out.Values[i] = ec._Show_deletedByUserId(ctx, field, obj)
 		case "deletedBy":
-			out.Values[i] = ec._Show_deletedBy(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "name":
 			out.Values[i] = ec._Show_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "originalName":
 			out.Values[i] = ec._Show_originalName(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "website":
 			out.Values[i] = ec._Show_website(ctx, field, obj)
 		case "image":
 			out.Values[i] = ec._Show_image(ctx, field, obj)
 		case "admins":
-			out.Values[i] = ec._Show_admins(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_admins(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "episodes":
-			out.Values[i] = ec._Show_episodes(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_episodes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8161,64 +7595,109 @@ func (ec *executionContext) _ShowAdmin(ctx context.Context, sel ast.SelectionSet
 		case "id":
 			out.Values[i] = ec._ShowAdmin_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._ShowAdmin_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			out.Values[i] = ec._ShowAdmin_createdByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
-			out.Values[i] = ec._ShowAdmin_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ShowAdmin_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._ShowAdmin_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			out.Values[i] = ec._ShowAdmin_updatedByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
-			out.Values[i] = ec._ShowAdmin_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ShowAdmin_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "deletedAt":
 			out.Values[i] = ec._ShowAdmin_deletedAt(ctx, field, obj)
 		case "deletedByUserId":
 			out.Values[i] = ec._ShowAdmin_deletedByUserId(ctx, field, obj)
 		case "deletedBy":
-			out.Values[i] = ec._ShowAdmin_deletedBy(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ShowAdmin_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "showId":
 			out.Values[i] = ec._ShowAdmin_showId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "show":
-			out.Values[i] = ec._ShowAdmin_show(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ShowAdmin_show(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "userId":
 			out.Values[i] = ec._ShowAdmin_userId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
-			out.Values[i] = ec._ShowAdmin_user(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ShowAdmin_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8244,63 +7723,104 @@ func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet
 		case "id":
 			out.Values[i] = ec._Timestamp_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._Timestamp_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			out.Values[i] = ec._Timestamp_createdByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
-			out.Values[i] = ec._Timestamp_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Timestamp_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._Timestamp_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			out.Values[i] = ec._Timestamp_updatedByUserId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
-			out.Values[i] = ec._Timestamp_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Timestamp_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "deletedAt":
 			out.Values[i] = ec._Timestamp_deletedAt(ctx, field, obj)
 		case "deletedByUserId":
 			out.Values[i] = ec._Timestamp_deletedByUserId(ctx, field, obj)
 		case "deletedBy":
-			out.Values[i] = ec._Timestamp_deletedBy(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Timestamp_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "at":
 			out.Values[i] = ec._Timestamp_at(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "typeId":
+			out.Values[i] = ec._Timestamp_typeId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "type":
-			out.Values[i] = ec._Timestamp_type(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Timestamp_type(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "episodeId":
 			out.Values[i] = ec._Timestamp_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "epiosde":
 			out.Values[i] = ec._Timestamp_epiosde(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -8313,7 +7833,7 @@ func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var timestampTypeImplementors = []string{"TimestampType", "BaseModel"}
+var timestampTypeImplementors = []string{"TimestampType"}
 
 func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.SelectionSet, obj *models.TimestampType) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, timestampTypeImplementors)
@@ -8334,37 +7854,13 @@ func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createdByUserId":
-			out.Values[i] = ec._TimestampType_createdByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "createdBy":
-			out.Values[i] = ec._TimestampType_createdBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "updatedAt":
 			out.Values[i] = ec._TimestampType_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "updatedByUserId":
-			out.Values[i] = ec._TimestampType_updatedByUserId(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
-		case "updatedBy":
-			out.Values[i] = ec._TimestampType_updatedBy(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "deletedAt":
 			out.Values[i] = ec._TimestampType_deletedAt(ctx, field, obj)
-		case "deletedByUserId":
-			out.Values[i] = ec._TimestampType_deletedByUserId(ctx, field, obj)
-		case "deletedBy":
-			out.Values[i] = ec._TimestampType_deletedBy(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._TimestampType_name(ctx, field, obj)
 		case "description":
@@ -8394,35 +7890,44 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._User_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._User_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "deletedAt":
 			out.Values[i] = ec._User_deletedAt(ctx, field, obj)
 		case "username":
 			out.Values[i] = ec._User_username(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "email":
 			out.Values[i] = ec._User_email(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "profileUrl":
 			out.Values[i] = ec._User_profileUrl(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "adminOfShows":
-			out.Values[i] = ec._User_adminOfShows(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_adminOfShows(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9260,17 +8765,6 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
-}
-
-func (ec *executionContext) marshalOShow2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐShow(ctx context.Context, sel ast.SelectionSet, v models.Show) graphql.Marshaler {
-	return ec._Show(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐShow(ctx context.Context, sel ast.SelectionSet, v *models.Show) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Show(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

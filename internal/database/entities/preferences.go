@@ -1,11 +1,19 @@
-package models
+package entities
 
-import "github.com/gofrs/uuid"
+import (
+	"time"
+
+	"github.com/gofrs/uuid"
+)
 
 // Preferences represents the user's settings and configuration
 type Preferences struct {
-	BaseModel
-	UserID           uuid.UUID
+	ID        uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
+	createdAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	updatedAt time.Time `gorm:"not null"`
+	deletedAt *time.Time
+
+	UserID           uuid.UUID `gorm:"not null;type:uuid"`
 	EnableAutoSkip   bool
 	EnableAutoPlay   bool
 	SkipBranding     bool

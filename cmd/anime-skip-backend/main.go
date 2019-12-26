@@ -10,9 +10,10 @@ import (
 
 func main() {
 	log.V("Starting server")
+	now := time.Now()
 	orm, err := database.Factory()
 	if err != nil {
 		log.Panic(err)
 	}
-	server.Run(orm, time.Now())
+	server.Run(orm, now)
 }

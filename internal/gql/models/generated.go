@@ -29,7 +29,7 @@ type Episode struct {
 	AbsoluteNumber  *int         `json:"absoluteNumber"`
 	Name            *string      `json:"name"`
 	Show            *Show        `json:"show"`
-	ShowID          *string      `json:"showId"`
+	ShowID          string       `json:"showId"`
 	Timestamps      []*Timestamp `json:"timestamps"`
 }
 
@@ -48,39 +48,25 @@ type EpisodeURL struct {
 }
 
 type MyUser struct {
-	ID              string       `json:"id"`
-	CreatedAt       time.Time    `json:"createdAt"`
-	CreatedByUserID string       `json:"createdByUserId"`
-	CreatedBy       *User        `json:"createdBy"`
-	UpdatedAt       time.Time    `json:"updatedAt"`
-	UpdatedByUserID string       `json:"updatedByUserId"`
-	UpdatedBy       *User        `json:"updatedBy"`
-	DeletedAt       *time.Time   `json:"deletedAt"`
-	DeletedByUserID *string      `json:"deletedByUserId"`
-	DeletedBy       *User        `json:"deletedBy"`
-	Username        string       `json:"username"`
-	Email           string       `json:"email"`
-	ProfileURL      string       `json:"profileUrl"`
-	AdminOfShows    []*ShowAdmin `json:"adminOfShows"`
-	EmailVerified   bool         `json:"emailVerified"`
-	Role            Role         `json:"role"`
-	Preferences     *Preferences `json:"preferences"`
+	ID            string       `json:"id"`
+	CreatedAt     time.Time    `json:"createdAt"`
+	DeletedAt     *time.Time   `json:"deletedAt"`
+	Username      string       `json:"username"`
+	Email         string       `json:"email"`
+	ProfileURL    string       `json:"profileUrl"`
+	AdminOfShows  []*ShowAdmin `json:"adminOfShows"`
+	EmailVerified bool         `json:"emailVerified"`
+	Role          Role         `json:"role"`
+	Preferences   *Preferences `json:"preferences"`
 }
-
-func (MyUser) IsBaseModel() {}
 
 type Preferences struct {
 	ID               string     `json:"id"`
 	CreatedAt        time.Time  `json:"createdAt"`
-	CreatedByUserID  string     `json:"createdByUserId"`
-	CreatedBy        *User      `json:"createdBy"`
 	UpdatedAt        time.Time  `json:"updatedAt"`
-	UpdatedByUserID  string     `json:"updatedByUserId"`
-	UpdatedBy        *User      `json:"updatedBy"`
 	DeletedAt        *time.Time `json:"deletedAt"`
-	DeletedByUserID  *string    `json:"deletedByUserId"`
-	DeletedBy        *User      `json:"deletedBy"`
 	UserID           string     `json:"userId"`
+	User             *User      `json:"user"`
 	EnableAutoSkip   bool       `json:"enableAutoSkip"`
 	EnableAutoPlay   bool       `json:"enableAutoPlay"`
 	SkipBranding     bool       `json:"skipBranding"`
@@ -96,8 +82,6 @@ type Preferences struct {
 	SkipTitleCard    bool       `json:"skipTitleCard"`
 }
 
-func (Preferences) IsBaseModel() {}
-
 type Show struct {
 	ID              string       `json:"id"`
 	CreatedAt       time.Time    `json:"createdAt"`
@@ -110,7 +94,7 @@ type Show struct {
 	DeletedByUserID *string      `json:"deletedByUserId"`
 	DeletedBy       *User        `json:"deletedBy"`
 	Name            string       `json:"name"`
-	OriginalName    string       `json:"originalName"`
+	OriginalName    *string      `json:"originalName"`
 	Website         *string      `json:"website"`
 	Image           *string      `json:"image"`
 	Admins          []*ShowAdmin `json:"admins"`
@@ -150,6 +134,7 @@ type Timestamp struct {
 	DeletedByUserID *string        `json:"deletedByUserId"`
 	DeletedBy       *User          `json:"deletedBy"`
 	At              float64        `json:"at"`
+	TypeID          string         `json:"typeId"`
 	Type            *TimestampType `json:"type"`
 	EpisodeID       string         `json:"episodeId"`
 	Epiosde         *Episode       `json:"epiosde"`
@@ -158,21 +143,13 @@ type Timestamp struct {
 func (Timestamp) IsBaseModel() {}
 
 type TimestampType struct {
-	ID              string     `json:"id"`
-	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
-	CreatedBy       *User      `json:"createdBy"`
-	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
-	UpdatedBy       *User      `json:"updatedBy"`
-	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
-	DeletedBy       *User      `json:"deletedBy"`
-	Name            *string    `json:"name"`
-	Description     *string    `json:"description"`
+	ID          string     `json:"id"`
+	CreatedAt   time.Time  `json:"createdAt"`
+	UpdatedAt   time.Time  `json:"updatedAt"`
+	DeletedAt   *time.Time `json:"deletedAt"`
+	Name        *string    `json:"name"`
+	Description *string    `json:"description"`
 }
-
-func (TimestampType) IsBaseModel() {}
 
 type User struct {
 	ID           string       `json:"id"`

@@ -2,23 +2,26 @@ package resolvers
 
 import (
 	"context"
-	"time"
+	"fmt"
 
+	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
 )
 
-func (r *mutationResolver) DeleteUser(ctx context.Context, userID string) (bool, error) {
-	panic("not implemented")
+type userResolver struct{ *Resolver }
+
+func (r *userResolver) AdminOfShows(ctx context.Context, obj *models.User) ([]*models.ShowAdmin, error) {
+	return nil, fmt.Errorf("Not implemented")
 }
 
-func (r *queryResolver) User(ctx context.Context, userID *string) (*models.User, error) {
-	return &models.User{
-		ID:           "ec17af15-e354-440c-a09f-69715fc8b595",
-		Email:        "your@email.com",
-		CreatedAt:    time.Now(),
-		DeletedAt:    nil,
-		Username:     "example",
-		ProfileURL:   "https://avatars3.githubusercontent.com/u/10101283?s=400&u=2f2037a55606ae978d3088de69584af3586a70cf&v=4",
-		AdminOfShows: []*models.ShowAdmin{},
-	}, nil
+func (r *queryResolver) FindUserByID(ctx context.Context, userID string) (*models.User, error) {
+	return repos.FindUserByID(ctx, r.ORM, userID)
+}
+
+func (r *queryResolver) FindUserByUsername(ctx context.Context, userID string) (*models.User, error) {
+	return repos.FindUserByUsername(ctx, r.ORM, userID)
+}
+
+func (r *mutationResolver) DeleteUser(ctx context.Context, userID string) (bool, error) {
+	return false, fmt.Errorf("Not implemented")
 }
