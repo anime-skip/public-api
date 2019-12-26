@@ -24,7 +24,7 @@ var adminUser = &entities.User{
 var SeedAdminUser *gormigrate.Migration = &gormigrate.Migration{
 	ID: "SEED_ADMIN_USER",
 	Migrate: func(db *gorm.DB) error {
-		command := fmt.Sprintf(
+		createUser := fmt.Sprintf(
 			"INSERT INTO public.users(id, created_at, username, email, password_hash, profile_url, email_verified, role) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', %t, %d);",
 			adminUser.ID.String(),
 			"2019-12-25 17:35:37.485712-06",
@@ -35,7 +35,16 @@ var SeedAdminUser *gormigrate.Migration = &gormigrate.Migration{
 			adminUser.EmailVerified,
 			adminUser.Role,
 		)
-		return db.Exec(command).Error
+		db.Exec(createUser)
+
+		createPreferences := fmt.Sprintf(
+			"INSERT INTO public.preferences(id, user_id, created_at, updated_at) VALUES ('%s', '%s', '%s', '%s');",
+			adminUser.ID.String(),
+			adminUser.ID.String(),
+			"2019-12-25 17:35:37.485712-06",
+			"2019-12-25 17:35:37.485712-06",
+		)
+		return db.Exec(createPreferences).Error
 	},
 	Rollback: func(db *gorm.DB) error {
 		return db.Delete(adminUser).Error

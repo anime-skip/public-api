@@ -9,9 +9,9 @@ import (
 // Preferences represents the user's settings and configuration
 type Preferences struct {
 	ID        uuid.UUID `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	createdAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	updatedAt time.Time `gorm:"not null"`
-	deletedAt *time.Time
+	CreatedAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	UpdatedAt time.Time `gorm:"not null"`
+	DeletedAt *time.Time
 
 	UserID           uuid.UUID `gorm:"not null;type:uuid"`
 	EnableAutoSkip   bool

@@ -2,8 +2,8 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
 )
 
@@ -16,5 +16,5 @@ type preferencesResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *preferencesResolver) User(ctx context.Context, obj *models.Preferences) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented")
+	return repos.FindUserByID(ctx, r.ORM, obj.UserID)
 }
