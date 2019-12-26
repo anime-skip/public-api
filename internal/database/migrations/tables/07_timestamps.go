@@ -22,8 +22,7 @@ var CreateTimestampsTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-	},
-	[]string{
+		"",
 		"ALTER TABLE public.timestamps",
 		"    OWNER to postgres;",
 	},

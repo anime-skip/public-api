@@ -21,12 +21,10 @@ var CreateUsersTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-	},
-	[]string{
+		"",
 		"ALTER TABLE public.users",
 		"    OWNER to postgres;",
-	},
-	[]string{
+		"",
 		"CREATE UNIQUE INDEX \"user_username\"",
 		"    ON public.users USING btree",
 		"    (\"username\" ASC NULLS LAST);",

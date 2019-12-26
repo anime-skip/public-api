@@ -27,8 +27,7 @@ var CreatePreferencesTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-	},
-	[]string{
+		"",
 		"ALTER TABLE public.preferences",
 		"    OWNER to postgres;",
 	},

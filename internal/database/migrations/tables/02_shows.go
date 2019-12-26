@@ -23,8 +23,7 @@ var CreateShowsTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-	},
-	[]string{
+		"",
 		"ALTER TABLE public.shows",
 		"    OWNER to postgres;",
 	},

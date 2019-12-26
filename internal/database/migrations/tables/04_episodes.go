@@ -24,8 +24,7 @@ var CreateEpisodesTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-	},
-	[]string{
+		"",
 		"ALTER TABLE public.episodes",
 		"    OWNER to postgres;",
 	},
