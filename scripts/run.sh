@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 source scripts/_utils.sh
 
 loadENV

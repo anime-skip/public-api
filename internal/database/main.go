@@ -35,7 +35,6 @@ func init() {
 		sslmode,
 	)
 	seedDB = utils.EnvBool("POSTGRES_ENABLE_SEEDING")
-	autoMigrate = utils.EnvBool("POSTGRES_ENABLE_AUTO_MIGRATE")
 }
 
 // Factory creates a db connection and returns the pointer to the GORM instance
@@ -54,9 +53,7 @@ func Factory() (*ORM, error) {
 
 	// Automigrate tables
 	log.V("Running migrations if necessary")
-	if autoMigrate {
-		err = migrations.ServiceAutoMigration(orm.DB)
-	}
+	err = migrations.Run(orm.DB)
 
 	fmt.Println()
 	return orm, err

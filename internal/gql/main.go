@@ -1359,7 +1359,8 @@ type User {
   findUserByUsername(username: String!): User
 }
 `},
-	&ast.Source{Name: "internal/gql/schemas/scalars.graphql", Input: `scalar Time`},
+	&ast.Source{Name: "internal/gql/schemas/scalars.graphql", Input: `scalar Time
+`},
 )
 
 // endregion ************************** generated!.gotpl **************************
