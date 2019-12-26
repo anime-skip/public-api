@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-var host, port, graphqlPath, playgroundPath string
+var host, port, graphqlPath string
 var enablePlayground, isDev bool
 
 func init() {
@@ -17,7 +17,6 @@ func init() {
 	port = utils.EnvString("PORT")
 	graphqlPath = "/graphql"
 	enablePlayground = utils.EnvBool("ENABLE_PLAYGROUND")
-	playgroundPath = utils.EnvString("PLAYGROUND_PATH")
 	isDev = utils.EnvBool("IS_DEV")
 }
 
@@ -34,7 +33,7 @@ func Run(orm *database.ORM, startedAt time.Time) {
 
 	// GraphQL endpoints
 	if enablePlayground {
-		server.GET(playgroundPath, handlers.PlaygroundHandler(graphqlPath))
+		server.GET("/graphiql", handlers.PlaygroundHandler(graphqlPath))
 	}
 	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 

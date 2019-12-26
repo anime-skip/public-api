@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 INPUT="cmd/anime-skip-backend/main.go"
 OUTPUT="build/anime-skip-backend"
