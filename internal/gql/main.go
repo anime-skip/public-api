@@ -127,6 +127,7 @@ type ComplexityRoot struct {
 	Query struct {
 		FindUserByID       func(childComplexity int, userID string) int
 		FindUserByUsername func(childComplexity int, username string) int
+		MyUser             func(childComplexity int, username string) int
 	}
 
 	Show struct {
@@ -227,6 +228,7 @@ type PreferencesResolver interface {
 	User(ctx context.Context, obj *models.Preferences) (*models.User, error)
 }
 type QueryResolver interface {
+	MyUser(ctx context.Context, username string) (*models.MyUser, error)
 	FindUserByID(ctx context.Context, userID string) (*models.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*models.User, error)
 }
@@ -699,6 +701,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindUserByUsername(childComplexity, args["username"].(string)), true
+
+	case "Query.myUser":
+		if e.complexity.Query.MyUser == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myUser_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyUser(childComplexity, args["username"].(string)), true
 
 	case "Show.admins":
 		if e.complexity.Show.Admins == nil {
@@ -1355,6 +1369,7 @@ type User {
 `},
 	&ast.Source{Name: "internal/gql/schemas/queries.graphql", Input: `type Query {
   # Users
+  myUser(username: String!): MyUser
   findUserById(userId: ID!): User
   findUserByUsername(username: String!): User
 }
@@ -1410,6 +1425,20 @@ func (ec *executionContext) field_Query_findUserById_args(ctx context.Context, r
 }
 
 func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -3509,6 +3538,47 @@ func (ec *executionContext) _Preferences_skipTitleCard(ctx context.Context, fiel
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_myUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_myUser_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().MyUser(rctx, args["username"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.MyUser)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOMyUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐMyUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findUserById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7416,6 +7486,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "myUser":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myUser(ctx, field)
+				return res
+			})
 		case "findUserById":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -8766,6 +8847,17 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOMyUser2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐMyUser(ctx context.Context, sel ast.SelectionSet, v models.MyUser) graphql.Marshaler {
+	return ec._MyUser(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOMyUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgqlᚋmodelsᚐMyUser(ctx context.Context, sel ast.SelectionSet, v *models.MyUser) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._MyUser(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
