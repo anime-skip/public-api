@@ -17,3 +17,75 @@ resolver:
   package: resolvers
 
 autobind: []
+
+models:
+  Episode:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+  EpisodeUrl:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+  MyUser:
+    fields:
+      adminOfShows: 
+        resolver: true
+      preferences: 
+        resolver: true
+  Preferences:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      user:
+        resolver: true
+  Show:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      admins:
+        resolver: true
+      episodes:
+        resolver: true
+  ShowAdmin:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      show:
+        resolver: true
+      user:
+        resolver: true
+  Timestamp:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      type:
+        resolver: true
+      episode:
+        resolver: true
+  User:
+    fields:
+      adminOfShows:
+        resolver: true

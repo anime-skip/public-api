@@ -7,7 +7,9 @@
         "graphql",
         "jinzhu",
         "postgres",
+        "repos",
         "structs",
         "uuid"
-    ]
+    ],
+    "editor.tabSize": 2
 }

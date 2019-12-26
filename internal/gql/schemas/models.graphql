@@ -1,12 +1,171 @@
-# User
-type User {
-  id: ID
-  email: String
-  userId: String
+interface BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
 }
-input UserInput {
-  email: String
-  userId: String
+
+# Episode
+type Episode implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  season: Int
+  number: Int
+  absoluteNumber: Int
+  name: String
+  show: Show!
+  showId: ID!
+  timestamps: [Timestamp!]!
+}
+
+# EpisodeUrl
+type EpisodeUrl {
+  url: String!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+
+  episodeId: ID!
+  episode: Episode!
+}
+
+# MyUser
+type MyUser {
+  id: ID!
+  createdAt: Time!
+  deletedAt: Time
+
+  username: String!
+  email: String!
+  profileUrl: String!
+  adminOfShows: [ShowAdmin!]!
+
+  emailVerified: Boolean!
+  role: Role!
+  preferences: Preferences!
 }
 
 # Preferences
+type Preferences {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+
+  userId: ID!
+  user: User!
+  enableAutoSkip: Boolean!
+  enableAutoPlay: Boolean!
+  skipBranding: Boolean!
+  skipIntros: Boolean!
+  skipNewIntros: Boolean!
+  skipRecaps: Boolean!
+  skipFiller: Boolean!
+  skipCanon: Boolean!
+  skipTransitions: Boolean!
+  skipCredits: Boolean!
+  skipMixedCredits: Boolean!
+  skipPreview: Boolean!
+  skipTitleCard: Boolean!
+}
+
+# Show
+type Show implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  name: String!
+  originalName: String
+  website: String
+  image: String
+  admins: [ShowAdmin!]!
+  episodes: [Episode!]!
+}
+
+# ShowAdmin 
+type ShowAdmin implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  showId: ID!
+  show: Show!
+  userId: ID!
+  user: User!
+}
+
+# Timestamp
+type Timestamp implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  at: Float!
+  typeId: ID!
+  type: TimestampType!
+  episodeId: ID!
+  epiosde: Episode!
+}
+
+# TimestampType
+type TimestampType {
+  id: ID!
+  createdAt: Time!
+  updatedAt: Time!
+  deletedAt: Time
+
+  name: String
+  description: String
+}
+
+# User
+type User {
+  id: ID!
+  createdAt: Time!
+  deletedAt: Time
+
+  username: String!
+  email: String!
+  profileUrl: String!
+  adminOfShows: [ShowAdmin!]!
+}
