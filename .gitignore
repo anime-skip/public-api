@@ -1,3 +1,0 @@
-build/
-.env
-internal/graphql/resolvers/update_then_delete_me.go

@@ -1,6 +1,6 @@
 type Query {
   # Users
-  myUser(): MyUser
+  myUser: MyUser
   findUserById(userId: ID!): User
   findUserByUsername(username: String!): User
 }
