@@ -13,3 +13,7 @@ watch:
 .PHONY: gqlgen
 gqlgen:
 	@./scripts/gqlgen.sh
+
+.PHONY: clean
+clean:
+	@go clean --modcache
