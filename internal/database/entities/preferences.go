@@ -19,11 +19,13 @@ type Preferences struct {
 	SkipBranding     bool
 	SkipIntros       bool
 	SkipNewIntros    bool
+	SkipMixedIntros  bool
 	SkipRecaps       bool
 	SkipFiller       bool
 	SkipCanon        bool
 	SkipTransitions  bool
 	SkipCredits      bool
+	SkipNewCredits   bool
 	SkipMixedCredits bool
 	SkipPreview      bool
 	SkipTitleCard    bool

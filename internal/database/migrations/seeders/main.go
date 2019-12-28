@@ -7,7 +7,6 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-var adminUUID = uuid.FromStringOrNil("00000000-0000-0000-0000-000000000000")
 var now = time.Now()
 
 func basicEntity(id uuid.UUID) entities.BaseEntity {

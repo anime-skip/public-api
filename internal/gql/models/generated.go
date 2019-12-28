@@ -72,11 +72,13 @@ type Preferences struct {
 	SkipBranding     bool       `json:"skipBranding"`
 	SkipIntros       bool       `json:"skipIntros"`
 	SkipNewIntros    bool       `json:"skipNewIntros"`
+	SkipMixedIntros  bool       `json:"skipMixedIntros"`
 	SkipRecaps       bool       `json:"skipRecaps"`
 	SkipFiller       bool       `json:"skipFiller"`
 	SkipCanon        bool       `json:"skipCanon"`
 	SkipTransitions  bool       `json:"skipTransitions"`
 	SkipCredits      bool       `json:"skipCredits"`
+	SkipNewCredits   bool       `json:"skipNewCredits"`
 	SkipMixedCredits bool       `json:"skipMixedCredits"`
 	SkipPreview      bool       `json:"skipPreview"`
 	SkipTitleCard    bool       `json:"skipTitleCard"`
