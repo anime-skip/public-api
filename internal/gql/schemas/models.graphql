@@ -77,11 +77,13 @@ type Preferences {
   skipBranding: Boolean!
   skipIntros: Boolean!
   skipNewIntros: Boolean!
+  skipMixedIntros: Boolean!
   skipRecaps: Boolean!
   skipFiller: Boolean!
   skipCanon: Boolean!
   skipTransitions: Boolean!
   skipCredits: Boolean!
+  skipNewCredits: Boolean!
   skipMixedCredits: Boolean!
   skipPreview: Boolean!
   skipTitleCard: Boolean!

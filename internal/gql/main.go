@@ -114,6 +114,8 @@ type ComplexityRoot struct {
 		SkipFiller       func(childComplexity int) int
 		SkipIntros       func(childComplexity int) int
 		SkipMixedCredits func(childComplexity int) int
+		SkipMixedIntros  func(childComplexity int) int
+		SkipNewCredits   func(childComplexity int) int
 		SkipNewIntros    func(childComplexity int) int
 		SkipPreview      func(childComplexity int) int
 		SkipRecaps       func(childComplexity int) int
@@ -621,6 +623,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Preferences.SkipMixedCredits(childComplexity), true
+
+	case "Preferences.skipMixedIntros":
+		if e.complexity.Preferences.SkipMixedIntros == nil {
+			break
+		}
+
+		return e.complexity.Preferences.SkipMixedIntros(childComplexity), true
+
+	case "Preferences.skipNewCredits":
+		if e.complexity.Preferences.SkipNewCredits == nil {
+			break
+		}
+
+		return e.complexity.Preferences.SkipNewCredits(childComplexity), true
 
 	case "Preferences.skipNewIntros":
 		if e.complexity.Preferences.SkipNewIntros == nil {
@@ -1267,11 +1283,13 @@ type Preferences {
   skipBranding: Boolean!
   skipIntros: Boolean!
   skipNewIntros: Boolean!
+  skipMixedIntros: Boolean!
   skipRecaps: Boolean!
   skipFiller: Boolean!
   skipCanon: Boolean!
   skipTransitions: Boolean!
   skipCredits: Boolean!
+  skipNewCredits: Boolean!
   skipMixedCredits: Boolean!
   skipPreview: Boolean!
   skipTitleCard: Boolean!
@@ -3244,6 +3262,43 @@ func (ec *executionContext) _Preferences_skipNewIntros(ctx context.Context, fiel
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Preferences_skipMixedIntros(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SkipMixedIntros, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Preferences_skipRecaps(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3412,6 +3467,43 @@ func (ec *executionContext) _Preferences_skipCredits(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.SkipCredits, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Preferences_skipNewCredits(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.SkipNewCredits, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7420,6 +7512,11 @@ func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionS
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "skipMixedIntros":
+			out.Values[i] = ec._Preferences_skipMixedIntros(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "skipRecaps":
 			out.Values[i] = ec._Preferences_skipRecaps(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -7442,6 +7539,11 @@ func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionS
 			}
 		case "skipCredits":
 			out.Values[i] = ec._Preferences_skipCredits(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "skipNewCredits":
+			out.Values[i] = ec._Preferences_skipNewCredits(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}

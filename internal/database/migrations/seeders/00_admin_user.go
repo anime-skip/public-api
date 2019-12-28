@@ -4,10 +4,12 @@ import (
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
+	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
 )
 
+var adminUUID = uuid.FromStringOrNil("00000000-0000-0000-0000-000000000000")
 var adminUser = &entities.User{
 	ID:            adminUUID,
 	CreatedAt:     now,
