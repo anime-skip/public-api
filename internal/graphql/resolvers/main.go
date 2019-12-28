@@ -2,7 +2,7 @@ package resolvers
 
 import (
 	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/gql"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql"
 )
 
 // Resolver stores the instance of gorm so it can be accessed in each of the resolvers
