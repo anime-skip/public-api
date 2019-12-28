@@ -1,13 +1,28 @@
 package resolvers
 
 import (
+	"context"
+
 	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/gql"
+	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
+	"github.com/aklinker1/anime-skip-backend/pkg/utils/constants"
 )
 
 // Resolver stores the instance of gorm so it can be accessed in each of the resolvers
 type Resolver struct {
-	ORM *database.ORM
+	orm *database.ORM
+}
+
+func ResolverWithORM(orm *database.ORM) *Resolver {
+	return &Resolver{
+		orm: orm,
+	}
+}
+
+func (r *Resolver) ORM(ctx context.Context) *database.ORM {
+	userID := "00000000-0000-0000-0000-000000000000" // ctx.Value(constants.USER_ID_FROM_TOKEN).(string)
+	r.orm.DB = r.orm.DB.Set(constants.USER_ID_FROM_TOKEN, userID)
+	return r.orm
 }
 
 func (r *Resolver) Episode() gql.EpisodeResolver {

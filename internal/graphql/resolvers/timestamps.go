@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
 // Query Resolvers
@@ -16,15 +16,15 @@ type timestampResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *timestampResolver) CreatedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented")
+	return userByID(ctx, r.ORM(ctx), obj.CreatedByUserID)
 }
 
 func (r *timestampResolver) UpdatedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented")
+	return userByID(ctx, r.ORM(ctx), obj.UpdatedByUserID)
 }
 
 func (r *timestampResolver) DeletedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error) {
-	return nil, fmt.Errorf("not implemented")
+	return deletedUserByID(ctx, r.ORM(ctx), obj.DeletedByUserID)
 }
 
 func (r *timestampResolver) Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error) {

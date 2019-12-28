@@ -1,18 +1,18 @@
 # Refer to https://gqlgen.com/config/ for more config
 
 schema:
-  - internal/gql/schemas/*.graphql
+  - internal/graphql/schemas/*.graphql
 
 exec:
-  filename: internal/gql/main.go
+  filename: internal/graphql/main.go
   package: gql
 
 model:
-  filename: internal/gql/models/generated.go
+  filename: internal/graphql/models/generated.go
   package: models
   
 resolver:
-  filename: internal/gql/resolvers/update_then_delete_me.go
+  filename: internal/graphql/resolvers/update_then_delete_me.go
   type: Resolver
   package: resolvers
 

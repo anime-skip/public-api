@@ -20,7 +20,7 @@ func EnvString(k string) string {
 func EnvBool(k string) bool {
 	v := os.Getenv(k)
 	if v == "" {
-		log.D("%s missing from ENV, defaulting to false", k)
+		log.W("%s missing from ENV, defaulting to false", k)
 		return false
 	}
 	b, err := strconv.ParseBool(v)

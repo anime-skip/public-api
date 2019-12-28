@@ -3,8 +3,7 @@ package resolvers
 import (
 	"context"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
 // Query Resolvers
@@ -16,13 +15,13 @@ type episodeResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *episodeResolver) CreatedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.CreatedByUserID)
+	return userByID(ctx, r.ORM(ctx), obj.CreatedByUserID)
 }
 
 func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.UpdatedByUserID)
+	return userByID(ctx, r.ORM(ctx), obj.UpdatedByUserID)
 }
 
 func (r *episodeResolver) DeletedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return repos.FindUserByIDPtr(ctx, r.ORM, obj.DeletedByUserID)
+	return deletedUserByID(ctx, r.ORM(ctx), obj.DeletedByUserID)
 }

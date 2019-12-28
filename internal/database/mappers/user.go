@@ -2,17 +2,20 @@ package mappers
 
 import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
 // UserModelToEntity -
-func UserModelToEntity(model *models.User) (*entities.User, error) {
-	return nil, nil
+func UserModelToEntity(model *models.User) *entities.User {
+	return nil
 }
 
 // UserEntityToModel -
-func UserEntityToModel(entity *entities.User) (*models.User, error) {
-	model := &models.User{
+func UserEntityToModel(entity *entities.User) *models.User {
+	if entity == nil {
+		return nil
+	}
+	return &models.User{
 		ID:           entity.ID.String(),
 		CreatedAt:    entity.CreatedAt,
 		DeletedAt:    entity.DeletedAt,
@@ -21,12 +24,14 @@ func UserEntityToModel(entity *entities.User) (*models.User, error) {
 		ProfileURL:   entity.ProfileURL,
 		AdminOfShows: nil,
 	}
-	return model, nil
 }
 
 // UserEntityToMyUserModel -
-func UserEntityToMyUserModel(entity *entities.User) (*models.MyUser, error) {
-	myUserModel := &models.MyUser{
+func UserEntityToMyUserModel(entity *entities.User) *models.MyUser {
+	if entity == nil {
+		return nil
+	}
+	return &models.MyUser{
 		ID:            entity.ID.String(),
 		CreatedAt:     entity.CreatedAt,
 		DeletedAt:     entity.DeletedAt,
@@ -38,5 +43,4 @@ func UserEntityToMyUserModel(entity *entities.User) (*models.MyUser, error) {
 		Role:          models.RoleAdmin, // TODO - entity.Role,
 		Preferences:   nil,
 	}
-	return myUserModel, nil
 }
