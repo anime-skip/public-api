@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
@@ -13,7 +14,9 @@ import (
 type myUserResolver struct{ *Resolver }
 
 func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
-	return repos.FindMyUser(ctx, r.ORM)
+	userID := "00000000-0000-0000-0000-000000000000"
+	user, err := repos.FindUserByID(ctx, r.ORM(ctx), userID)
+	return mappers.UserEntityToMyUserModel(user), err
 }
 
 // Mutation Resolvers
@@ -25,5 +28,6 @@ func (r *myUserResolver) AdminOfShows(ctx context.Context, obj *models.MyUser) (
 }
 
 func (r *myUserResolver) Preferences(ctx context.Context, obj *models.MyUser) (*models.Preferences, error) {
-	return repos.FindPreferencesByUserID(ctx, r.ORM, obj.ID)
+	preferences, err := repos.FindPreferencesByUserID(ctx, r.ORM(ctx), obj.ID)
+	return mappers.PreferencesEntityToModel(preferences), err
 }

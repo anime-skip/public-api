@@ -6,6 +6,7 @@ require (
 	github.com/99designs/gqlgen v0.10.2
 	github.com/cmelgarejo/go-gql-server v0.0.0-20191210205900-dcf7db2f156c
 	github.com/cortesi/modd v0.0.0-20191202231957-98a770274f90 // indirect
+	github.com/davecgh/go-spew v1.1.1
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible

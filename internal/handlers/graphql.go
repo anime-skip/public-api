@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql"
+	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/resolvers"
 	"github.com/gin-gonic/gin"
 )
@@ -12,9 +12,7 @@ import (
 func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the internal/graphql/generated.go file
 	config := gql.Config{
-		Resolvers: &resolvers.Resolver{
-			ORM: orm,
-		},
+		Resolvers: resolvers.ResolverWithORM(orm),
 	}
 	handler := handler.GraphQL(gql.NewExecutableSchema(config))
 	return func(c *gin.Context) {

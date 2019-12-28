@@ -4,18 +4,36 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/aklinker1/anime-skip-backend/internal/database"
+	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
+// Helpers
+
+func userByID(ctx context.Context, orm *database.ORM, userID string) (*models.User, error) {
+	user, err := repos.FindUserByID(ctx, orm, userID)
+	return mappers.UserEntityToModel(user), err
+}
+
+func deletedUserByID(ctx context.Context, orm *database.ORM, userID *string) (*models.User, error) {
+	if userID == nil {
+		return nil, nil
+	}
+	user, err := repos.FindUserByID(ctx, orm, *userID)
+	return mappers.UserEntityToModel(user), err
+}
+
 // Query Resolvers
 
 func (r *queryResolver) FindUserByID(ctx context.Context, userID string) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, userID)
+	return userByID(ctx, r.ORM(ctx), userID)
 }
 
-func (r *queryResolver) FindUserByUsername(ctx context.Context, userID string) (*models.User, error) {
-	return repos.FindUserByUsername(ctx, r.ORM, userID)
+func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*models.User, error) {
+	user, err := repos.FindUserByUsername(ctx, r.ORM(ctx), username)
+	return mappers.UserEntityToModel(user), err
 }
 
 // Mutation Resolvers

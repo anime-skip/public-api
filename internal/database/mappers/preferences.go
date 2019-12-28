@@ -6,8 +6,11 @@ import (
 )
 
 // PreferencesEntityToModel -
-func PreferencesEntityToModel(entity *entities.Preferences) (*models.Preferences, error) {
-	model := &models.Preferences{
+func PreferencesEntityToModel(entity *entities.Preferences) *models.Preferences {
+	if entity == nil {
+		return nil
+	}
+	return &models.Preferences{
 		ID:        entity.ID.String(),
 		CreatedAt: entity.CreatedAt,
 		UpdatedAt: entity.UpdatedAt,
@@ -30,5 +33,26 @@ func PreferencesEntityToModel(entity *entities.Preferences) (*models.Preferences
 		SkipPreview:      entity.SkipPreview,
 		SkipTitleCard:    entity.SkipTitleCard,
 	}
-	return model, nil
+}
+
+func PreferencesInputModelToEntity(model models.InputPreferences, entity *entities.Preferences) *entities.Preferences {
+	if entity == nil {
+		return nil
+	}
+	entity.EnableAutoSkip = model.EnableAutoSkip
+	entity.EnableAutoPlay = model.EnableAutoPlay
+	entity.SkipBranding = model.SkipBranding
+	entity.SkipIntros = model.SkipIntros
+	entity.SkipNewIntros = model.SkipNewIntros
+	entity.SkipMixedIntros = model.SkipMixedIntros
+	entity.SkipRecaps = model.SkipRecaps
+	entity.SkipFiller = model.SkipFiller
+	entity.SkipCanon = model.SkipCanon
+	entity.SkipTransitions = model.SkipTransitions
+	entity.SkipCredits = model.SkipCredits
+	entity.SkipNewCredits = model.SkipNewCredits
+	entity.SkipMixedCredits = model.SkipMixedCredits
+	entity.SkipPreview = model.SkipPreview
+	entity.SkipTitleCard = model.SkipTitleCard
+	return entity
 }

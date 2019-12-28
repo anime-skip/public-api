@@ -55,6 +55,11 @@ func Factory() (*ORM, error) {
 	log.D("Running migrations if necessary")
 	err = migrations.Run(orm.DB)
 
+	// Adding plugins
+	db.Callback().Create().Register("anime_skip:update_created_by", updateColumn("CreatedByUserID"))
+	db.Callback().Update().Register("anime_skip:update_updated_by", updateColumn("UpdatedByUserID"))
+	db.Callback().Delete().Register("anime_skip:update_deleted_by", updateColumn("DeletedByUserID"))
+
 	fmt.Println()
 	return orm, err
 }
