@@ -5,5 +5,5 @@ type Mutation {
   deleteUser(userId: ID!): Boolean!
 
   # Prefernces
-  savePreferences(id: ID!, preferences: InputPreferences!): Preferences
+  savePreferences(preferences: InputPreferences!): Preferences
 }

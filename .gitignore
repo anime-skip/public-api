@@ -1,0 +1,3 @@
+build/
+.env
+internal/gql/resolvers/update_then_delete_me.go

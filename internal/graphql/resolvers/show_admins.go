@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
@@ -17,15 +16,15 @@ type showAdminResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *showAdminResolver) CreatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.CreatedByUserID)
+	return userByID(ctx, r.ORM(ctx), obj.CreatedByUserID)
 }
 
 func (r *showAdminResolver) UpdatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.CreatedByUserID)
+	return userByID(ctx, r.ORM(ctx), obj.UpdatedByUserID)
 }
 
 func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.CreatedByUserID)
+	return deletedUserByID(ctx, r.ORM(ctx), obj.DeletedByUserID)
 }
 
 func (r *showAdminResolver) Show(ctx context.Context, obj *models.ShowAdmin) (*models.Show, error) {
@@ -33,5 +32,5 @@ func (r *showAdminResolver) Show(ctx context.Context, obj *models.ShowAdmin) (*m
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return repos.FindUserByID(ctx, r.ORM, obj.CreatedByUserID)
+	return userByID(ctx, r.ORM(ctx), obj.UserID)
 }
