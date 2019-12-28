@@ -12,8 +12,8 @@ import (
 
 type myUserResolver struct{ *Resolver }
 
-func (r *queryResolver) MyUser(ctx context.Context, username string) (*models.MyUser, error) {
-	return repos.FindMyUser(ctx, r.ORM, username)
+func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
+	return repos.FindMyUser(ctx, r.ORM)
 }
 
 // Mutation Resolvers

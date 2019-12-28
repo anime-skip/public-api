@@ -10,7 +10,7 @@ import (
 
 // GraphQLHandler defines the handler for the generated GraphQL server
 func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the internal/gql/generated.go file
+	// NewExecutableSchema and Config are in the internal/graphql/generated.go file
 	config := gql.Config{
 		Resolvers: &resolvers.Resolver{
 			ORM: orm,
