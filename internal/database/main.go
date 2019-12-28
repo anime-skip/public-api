@@ -22,7 +22,7 @@ type ORM struct {
 
 func init() {
 	var sslmode = "require"
-	if utils.EnvBool("POSTGRES_SSL_DISABLED") {
+	if utils.EnvBool("POSTGRES_DISABLE_SSL") {
 		sslmode = "disable"
 	}
 	connectionString = fmt.Sprintf(
@@ -41,9 +41,9 @@ func init() {
 func Factory() (*ORM, error) {
 	db, err := gorm.Open("postgres", connectionString)
 	if err != nil {
-		log.Panic("[ORM] err: ", err)
+		log.Panic("Error: ", err)
 	}
-	log.V("Connected to PostgreSQL")
+	log.D("Connected to PostgreSQL")
 	orm := &ORM{
 		DB: db,
 	}
@@ -52,7 +52,7 @@ func Factory() (*ORM, error) {
 	db.LogMode(utils.EnvBool("POSTGRES_ENABLE_LOGS"))
 
 	// Automigrate tables
-	log.V("Running migrations if necessary")
+	log.D("Running migrations if necessary")
 	err = migrations.Run(orm.DB)
 
 	fmt.Println()
