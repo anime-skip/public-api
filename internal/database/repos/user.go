@@ -42,7 +42,8 @@ func FindUserByUsername(ctx context.Context, orm *database.ORM, username string)
 }
 
 // FindMyUser will find your user based on the token provided, but for now it looks for the username argument
-func FindMyUser(ctx context.Context, orm *database.ORM, username string) (*models.MyUser, error) {
+func FindMyUser(ctx context.Context, orm *database.ORM) (*models.MyUser, error) {
+	username := "the_admin"
 	user := &entities.User{}
 	err := orm.DB.Where("username = ?", username).Find(user).Error
 	if err != nil {

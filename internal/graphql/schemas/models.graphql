@@ -88,6 +88,23 @@ type Preferences {
   skipPreview: Boolean!
   skipTitleCard: Boolean!
 }
+input InputPreferences {
+  enableAutoSkip: Boolean!
+  enableAutoPlay: Boolean!
+  skipBranding: Boolean!
+  skipIntros: Boolean!
+  skipNewIntros: Boolean!
+  skipMixedIntros: Boolean!
+  skipRecaps: Boolean!
+  skipFiller: Boolean!
+  skipCanon: Boolean!
+  skipTransitions: Boolean!
+  skipCredits: Boolean!
+  skipNewCredits: Boolean!
+  skipMixedCredits: Boolean!
+  skipPreview: Boolean!
+  skipTitleCard: Boolean!
+}
 
 # Show
 type Show implements BaseModel {
