@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
 // Query Resolvers

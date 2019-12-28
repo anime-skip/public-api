@@ -3,8 +3,8 @@ package handlers
 import (
 	"github.com/99designs/gqlgen/handler"
 	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/gql"
-	"github.com/aklinker1/anime-skip-backend/internal/gql/resolvers"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/resolvers"
 	"github.com/gin-gonic/gin"
 )
 

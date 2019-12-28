@@ -2,7 +2,7 @@ package mappers
 
 import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/gql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
 // PreferencesEntityToModel -
