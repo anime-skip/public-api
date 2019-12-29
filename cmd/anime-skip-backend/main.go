@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/pkg/server"
-	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
+	"github.com/aklinker1/anime-skip-backend/internal/server"
+	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
 func main() {

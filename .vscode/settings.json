@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "aklinker",
+        "bcrypt",
+        "bcyrpted",
         "dbname",
         "gorm",
         "gormigrate",

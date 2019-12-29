@@ -1,9 +1,9 @@
 type Mutation {
   # Users
-  # createUser(input: UserInput!): User!
-  # updateUser(input: UserInput!): User!
-  deleteUser(userId: ID!): Boolean!
+  # createUser(input: UserInput!): User! @authorized
+  # updateUser(input: UserInput!): User! @authorized
+  deleteUser(userId: ID!): Boolean! @authorized
 
   # Prefernces
-  savePreferences(preferences: InputPreferences!): Preferences
+  savePreferences(preferences: InputPreferences!): Preferences @authorized
 }
