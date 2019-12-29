@@ -3,7 +3,7 @@ package migrations
 import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/migrations/seeders"
 	"github.com/aklinker1/anime-skip-backend/internal/database/migrations/tables"
-	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
+	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
 )

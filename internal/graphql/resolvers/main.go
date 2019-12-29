@@ -5,7 +5,7 @@ import (
 
 	"github.com/aklinker1/anime-skip-backend/internal/database"
 	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
-	"github.com/aklinker1/anime-skip-backend/pkg/utils/constants"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 )
 
 // Resolver stores the instance of gorm so it can be accessed in each of the resolvers
@@ -21,7 +21,7 @@ func ResolverWithORM(orm *database.ORM) *Resolver {
 
 func (r *Resolver) ORM(ctx context.Context) *database.ORM {
 	userID := "00000000-0000-0000-0000-000000000000" // ctx.Value(constants.USER_ID_FROM_TOKEN).(string)
-	r.orm.DB = r.orm.DB.Set(constants.USER_ID_FROM_TOKEN, userID)
+	r.orm.DB = r.orm.DB.Set(constants.CTX_USER_ID, userID)
 	return r.orm
 }
 

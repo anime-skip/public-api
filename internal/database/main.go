@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/migrations"
-	"github.com/aklinker1/anime-skip-backend/pkg/utils"
-	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 
 	// PostgreSQL dialect
 	"github.com/jinzhu/gorm"

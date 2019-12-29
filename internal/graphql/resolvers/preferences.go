@@ -14,7 +14,7 @@ type preferencesResolver struct{ *Resolver }
 
 // Mutation Resolvers
 
-func (r *mutationResolver) SavePreferences(ctx context.Context, id string, newPreferences models.InputPreferences) (*models.Preferences, error) {
+func (r *mutationResolver) SavePreferences(ctx context.Context, newPreferences models.InputPreferences) (*models.Preferences, error) {
 	userID := "00000000-0000-0000-0000-000000000000"
 
 	existingPreferences, err := repos.FindPreferencesByUserID(ctx, r.ORM(ctx), userID)
