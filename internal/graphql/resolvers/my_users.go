@@ -7,6 +7,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 )
 
 // Query Resolvers
@@ -14,7 +15,11 @@ import (
 type myUserResolver struct{ *Resolver }
 
 func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
-	userID := "00000000-0000-0000-0000-000000000000"
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := repos.FindUserByID(ctx, r.ORM(ctx), userID)
 	return mappers.UserEntityToMyUserModel(user), err
 }
