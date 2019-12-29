@@ -21,7 +21,7 @@ func ResolverWithORM(orm *database.ORM) *Resolver {
 }
 
 func (r *Resolver) ORM(ctx context.Context) *database.ORM {
-	if context := utils.GinContext(ctx); context != nil {
+	if context, err := utils.GinContext(ctx); err == nil {
 		if userID, hasUserID := context.Get(constants.CTX_USER_ID); hasUserID {
 			r.orm.DB = r.orm.DB.Set(constants.CTX_USER_ID, userID)
 		}

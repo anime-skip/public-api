@@ -10,7 +10,7 @@ import (
 )
 
 func Authorized(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	if context := utils.GinContext(ctx); context != nil {
+	if context, err := utils.GinContext(ctx); err == nil {
 		if jwtError, hasJWTError := context.Get(constants.CTX_JWT_ERROR); hasJWTError {
 			return nil, fmt.Errorf("%v", jwtError)
 		}
