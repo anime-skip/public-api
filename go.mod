@@ -7,6 +7,7 @@ require (
 	github.com/cmelgarejo/go-gql-server v0.0.0-20191210205900-dcf7db2f156c
 	github.com/cortesi/modd v0.0.0-20191202231957-98a770274f90 // indirect
 	github.com/davecgh/go-spew v1.1.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.5.0
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gofrs/uuid v3.2.0+incompatible
@@ -15,6 +16,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.11 // indirect
 	github.com/vektah/gqlparser v1.2.0
+	golang.org/x/crypto v0.0.0-20191227163750-53104e6ec876
 	golang.org/x/sys v0.0.0-20191220220014-0732a990476f // indirect
 	gopkg.in/go-playground/validator.v9 v9.30.2 // indirect
 	gopkg.in/gormigrate.v1 v1.6.0

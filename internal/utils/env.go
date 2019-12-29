@@ -4,7 +4,7 @@ import (
 	"os"
 	"strconv"
 
-	log "github.com/aklinker1/anime-skip-backend/pkg/utils/log"
+	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
 // EnvString will return the env as a boolean or default to false

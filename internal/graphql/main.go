@@ -50,6 +50,9 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	Authorized func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+
+	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -87,7 +90,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		DeleteUser      func(childComplexity int, userID string) int
-		SavePreferences func(childComplexity int, id string, preferences models.InputPreferences) int
+		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
 	}
 
 	MyUser struct {
@@ -221,7 +224,7 @@ type EpisodeUrlResolver interface {
 }
 type MutationResolver interface {
 	DeleteUser(ctx context.Context, userID string) (bool, error)
-	SavePreferences(ctx context.Context, id string, preferences models.InputPreferences) (*models.Preferences, error)
+	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
 }
 type MyUserResolver interface {
 	AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error)
@@ -489,7 +492,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SavePreferences(childComplexity, args["id"].(string), args["preferences"].(models.InputPreferences)), true
+		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(models.InputPreferences)), true
 
 	case "MyUser.adminOfShows":
 		if e.complexity.MyUser.AdminOfShows == nil {
@@ -1207,6 +1210,9 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
+	&ast.Source{Name: "internal/graphql/schemas/directives.graphql", Input: `directive @authorized on FIELD_DEFINITION
+directive @hasRole(role: Role!) on FIELD_DEFINITION
+`},
 	&ast.Source{Name: "internal/graphql/schemas/enums.graphql", Input: `enum Role {
   DEV
   ADMIN
@@ -1406,19 +1412,19 @@ type User {
 `},
 	&ast.Source{Name: "internal/graphql/schemas/mutations.graphql", Input: `type Mutation {
   # Users
-  # createUser(input: UserInput!): User!
-  # updateUser(input: UserInput!): User!
-  deleteUser(userId: ID!): Boolean!
+  # createUser(input: UserInput!): User! @authorized
+  # updateUser(input: UserInput!): User! @authorized
+  deleteUser(userId: ID!): Boolean! @authorized
 
   # Prefernces
-  savePreferences(id: ID!, preferences: InputPreferences!): Preferences
+  savePreferences(preferences: InputPreferences!): Preferences @authorized
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
   # Users
-  myUser: MyUser
-  findUserById(userId: ID!): User
-  findUserByUsername(username: String!): User
+  myUser: MyUser @authorized
+  findUserById(userId: ID!): User @authorized
+  findUserByUsername(username: String!): User @authorized
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/scalars.graphql", Input: `scalar Time
@@ -1428,6 +1434,20 @@ type User {
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.Role
+	if tmp, ok := rawArgs["role"]; ok {
+		arg0, err = ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -1446,22 +1466,14 @@ func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	var arg1 models.InputPreferences
+	var arg0 models.InputPreferences
 	if tmp, ok := rawArgs["preferences"]; ok {
-		arg1, err = ec.unmarshalNInputPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputPreferences(ctx, tmp)
+		arg0, err = ec.unmarshalNInputPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputPreferences(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["preferences"] = arg1
+	args["preferences"] = arg0
 	return args, nil
 }
 
@@ -2509,8 +2521,28 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx, args["userId"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUser(rctx, args["userId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2553,8 +2585,28 @@ func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SavePreferences(rctx, args["id"].(string), args["preferences"].(models.InputPreferences))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SavePreferences(rctx, args["preferences"].(models.InputPreferences))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Preferences); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Preferences`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3728,8 +3780,28 @@ func (ec *executionContext) _Query_myUser(ctx context.Context, field graphql.Col
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().MyUser(rctx)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MyUser(rctx)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.MyUser); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.MyUser`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3769,8 +3841,28 @@ func (ec *executionContext) _Query_findUserById(ctx context.Context, field graph
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindUserByID(rctx, args["userId"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindUserByID(rctx, args["userId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3810,8 +3902,28 @@ func (ec *executionContext) _Query_findUserByUsername(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindUserByUsername(rctx, args["username"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindUserByUsername(rctx, args["username"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
