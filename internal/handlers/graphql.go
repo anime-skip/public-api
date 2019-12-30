@@ -6,8 +6,15 @@ import (
 	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/directives"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/resolvers"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/gin-gonic/gin"
 )
+
+var isIntrospectionEnabled bool
+
+func init() {
+	isIntrospectionEnabled = utils.EnvBool("ENABLE_INTROSPECTION")
+}
 
 // GraphQLHandler defines the handler for the generated GraphQL server
 func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
@@ -22,7 +29,10 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 	config.Directives.IsShowAdmin = directives.IsShowAdmin
 
 	// Apply and serve the schema
-	handler := handler.GraphQL(gql.NewExecutableSchema(config))
+	handler := handler.GraphQL(
+		gql.NewExecutableSchema(config),
+		handler.IntrospectionEnabled(isIntrospectionEnabled),
+	)
 	return func(c *gin.Context) {
 		handler.ServeHTTP(c.Writer, c.Request)
 	}
