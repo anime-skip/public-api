@@ -1,10 +1,13 @@
 package log
 
-import "fmt"
+import (
+	"fmt"
+	"os"
+	"strconv"
 
-import "os"
-
-import "github.com/davecgh/go-spew/spew"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"github.com/davecgh/go-spew/spew"
+)
 
 const escape = "\x1b"
 const red = escape + "[91m"
@@ -16,25 +19,57 @@ const cyan = escape + "[96m"
 const reset = escape + "[0m"
 const bold = escape + "[1m"
 const dim = escape + "[2m"
+const italic = escape + "[3m"
+const underline = escape + "[4m"
+
+var logLevel int
+
+func init() {
+	logLevelStr := os.Getenv("LOG_LEVEL")
+	if logLevelStr == "" {
+		W("LOG_LEVEL missing from ENV, defaulting to 0")
+		logLevel = 0
+	} else {
+		level, err := strconv.Atoi(logLevelStr)
+		if err != nil {
+			W("LOG_LEVEL='%s' in ENV is not an int, defaulting to 0", logLevelStr)
+			logLevel = 0
+		} else {
+			logLevel = level
+		}
+	}
+}
 
 // V prints verbose (LOG_LEVEL=0) logs
 func V(format string, a ...interface{}) {
-	printColored(dim, "verbose", format, a...)
+	if logLevel > constants.LOG_LEVEL_VERBOSE {
+		return
+	}
+	printColored(blue+bold, "verbose", format, a...)
 }
 
 // D prints debug (LOG_LEVEL=1) logs
 func D(format string, a ...interface{}) {
+	if logLevel > constants.LOG_LEVEL_DEBUG {
+		return
+	}
 	printColored(reset, " debug ", format, a...)
 }
 
 // W prints warning (LOG_LEVEL=2) logs
 func W(format string, a ...interface{}) {
-	printColored(yellow, "warning", format, a...)
+	if logLevel > constants.LOG_LEVEL_WARNING {
+		return
+	}
+	printColored(yellow+bold, "warning", format, a...)
 }
 
 // E prints error (LOG_LEVEL=3) logs
 func E(format string, a ...interface{}) {
-	printColored(red, " error ", format, a...)
+	if logLevel > constants.LOG_LEVEL_ERROR {
+		return
+	}
+	printColored(red+bold, " error ", format, a...)
 }
 
 // Spew will pretty-print object deeply (along with their types), making it useful for debugging

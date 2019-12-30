@@ -24,7 +24,7 @@ func init() {
 func Run(orm *database.ORM, startedAt time.Time) {
 	server := gin.New()
 	if isDev {
-		server.Use(customLogger)
+		server.Use(log.RequestLogger)
 	}
 	server.Use(gin.Recovery())
 

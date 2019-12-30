@@ -51,7 +51,8 @@ func Factory() (*ORM, error) {
 	}
 
 	// Enable SQL logs
-	db.LogMode(utils.EnvBool("POSTGRES_ENABLE_LOGS"))
+	db.LogMode(utils.EnvBool("LOG_SQL"))
+	db.SetLogger(log.SQLLogger)
 
 	// Automigrate tables
 	log.D("Running migrations if necessary")

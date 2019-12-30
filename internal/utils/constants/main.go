@@ -12,3 +12,10 @@ const (
 	ROLE_ADMIN = 1
 	ROLE_USER  = 2
 )
+
+const (
+	LOG_LEVEL_VERBOSE = 0
+	LOG_LEVEL_DEBUG   = 1
+	LOG_LEVEL_WARNING = 2
+	LOG_LEVEL_ERROR   = 3
+)
