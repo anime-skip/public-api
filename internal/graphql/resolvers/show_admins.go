@@ -69,14 +69,13 @@ func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID stri
 	if err != nil {
 		return nil, err
 	}
-	showAdminModel := mappers.ShowAdminEntityToModel(showAdmin)
 
 	err = repos.DeleteShowAdmin(ctx, r.DB(ctx), showAdmin)
 	if err != nil {
 		return nil, err
 	}
 
-	return showAdminModel, nil
+	return mappers.ShowAdminEntityToModel(showAdmin), nil
 }
 
 // Field Resolvers

@@ -11,7 +11,7 @@ import (
 
 func FindUserByID(ctx context.Context, db *gorm.DB, userID string) (*entities.User, error) {
 	user := &entities.User{}
-	err := db.Where("id = ?", userID).Find(user).Error
+	err := db.Unscoped().Where("id = ?", userID).Find(user).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with id='%s'", userID)

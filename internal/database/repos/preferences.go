@@ -23,7 +23,7 @@ func SavePreferences(ctx context.Context, db *gorm.DB, newPreferences models.Inp
 
 func FindPreferencesByUserID(ctx context.Context, db *gorm.DB, userID string) (*entities.Preferences, error) {
 	preferences := &entities.Preferences{}
-	err := db.Where("user_id = ?", userID).Find(preferences).Error
+	err := db.Unscoped().Where("user_id = ?", userID).Find(preferences).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No preferences found with user_id='%s'", userID)

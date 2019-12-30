@@ -42,7 +42,7 @@ func DeleteShowAdmin(ctx context.Context, db *gorm.DB, showAdmin *entities.ShowA
 
 func FindShowAdminByID(ctx context.Context, db *gorm.DB, showAdminID string) (*entities.ShowAdmin, error) {
 	showAdmin := &entities.ShowAdmin{}
-	err := db.Where("id = ?", showAdminID).Find(showAdmin).Error
+	err := db.Unscoped().Where("id = ?", showAdminID).Find(showAdmin).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No show admin found with id='%s'", showAdminID)

@@ -31,18 +31,46 @@ func UpdateShow(ctx context.Context, db *gorm.DB, newShow models.InputShow, exis
 	return data, err
 }
 
-func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) error {
-	err := db.Model(show).Delete(show).Error
+func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) (err error) {
+	tx := db.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("Failed to delete show and it's admins: %+v", r)
+			tx.Rollback()
+		}
+	}()
+
+	// Delete the show
+	err = tx.Model(show).Delete(show).Error
 	if err != nil {
 		log.E("Failed to delete show for id='%s': %v", show.ID, err)
+		tx.Rollback()
 		return fmt.Errorf("Failed to delete show with id='%s'", show.ID)
 	}
-	return err
+
+	// Delete the admins for that show
+	admins, err := FindShowAdminsByShowID(ctx, tx, show.ID.String())
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, admin := range admins {
+		if err = DeleteShowAdmin(ctx, tx, admin); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// TODO - Delete episodes
+	log.W("TODO - Delete episodes when deleting a show")
+
+	tx.Commit()
+	return nil
 }
 
 func FindShowByID(ctx context.Context, db *gorm.DB, showID string) (*entities.Show, error) {
 	show := &entities.Show{}
-	err := db.Where("id = ?", showID).Find(show).Error
+	err := db.Unscoped().Where("id = ?", showID).Find(show).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No show found with id='%s'", showID)
