@@ -4,16 +4,16 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database"
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"github.com/jinzhu/gorm"
 )
 
-func CreateShow(ctx context.Context, orm *database.ORM, showInput models.InputShow) (*entities.Show, error) {
+func CreateShow(ctx context.Context, db *gorm.DB, showInput models.InputShow) (*entities.Show, error) {
 	show := mappers.ShowInputModelToEntity(showInput, &entities.Show{})
-	err := orm.DB.Model(&show).Create(show).Error
+	err := db.Model(&show).Create(show).Error
 	if err != nil {
 		log.E("Failed to create show with [%+v]: %v", showInput, err)
 		return nil, fmt.Errorf("Failed to create show: %v", err)
@@ -21,9 +21,9 @@ func CreateShow(ctx context.Context, orm *database.ORM, showInput models.InputSh
 	return show, nil
 }
 
-func UpdateShow(ctx context.Context, orm *database.ORM, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
+func UpdateShow(ctx context.Context, db *gorm.DB, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
 	data := mappers.ShowInputModelToEntity(newShow, existingShow)
-	err := orm.DB.Model(data).Update(*data).Error
+	err := db.Model(data).Update(*data).Error
 	if err != nil {
 		log.E("Failed to update show for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update show with id='%s'", data.ID)
@@ -31,9 +31,9 @@ func UpdateShow(ctx context.Context, orm *database.ORM, newShow models.InputShow
 	return data, err
 }
 
-func FindShowByID(ctx context.Context, orm *database.ORM, showID string) (*entities.Show, error) {
+func FindShowByID(ctx context.Context, db *gorm.DB, showID string) (*entities.Show, error) {
 	show := &entities.Show{}
-	err := orm.DB.Where("id = ?", showID).Find(show).Error
+	err := db.Where("id = ?", showID).Find(show).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No show found with id='%s'", showID)
@@ -41,10 +41,10 @@ func FindShowByID(ctx context.Context, orm *database.ORM, showID string) (*entit
 	return show, nil
 }
 
-func FindShows(ctx context.Context, orm *database.ORM, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
+func FindShows(ctx context.Context, db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
 	searchVar := "%" + search + "%"
-	err := orm.DB.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&shows).Error
+	err := db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&shows).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No shows found with name LIKE '%s'", search)
