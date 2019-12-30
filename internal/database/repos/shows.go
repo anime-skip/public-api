@@ -61,7 +61,6 @@ func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) (err erro
 		}
 	}
 
-	// TODO - Delete episodes
 	log.W("TODO - Delete episodes when deleting a show")
 
 	tx.Commit()

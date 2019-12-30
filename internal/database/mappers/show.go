@@ -32,6 +32,7 @@ func ShowEntityToModel(entity *entities.Show) *models.Show {
 		UpdatedByUserID: entity.UpdatedByUserID.String(),
 		DeletedAt:       entity.DeletedAt,
 		DeletedByUserID: deletedByUserID,
+
 		Name:            entity.Name,
 		OriginalName:    entity.OriginalName,
 		Website:         entity.Website,
