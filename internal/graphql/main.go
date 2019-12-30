@@ -135,7 +135,7 @@ type ComplexityRoot struct {
 	Query struct {
 		FindShow           func(childComplexity int, showID string) int
 		FindShowAdmins     func(childComplexity int, showID string) int
-		FindShows          func(childComplexity int, search string, offset *int, limit *int, sort *string) int
+		FindShows          func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 		FindUserByID       func(childComplexity int, userID string) int
 		FindUserByUsername func(childComplexity int, username string) int
 		MyUser             func(childComplexity int) int
@@ -246,7 +246,7 @@ type QueryResolver interface {
 	FindUserByID(ctx context.Context, userID string) (*models.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*models.User, error)
 	FindShow(ctx context.Context, showID string) (*models.Show, error)
-	FindShows(ctx context.Context, search string, offset *int, limit *int, sort *string) ([]*models.Show, error)
+	FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error)
 	FindShowAdmins(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
 }
 type ShowResolver interface {
@@ -779,7 +779,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShows(childComplexity, args["search"].(string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
+		return e.complexity.Query.FindShows(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.findUserById":
 		if e.complexity.Query.FindUserByID == nil {
@@ -1508,7 +1508,7 @@ type User {
 
   # Shows
   findShow(showId: ID!): Show
-  findShows(search: String!, offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
+  findShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
   findShowAdmins(showId: ID!): [ShowAdmin!]
 }
 `},
@@ -1643,9 +1643,9 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_findShows_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *string
 	if tmp, ok := rawArgs["search"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4274,7 +4274,7 @@ func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShows(rctx, args["search"].(string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+		return ec.resolvers.Query().FindShows(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
