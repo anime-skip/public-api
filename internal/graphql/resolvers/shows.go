@@ -40,26 +40,44 @@ func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *i
 
 // Mutation Resolvers
 
-func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (*models.Show, error) {
-	show, err := repos.CreateShow(ctx, r.DB(ctx), showInput)
+func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (showModel *models.Show, err error) {
+	tx := r.DB(ctx).Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			err = fmt.Errorf("Failed to create show: %+v", r)
+			tx.Rollback()
+		}
+	}()
+
+	show, err := repos.CreateShow(ctx, tx, showInput)
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
-	if becomeAdmin {
-		userID, err := utils.UserIDFromContext(ctx)
-		if err != nil {
-			return nil, err
-		}
-		newAdmin := models.InputShowAdmin{
-			ShowID: show.ID.String(),
-			UserID: userID,
-		}
-		_, err = r.CreateShowAdmin(ctx, newAdmin)
-		if err != nil {
-			return nil, err
-		}
+	showModel = mappers.ShowEntityToModel(show)
+	if !becomeAdmin {
+		tx.Commit()
+		return showModel, nil
 	}
-	return mappers.ShowEntityToModel(show), nil
+
+	// Add the Admin relation for this user
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+	newAdmin := models.InputShowAdmin{
+		ShowID: show.ID.String(),
+		UserID: userID,
+	}
+	_, err = repos.CreateShowAdmin(ctx, tx, newAdmin)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
+	return showModel, nil
 }
 
 func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newShow models.InputShow) (*models.Show, error) {
