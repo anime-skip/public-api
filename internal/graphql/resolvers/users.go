@@ -11,27 +11,27 @@ import (
 
 // Helpers
 
-func userByID(ctx context.Context, db *gorm.DB, userID string) (*models.User, error) {
-	user, err := repos.FindUserByID(ctx, db, userID)
+func userByID(db *gorm.DB, userID string) (*models.User, error) {
+	user, err := repos.FindUserByID(db, userID)
 	return mappers.UserEntityToModel(user), err
 }
 
-func deletedUserByID(ctx context.Context, db *gorm.DB, userID *string) (*models.User, error) {
+func deletedUserByID(db *gorm.DB, userID *string) (*models.User, error) {
 	if userID == nil {
 		return nil, nil
 	}
-	user, err := repos.FindUserByID(ctx, db, *userID)
+	user, err := repos.FindUserByID(db, *userID)
 	return mappers.UserEntityToModel(user), err
 }
 
 // Query Resolvers
 
 func (r *queryResolver) FindUserByID(ctx context.Context, userID string) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), userID)
+	return userByID(r.DB(ctx), userID)
 }
 
 func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*models.User, error) {
-	user, err := repos.FindUserByUsername(ctx, r.DB(ctx), username)
+	user, err := repos.FindUserByUsername(r.DB(ctx), username)
 	return mappers.UserEntityToModel(user), err
 }
 
@@ -42,5 +42,5 @@ func (r *queryResolver) FindUserByUsername(ctx context.Context, username string)
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) AdminOfShows(ctx context.Context, obj *models.User) ([]*models.ShowAdmin, error) {
-	return showAdminsByUserID(ctx, r.DB(ctx), obj.ID)
+	return showAdminsByUserID(r.DB(ctx), obj.ID)
 }

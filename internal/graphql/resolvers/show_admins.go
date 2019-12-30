@@ -11,13 +11,13 @@ import (
 
 // Helpers
 
-func showAdminByID(ctx context.Context, db *gorm.DB, showAdminID string) (*models.ShowAdmin, error) {
-	user, err := repos.FindShowAdminByID(ctx, db, showAdminID)
+func showAdminByID(db *gorm.DB, showAdminID string) (*models.ShowAdmin, error) {
+	user, err := repos.FindShowAdminByID(db, showAdminID)
 	return mappers.ShowAdminEntityToModel(user), err
 }
 
-func showAdminsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]*models.ShowAdmin, error) {
-	admins, err := repos.FindShowAdminsByUserID(ctx, db, userID)
+func showAdminsByUserID(db *gorm.DB, userID string) ([]*models.ShowAdmin, error) {
+	admins, err := repos.FindShowAdminsByUserID(db, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -29,8 +29,8 @@ func showAdminsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]*mod
 	return adminModels, nil
 }
 
-func showAdminsByShowID(ctx context.Context, db *gorm.DB, showID string) ([]*models.ShowAdmin, error) {
-	admins, err := repos.FindShowAdminsByShowID(ctx, db, showID)
+func showAdminsByShowID(db *gorm.DB, showID string) ([]*models.ShowAdmin, error) {
+	admins, err := repos.FindShowAdminsByShowID(db, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -47,17 +47,17 @@ func showAdminsByShowID(ctx context.Context, db *gorm.DB, showID string) ([]*mod
 type showAdminResolver struct{ *Resolver }
 
 func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error) {
-	return showAdminsByShowID(ctx, r.DB(ctx), showID)
+	return showAdminsByShowID(r.DB(ctx), showID)
 }
 
 func (r *queryResolver) FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error) {
-	return showAdminsByUserID(ctx, r.DB(ctx), userID)
+	return showAdminsByUserID(r.DB(ctx), userID)
 }
 
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput models.InputShowAdmin) (*models.ShowAdmin, error) {
-	showAdmin, err := repos.CreateShowAdmin(ctx, r.DB(ctx), showAdminInput)
+	showAdmin, err := repos.CreateShowAdmin(r.DB(ctx), showAdminInput)
 	if err != nil {
 		return nil, err
 	}
@@ -65,12 +65,12 @@ func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput m
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error) {
-	showAdmin, err := repos.FindShowAdminByID(ctx, r.DB(ctx), showAdminID)
+	showAdmin, err := repos.FindShowAdminByID(r.DB(ctx), showAdminID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = repos.DeleteShowAdmin(ctx, r.DB(ctx), showAdmin)
+	err = repos.DeleteShowAdmin(r.DB(ctx), showAdmin)
 	if err != nil {
 		return nil, err
 	}
@@ -81,21 +81,21 @@ func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID stri
 // Field Resolvers
 
 func (r *showAdminResolver) CreatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.CreatedByUserID)
+	return userByID(r.DB(ctx), obj.CreatedByUserID)
 }
 
 func (r *showAdminResolver) UpdatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.UpdatedByUserID)
+	return userByID(r.DB(ctx), obj.UpdatedByUserID)
 }
 
 func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return deletedUserByID(ctx, r.DB(ctx), obj.DeletedByUserID)
+	return deletedUserByID(r.DB(ctx), obj.DeletedByUserID)
 }
 
 func (r *showAdminResolver) Show(ctx context.Context, obj *models.ShowAdmin) (*models.Show, error) {
-	return showByID(ctx, r.DB(ctx), obj.ShowID)
+	return showByID(r.DB(ctx), obj.ShowID)
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *models.ShowAdmin) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.UserID)
+	return userByID(r.DB(ctx), obj.UserID)
 }

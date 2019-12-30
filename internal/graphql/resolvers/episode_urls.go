@@ -15,9 +15,9 @@ type episodeUrlResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *episodeUrlResolver) CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.CreatedByUserID)
+	return userByID(r.DB(ctx), obj.CreatedByUserID)
 }
 
 func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.UpdatedByUserID)
+	return userByID(r.DB(ctx), obj.UpdatedByUserID)
 }
