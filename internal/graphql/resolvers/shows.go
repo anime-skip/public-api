@@ -93,7 +93,6 @@ func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newSho
 func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*models.Show, error) {
 	db := r.DB(ctx)
 	show, err := repos.FindShowByID(ctx, db, showID)
-	showModel := mappers.ShowEntityToModel(show)
 	if err != nil {
 		return nil, err
 	}
@@ -102,7 +101,7 @@ func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*mode
 	if err != nil {
 		return nil, err
 	}
-	return showModel, nil
+	return mappers.ShowEntityToModel(show), nil
 }
 
 // Field Resolvers
