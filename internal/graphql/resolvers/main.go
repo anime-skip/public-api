@@ -12,20 +12,20 @@ import (
 
 // Resolver stores the instance of gorm so it can be accessed in each of the resolvers
 type Resolver struct {
-	orm *database.ORM
+	_orm *database.ORM
 }
 
 func ResolverWithORM(orm *database.ORM) *Resolver {
 	return &Resolver{
-		orm: orm,
+		_orm: orm,
 	}
 }
 
 func (r *Resolver) DB(ctx context.Context) *gorm.DB {
 	if userID, err := utils.UserIDFromContext(ctx); err == nil {
-		r.orm.DB = r.orm.DB.Set(constants.CTX_USER_ID, userID)
+		r._orm.DB = r._orm.DB.Set(constants.CTX_USER_ID, userID)
 	}
-	return r.orm.DB
+	return r._orm.DB
 }
 
 func (r *Resolver) Episode() gql.EpisodeResolver {
