@@ -8,6 +8,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -126,5 +127,6 @@ func (r *showResolver) Admins(ctx context.Context, obj *models.Show) ([]*models.
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error) {
-	return nil, fmt.Errorf("not implemented")
+	log.W("TODO - add episodes field resolver for show model")
+	return nil, nil
 }
