@@ -1,6 +1,14 @@
 type Query {
   # Users
   myUser: MyUser @authorized
-  findUserById(userId: ID!): User @authorized
-  findUserByUsername(username: String!): User @authorized
+  findUserById(userId: ID!): User
+  findUserByUsername(username: String!): User
+
+  # Shows
+  findShow(showId: ID!): Show
+  findShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
+
+  # ShowAdmins
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 }

@@ -20,6 +20,8 @@ type ORM struct {
 	DB *gorm.DB
 }
 
+var ORMInstance *ORM
+
 func init() {
 	var sslmode = "require"
 	if utils.EnvBool("POSTGRES_DISABLE_SSL") {
@@ -44,7 +46,7 @@ func Factory() (*ORM, error) {
 		log.Panic("Error: ", err)
 	}
 	log.D("Connected to PostgreSQL")
-	orm := &ORM{
+	ORMInstance = &ORM{
 		DB: db,
 	}
 
@@ -53,7 +55,7 @@ func Factory() (*ORM, error) {
 
 	// Automigrate tables
 	log.D("Running migrations if necessary")
-	err = migrations.Run(orm.DB)
+	err = migrations.Run(ORMInstance.DB)
 
 	// Adding plugins
 	db.Callback().Create().Register("anime_skip:update_created_by", updateColumn("CreatedByUserID"))
@@ -61,5 +63,5 @@ func Factory() (*ORM, error) {
 	db.Callback().Delete().Register("anime_skip:update_deleted_by", updateColumn("DeletedByUserID"))
 
 	fmt.Println()
-	return orm, err
+	return ORMInstance, err
 }

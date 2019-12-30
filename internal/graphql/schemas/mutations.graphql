@@ -1,9 +1,15 @@
 type Mutation {
   # Users
-  # createUser(input: UserInput!): User! @authorized
-  # updateUser(input: UserInput!): User! @authorized
-  deleteUser(userId: ID!): Boolean! @authorized
 
   # Prefernces
   savePreferences(preferences: InputPreferences!): Preferences @authorized
+
+  # Shows
+  createShow(show: InputShow!, becomeAdmin: Boolean!): Show @authorized
+  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized
+  deleteShow(showId: ID!): Show @authorized @hasRole(role: ADMIN)
+
+  # Show Admins
+  createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
 }

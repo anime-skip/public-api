@@ -126,6 +126,12 @@ type Show implements BaseModel {
   admins: [ShowAdmin!]!
   episodes: [Episode!]!
 }
+input InputShow {
+  name: String!
+  originalName: String
+  website: String
+  image: String
+}
 
 # ShowAdmin 
 type ShowAdmin implements BaseModel {
@@ -144,6 +150,10 @@ type ShowAdmin implements BaseModel {
   show: Show!
   userId: ID!
   user: User!
+}
+input InputShowAdmin {
+  showId: ID!
+  userId: ID!
 }
 
 # Timestamp
