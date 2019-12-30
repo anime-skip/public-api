@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
@@ -11,7 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func CreateShow(ctx context.Context, db *gorm.DB, showInput models.InputShow) (*entities.Show, error) {
+func CreateShow(db *gorm.DB, showInput models.InputShow) (*entities.Show, error) {
 	show := mappers.ShowInputModelToEntity(showInput, &entities.Show{})
 	err := db.Model(&show).Create(show).Error
 	if err != nil {
@@ -21,7 +20,7 @@ func CreateShow(ctx context.Context, db *gorm.DB, showInput models.InputShow) (*
 	return show, nil
 }
 
-func UpdateShow(ctx context.Context, db *gorm.DB, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
+func UpdateShow(db *gorm.DB, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
 	data := mappers.ShowInputModelToEntity(newShow, existingShow)
 	err := db.Model(data).Update(*data).Error
 	if err != nil {
@@ -31,7 +30,7 @@ func UpdateShow(ctx context.Context, db *gorm.DB, newShow models.InputShow, exis
 	return data, err
 }
 
-func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) (err error) {
+func DeleteShow(db *gorm.DB, show *entities.Show) (err error) {
 	tx := db.Begin()
 	defer func() {
 		if r := recover(); r != nil {
@@ -49,13 +48,13 @@ func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) (err erro
 	}
 
 	// Delete the admins for that show
-	admins, err := FindShowAdminsByShowID(ctx, tx, show.ID.String())
+	admins, err := FindShowAdminsByShowID(tx, show.ID.String())
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	for _, admin := range admins {
-		if err = DeleteShowAdmin(ctx, tx, admin); err != nil {
+		if err = DeleteShowAdmin(tx, admin); err != nil {
 			tx.Rollback()
 			return err
 		}
@@ -67,7 +66,7 @@ func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) (err erro
 	return nil
 }
 
-func FindShowByID(ctx context.Context, db *gorm.DB, showID string) (*entities.Show, error) {
+func FindShowByID(db *gorm.DB, showID string) (*entities.Show, error) {
 	show := &entities.Show{}
 	err := db.Unscoped().Where("id = ?", showID).Find(show).Error
 	if err != nil {
@@ -77,7 +76,7 @@ func FindShowByID(ctx context.Context, db *gorm.DB, showID string) (*entities.Sh
 	return show, nil
 }
 
-func FindShows(ctx context.Context, db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
+func FindShows(db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
 	searchVar := "%" + search + "%"
 	err := db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&shows).Error

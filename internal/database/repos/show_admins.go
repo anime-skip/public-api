@@ -1,7 +1,6 @@
 package repos
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
@@ -11,7 +10,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func CreateShowAdmin(ctx context.Context, db *gorm.DB, showInput models.InputShowAdmin) (*entities.ShowAdmin, error) {
+func CreateShowAdmin(db *gorm.DB, showInput models.InputShowAdmin) (*entities.ShowAdmin, error) {
 	showAdmin := mappers.ShowAdminInputModelToEntity(showInput, &entities.ShowAdmin{})
 	err := db.Model(&showAdmin).Create(showAdmin).Error
 	if err != nil {
@@ -21,7 +20,7 @@ func CreateShowAdmin(ctx context.Context, db *gorm.DB, showInput models.InputSho
 	return showAdmin, nil
 }
 
-func UpdateShowAdmin(ctx context.Context, db *gorm.DB, newShowAdmin models.InputShowAdmin, existingShowAdmin *entities.ShowAdmin) (*entities.ShowAdmin, error) {
+func UpdateShowAdmin(db *gorm.DB, newShowAdmin models.InputShowAdmin, existingShowAdmin *entities.ShowAdmin) (*entities.ShowAdmin, error) {
 	data := mappers.ShowAdminInputModelToEntity(newShowAdmin, existingShowAdmin)
 	err := db.Model(data).Update(*data).Error
 	if err != nil {
@@ -31,7 +30,7 @@ func UpdateShowAdmin(ctx context.Context, db *gorm.DB, newShowAdmin models.Input
 	return data, err
 }
 
-func DeleteShowAdmin(ctx context.Context, db *gorm.DB, showAdmin *entities.ShowAdmin) error {
+func DeleteShowAdmin(db *gorm.DB, showAdmin *entities.ShowAdmin) error {
 	err := db.Model(showAdmin).Delete(showAdmin).Error
 	if err != nil {
 		log.E("Failed to delete show admin for id='%s': %v", showAdmin.ID, err)
@@ -40,7 +39,7 @@ func DeleteShowAdmin(ctx context.Context, db *gorm.DB, showAdmin *entities.ShowA
 	return err
 }
 
-func FindShowAdminByID(ctx context.Context, db *gorm.DB, showAdminID string) (*entities.ShowAdmin, error) {
+func FindShowAdminByID(db *gorm.DB, showAdminID string) (*entities.ShowAdmin, error) {
 	showAdmin := &entities.ShowAdmin{}
 	err := db.Unscoped().Where("id = ?", showAdminID).Find(showAdmin).Error
 	if err != nil {
@@ -50,7 +49,7 @@ func FindShowAdminByID(ctx context.Context, db *gorm.DB, showAdminID string) (*e
 	return showAdmin, nil
 }
 
-func FindShowAdminsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]*entities.ShowAdmin, error) {
+func FindShowAdminsByUserID(db *gorm.DB, userID string) ([]*entities.ShowAdmin, error) {
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("user_id = ?", userID).Find(&showAdmin).Error
 	if err != nil {
@@ -60,7 +59,7 @@ func FindShowAdminsByUserID(ctx context.Context, db *gorm.DB, userID string) ([]
 	return showAdmin, nil
 }
 
-func FindShowAdminsByShowID(ctx context.Context, db *gorm.DB, showID string) ([]*entities.ShowAdmin, error) {
+func FindShowAdminsByShowID(db *gorm.DB, showID string) ([]*entities.ShowAdmin, error) {
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("show_id = ?", showID).Find(&showAdmin).Error
 	if err != nil {
@@ -70,7 +69,7 @@ func FindShowAdminsByShowID(ctx context.Context, db *gorm.DB, showID string) ([]
 	return showAdmin, nil
 }
 
-func FindShowAdminsByUserIDShowID(ctx context.Context, db *gorm.DB, userID string, showID string) (*entities.ShowAdmin, error) {
+func FindShowAdminsByUserIDShowID(db *gorm.DB, userID string, showID string) (*entities.ShowAdmin, error) {
 	showAdmin := &entities.ShowAdmin{}
 	err := db.Where("user_id = ? AND show_id = ?", userID, showID).Find(&showAdmin).Error
 	if err != nil {
