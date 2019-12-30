@@ -19,3 +19,5 @@ const (
 	LOG_LEVEL_WARNING = 2
 	LOG_LEVEL_ERROR   = 3
 )
+
+const VERSION = "0.1.0-beta"
