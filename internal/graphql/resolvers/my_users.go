@@ -19,7 +19,7 @@ func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
 		return nil, err
 	}
 
-	user, err := repos.FindUserByID(ctx, r.ORM(ctx), userID)
+	user, err := repos.FindUserByID(ctx, r.DB(ctx), userID)
 	return mappers.UserEntityToMyUserModel(user), err
 }
 
@@ -28,10 +28,10 @@ func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
 // Field Resolvers
 
 func (r *myUserResolver) AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error) {
-	return showAdminsByUserID(ctx, r.ORM(ctx), obj.ID)
+	return showAdminsByUserID(ctx, r.DB(ctx), obj.ID)
 }
 
 func (r *myUserResolver) Preferences(ctx context.Context, obj *models.MyUser) (*models.Preferences, error) {
-	preferences, err := repos.FindPreferencesByUserID(ctx, r.ORM(ctx), obj.ID)
+	preferences, err := repos.FindPreferencesByUserID(ctx, r.DB(ctx), obj.ID)
 	return mappers.PreferencesEntityToModel(preferences), err
 }

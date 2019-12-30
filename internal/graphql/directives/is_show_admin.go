@@ -33,7 +33,8 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 		if !isString {
 			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showAdminID", showAdminID, showAdminID)
 		}
-		showAdmin, err := repos.FindShowAdminByID(ctx, database.ORMInstance, showAdminIDStr)
+		db := database.ORMInstance.DB
+		showAdmin, err := repos.FindShowAdminByID(ctx, db, showAdminIDStr)
 		if err != nil {
 			return "", err
 		}
@@ -63,18 +64,19 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 	}
 
 	// Basic User that is an admin for the specified show
-	_, err = repos.FindShowAdminsByUserIDShowID(ctx, database.ORMInstance, userID, showID)
+	db := database.ORMInstance.DB
+	_, err = repos.FindShowAdminsByUserIDShowID(ctx, db, userID, showID)
 	if err != nil {
 		return next(ctx)
 	}
 
 	// Basic User that created the show and there are no admins present
-	showAdmins, err := repos.FindShowAdminsByShowID(ctx, database.ORMInstance, showID)
+	showAdmins, err := repos.FindShowAdminsByShowID(ctx, db, showID)
 	if err != nil {
 		return nil, err
 	}
 	if len(showAdmins) == 0 {
-		show, err := repos.FindShowByID(ctx, database.ORMInstance, showID)
+		show, err := repos.FindShowByID(ctx, db, showID)
 		if err != nil {
 			return nil, err
 		}
@@ -84,7 +86,7 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 	}
 
 	// Admin User
-	user, err := repos.FindUserByID(ctx, database.ORMInstance, userID)
+	user, err := repos.FindUserByID(ctx, db, userID)
 	if err != nil {
 		return nil, err
 	}

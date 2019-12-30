@@ -15,13 +15,13 @@ type episodeResolver struct{ *Resolver }
 // Field Resolvers
 
 func (r *episodeResolver) CreatedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return userByID(ctx, r.ORM(ctx), obj.CreatedByUserID)
+	return userByID(ctx, r.DB(ctx), obj.CreatedByUserID)
 }
 
 func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return userByID(ctx, r.ORM(ctx), obj.UpdatedByUserID)
+	return userByID(ctx, r.DB(ctx), obj.UpdatedByUserID)
 }
 
 func (r *episodeResolver) DeletedBy(ctx context.Context, obj *models.Episode) (*models.User, error) {
-	return deletedUserByID(ctx, r.ORM(ctx), obj.DeletedByUserID)
+	return deletedUserByID(ctx, r.DB(ctx), obj.DeletedByUserID)
 }
