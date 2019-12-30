@@ -9,6 +9,8 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 )
 
+// Helpers
+
 // Query Resolvers
 
 type preferencesResolver struct{ *Resolver }

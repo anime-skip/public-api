@@ -138,12 +138,13 @@ type ComplexityRoot struct {
 
 	Query struct {
 		FindShow               func(childComplexity int, showID string) int
+		FindShowAdmin          func(childComplexity int, showAdminID string) int
 		FindShowAdminsByShowID func(childComplexity int, showID string) int
 		FindShowAdminsByUserID func(childComplexity int, userID string) int
-		FindShows              func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
-		FindUserByID           func(childComplexity int, userID string) int
+		FindUser               func(childComplexity int, userID string) int
 		FindUserByUsername     func(childComplexity int, username string) int
 		MyUser                 func(childComplexity int) int
+		SearchShows            func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
 
 	Show struct {
@@ -250,10 +251,11 @@ type PreferencesResolver interface {
 }
 type QueryResolver interface {
 	MyUser(ctx context.Context) (*models.MyUser, error)
-	FindUserByID(ctx context.Context, userID string) (*models.User, error)
+	FindUser(ctx context.Context, userID string) (*models.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*models.User, error)
 	FindShow(ctx context.Context, showID string) (*models.Show, error)
-	FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error)
+	SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error)
+	FindShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
 	FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
 	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error)
 }
@@ -789,6 +791,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindShow(childComplexity, args["showId"].(string)), true
 
+	case "Query.findShowAdmin":
+		if e.complexity.Query.FindShowAdmin == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findShowAdmin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindShowAdmin(childComplexity, args["showAdminId"].(string)), true
+
 	case "Query.findShowAdminsByShowId":
 		if e.complexity.Query.FindShowAdminsByShowID == nil {
 			break
@@ -813,29 +827,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindShowAdminsByUserID(childComplexity, args["userId"].(string)), true
 
-	case "Query.findShows":
-		if e.complexity.Query.FindShows == nil {
+	case "Query.findUser":
+		if e.complexity.Query.FindUser == nil {
 			break
 		}
 
-		args, err := ec.field_Query_findShows_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_findUser_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShows(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
-
-	case "Query.findUserById":
-		if e.complexity.Query.FindUserByID == nil {
-			break
-		}
-
-		args, err := ec.field_Query_findUserById_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.FindUserByID(childComplexity, args["userId"].(string)), true
+		return e.complexity.Query.FindUser(childComplexity, args["userId"].(string)), true
 
 	case "Query.findUserByUsername":
 		if e.complexity.Query.FindUserByUsername == nil {
@@ -855,6 +857,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MyUser(childComplexity), true
+
+	case "Query.searchShows":
+		if e.complexity.Query.SearchShows == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchShows_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchShows(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Show.admins":
 		if e.complexity.Show.Admins == nil {
@@ -1554,14 +1568,15 @@ type User {
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
   # Users
   myUser: MyUser @authorized
-  findUserById(userId: ID!): User
+  findUser(userId: ID!): User
   findUserByUsername(username: String!): User
 
   # Shows
   findShow(showId: ID!): Show
-  findShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
+  searchShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
 
   # ShowAdmins
+  findShowAdmin(showAdminId: ID!): ShowAdmin
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 }
@@ -1743,6 +1758,20 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_findShowAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showAdminId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showAdminId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_findShowAdminsByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1785,7 +1814,35 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_findShows_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["username"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchShows_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *string
@@ -1820,34 +1877,6 @@ func (ec *executionContext) field_Query_findShows_args(ctx context.Context, rawA
 		}
 	}
 	args["sort"] = arg3
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findUserById_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userId"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["username"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["username"] = arg0
 	return args, nil
 }
 
@@ -4399,7 +4428,7 @@ func (ec *executionContext) _Query_myUser(ctx context.Context, field graphql.Col
 	return ec.marshalOMyUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐMyUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findUserById(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_findUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4416,7 +4445,7 @@ func (ec *executionContext) _Query_findUserById(ctx context.Context, field graph
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findUserById_args(ctx, rawArgs)
+	args, err := ec.field_Query_findUser_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4425,7 +4454,7 @@ func (ec *executionContext) _Query_findUserById(ctx context.Context, field graph
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindUserByID(rctx, args["userId"].(string))
+		return ec.resolvers.Query().FindUser(rctx, args["userId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4522,7 +4551,7 @@ func (ec *executionContext) _Query_findShow(ctx context.Context, field graphql.C
 	return ec.marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShow(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_searchShows(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4539,7 +4568,7 @@ func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findShows_args(ctx, rawArgs)
+	args, err := ec.field_Query_searchShows_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4548,7 +4577,7 @@ func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShows(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+		return ec.resolvers.Query().SearchShows(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4561,6 +4590,47 @@ func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOShow2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findShowAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findShowAdmin_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindShowAdmin(rctx, args["showAdminId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ShowAdmin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShowAdmin2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findShowAdminsByShowId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8658,7 +8728,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_myUser(ctx, field)
 				return res
 			})
-		case "findUserById":
+		case "findUser":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -8666,7 +8736,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_findUserById(ctx, field)
+				res = ec._Query_findUser(ctx, field)
 				return res
 			})
 		case "findUserByUsername":
@@ -8691,7 +8761,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_findShow(ctx, field)
 				return res
 			})
-		case "findShows":
+		case "searchShows":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -8699,7 +8769,18 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_findShows(ctx, field)
+				res = ec._Query_searchShows(ctx, field)
+				return res
+			})
+		case "findShowAdmin":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findShowAdmin(ctx, field)
 				return res
 			})
 		case "findShowAdminsByShowId":

@@ -2,10 +2,12 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
+
+// Helpers
 
 // Query Resolvers
 
@@ -28,5 +30,6 @@ func (r *timestampResolver) DeletedBy(ctx context.Context, obj *models.Timestamp
 }
 
 func (r *timestampResolver) Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error) {
-	return nil, fmt.Errorf("not implemented")
+	log.W("TODO - add timestamp type field resolver for timestamp model")
+	return nil, nil
 }

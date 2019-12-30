@@ -13,6 +13,9 @@ import (
 
 func showAdminByID(db *gorm.DB, showAdminID string) (*models.ShowAdmin, error) {
 	user, err := repos.FindShowAdminByID(db, showAdminID)
+	if err != nil {
+		return nil, err
+	}
 	return mappers.ShowAdminEntityToModel(user), err
 }
 
@@ -45,6 +48,10 @@ func showAdminsByShowID(db *gorm.DB, showID string) ([]*models.ShowAdmin, error)
 // Query Resolvers
 
 type showAdminResolver struct{ *Resolver }
+
+func (r *queryResolver) FindShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error) {
+	return showAdminByID(r.DB(ctx), showAdminID)
+}
 
 func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error) {
 	return showAdminsByShowID(r.DB(ctx), showID)

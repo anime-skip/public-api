@@ -8,6 +8,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -15,7 +16,10 @@ import (
 
 func showByID(db *gorm.DB, showID string) (*models.Show, error) {
 	show, err := repos.FindShowByID(db, showID)
-	return mappers.ShowEntityToModel(show), err
+	if err != nil {
+		return nil, err
+	}
+	return mappers.ShowEntityToModel(show), nil
 }
 
 // Query Resolvers
@@ -26,8 +30,8 @@ func (r *queryResolver) FindShow(ctx context.Context, showID string) (*models.Sh
 	return showByID(r.DB(ctx), showID)
 }
 
-func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
-	shows, err := repos.FindShows(r.DB(ctx), *search, *offset, *limit, *sort)
+func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
+	shows, err := repos.SearchShows(r.DB(ctx), *search, *offset, *limit, *sort)
 	if err != nil {
 		return nil, err
 	}
@@ -123,5 +127,6 @@ func (r *showResolver) Admins(ctx context.Context, obj *models.Show) ([]*models.
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error) {
-	return nil, fmt.Errorf("not implemented")
+	log.W("TODO - add episodes field resolver for show model")
+	return nil, nil
 }
