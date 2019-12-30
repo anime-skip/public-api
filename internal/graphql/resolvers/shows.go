@@ -15,7 +15,10 @@ import (
 
 func showByID(db *gorm.DB, showID string) (*models.Show, error) {
 	show, err := repos.FindShowByID(db, showID)
-	return mappers.ShowEntityToModel(show), err
+	if err != nil {
+		return nil, err
+	}
+	return mappers.ShowEntityToModel(show), nil
 }
 
 // Query Resolvers
@@ -26,8 +29,8 @@ func (r *queryResolver) FindShow(ctx context.Context, showID string) (*models.Sh
 	return showByID(r.DB(ctx), showID)
 }
 
-func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
-	shows, err := repos.FindShows(r.DB(ctx), *search, *offset, *limit, *sort)
+func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
+	shows, err := repos.SearchShows(r.DB(ctx), *search, *offset, *limit, *sort)
 	if err != nil {
 		return nil, err
 	}

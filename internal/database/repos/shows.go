@@ -76,7 +76,7 @@ func FindShowByID(db *gorm.DB, showID string) (*entities.Show, error) {
 	return show, nil
 }
 
-func FindShows(db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
+func SearchShows(db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
 	searchVar := "%" + search + "%"
 	err := db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&shows).Error
