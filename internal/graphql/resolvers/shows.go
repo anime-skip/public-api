@@ -25,8 +25,8 @@ func (r *queryResolver) FindShow(ctx context.Context, showID string) (*models.Sh
 	return showByID(ctx, r.ORM(ctx), showID)
 }
 
-func (r *queryResolver) FindShows(ctx context.Context, search string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
-	shows, err := repos.FindShows(ctx, r.ORM(ctx), search, *offset, *limit, *sort)
+func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
+	shows, err := repos.FindShows(ctx, r.ORM(ctx), *search, *offset, *limit, *sort)
 	if err != nil {
 		return nil, err
 	}

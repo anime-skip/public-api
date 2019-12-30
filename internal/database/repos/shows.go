@@ -47,7 +47,7 @@ func FindShowByID(ctx context.Context, orm *database.ORM, showID string) (*entit
 // FindShowByID finds a set of Show by it's id
 func FindShows(ctx context.Context, orm *database.ORM, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
-	err := orm.DB.Where("name LIKE ?", "%"+search+"%").Offset(offset).Limit(limit).Order("name " + sort).Find(&shows).Error
+	err := orm.DB.Where("LOWER(name) LIKE LOWER(?)", "%"+search+"%").Offset(offset).Limit(limit).Order("name " + sort).Find(&shows).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No shows found with name LIKE '%s'", search)
