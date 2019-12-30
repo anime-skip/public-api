@@ -91,10 +91,9 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateShow      func(childComplexity int, show models.InputShow) int
+		CreateShow      func(childComplexity int, show models.InputShow, becomeAdmin bool) int
 		CreateShowAdmin func(childComplexity int, showAdmin models.InputShowAdmin) int
 		DeleteShowAdmin func(childComplexity int, showAdminID string) int
-		DeleteUser      func(childComplexity int, userID string) int
 		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
 		UpdateShow      func(childComplexity int, showID string, show models.InputShow) int
 	}
@@ -233,9 +232,8 @@ type EpisodeUrlResolver interface {
 	UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
 }
 type MutationResolver interface {
-	DeleteUser(ctx context.Context, userID string) (bool, error)
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
-	CreateShow(ctx context.Context, show models.InputShow) (*models.Show, error)
+	CreateShow(ctx context.Context, show models.InputShow, becomeAdmin bool) (*models.Show, error)
 	UpdateShow(ctx context.Context, showID string, show models.InputShow) (*models.Show, error)
 	CreateShowAdmin(ctx context.Context, showAdmin models.InputShowAdmin) (*models.ShowAdmin, error)
 	DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
@@ -498,7 +496,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateShow(childComplexity, args["show"].(models.InputShow)), true
+		return e.complexity.Mutation.CreateShow(childComplexity, args["show"].(models.InputShow), args["becomeAdmin"].(bool)), true
 
 	case "Mutation.createShowAdmin":
 		if e.complexity.Mutation.CreateShowAdmin == nil {
@@ -523,18 +521,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteShowAdmin(childComplexity, args["showAdminId"].(string)), true
-
-	case "Mutation.deleteUser":
-		if e.complexity.Mutation.DeleteUser == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_deleteUser_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.DeleteUser(childComplexity, args["userId"].(string)), true
 
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
@@ -1537,15 +1523,12 @@ type User {
 `},
 	&ast.Source{Name: "internal/graphql/schemas/mutations.graphql", Input: `type Mutation {
   # Users
-  # createUser(input: UserInput!): User!
-  # updateUser(input: UserInput!): User! @authorized
-  deleteUser(userId: ID!): Boolean! @authorized
 
   # Prefernces
   savePreferences(preferences: InputPreferences!): Preferences @authorized
 
   # Shows
-  createShow(show: InputShow!): Show @authorized
+  createShow(show: InputShow!, becomeAdmin: Boolean!): Show @authorized
   updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized 
 
   # Show Admins
@@ -1630,6 +1613,14 @@ func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, 
 		}
 	}
 	args["show"] = arg0
+	var arg1 bool
+	if tmp, ok := rawArgs["becomeAdmin"]; ok {
+		arg1, err = ec.unmarshalNBoolean2bool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["becomeAdmin"] = arg1
 	return args, nil
 }
 
@@ -1657,20 +1648,6 @@ func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Cont
 		}
 	}
 	args["showAdminId"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_deleteUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userId"] = arg0
 	return args, nil
 }
 
@@ -2822,70 +2799,6 @@ func (ec *executionContext) _EpisodeUrl_episode(ctx context.Context, field graph
 	return ec.marshalNEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_deleteUser_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteUser(rctx, args["userId"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(bool); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(bool)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -2974,7 +2887,7 @@ func (ec *executionContext) _Mutation_createShow(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateShow(rctx, args["show"].(models.InputShow))
+			return ec.resolvers.Mutation().CreateShow(rctx, args["show"].(models.InputShow), args["becomeAdmin"].(bool))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authorized == nil {
@@ -8376,11 +8289,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
-		case "deleteUser":
-			out.Values[i] = ec._Mutation_deleteUser(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "savePreferences":
 			out.Values[i] = ec._Mutation_savePreferences(ctx, field)
 		case "createShow":
