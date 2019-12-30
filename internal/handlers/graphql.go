@@ -19,6 +19,7 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 	// Set the directives
 	config.Directives.Authorized = directives.Authorized
 	config.Directives.HasRole = directives.HasRole
+	config.Directives.IsShowAdmin = directives.IsShowAdmin
 
 	// Apply and serve the schema
 	handler := handler.GraphQL(gql.NewExecutableSchema(config))

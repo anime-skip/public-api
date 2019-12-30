@@ -72,6 +72,11 @@ type InputShow struct {
 	Image        *string `json:"image"`
 }
 
+type InputShowAdmin struct {
+	ShowID string `json:"showId"`
+	UserID string `json:"userId"`
+}
+
 type MyUser struct {
 	ID            string       `json:"id"`
 	CreatedAt     time.Time    `json:"createdAt"`

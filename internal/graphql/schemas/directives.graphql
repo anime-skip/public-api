@@ -1,2 +1,3 @@
 directive @authorized on FIELD_DEFINITION
 directive @hasRole(role: Role!) on FIELD_DEFINITION
+directive @isShowAdmin on ARGUMENT_DEFINITION

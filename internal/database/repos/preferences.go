@@ -11,7 +11,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
-// SavePreferences updates the preferences for the given preferences id
 func SavePreferences(ctx context.Context, orm *database.ORM, newPreferences models.InputPreferences, existingPreferences *entities.Preferences) (*entities.Preferences, error) {
 	data := mappers.PreferencesInputModelToEntity(newPreferences, existingPreferences)
 	err := orm.DB.Model(data).Update(*data).Error
@@ -22,7 +21,6 @@ func SavePreferences(ctx context.Context, orm *database.ORM, newPreferences mode
 	return data, err
 }
 
-// FindPreferencesByUserID finds a set of preferences by the user they belong to
 func FindPreferencesByUserID(ctx context.Context, orm *database.ORM, userID string) (*entities.Preferences, error) {
 	preferences := &entities.Preferences{}
 	err := orm.DB.Where("user_id = ?", userID).Find(preferences).Error

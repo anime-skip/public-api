@@ -37,10 +37,6 @@ func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *i
 	return showModels, nil
 }
 
-func (r *queryResolver) FindShowAdmins(ctx context.Context, showID string) ([]*models.ShowAdmin, error) {
-	return nil, fmt.Errorf("Not implemented")
-}
-
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow) (*models.Show, error) {
@@ -76,7 +72,7 @@ func (r *showResolver) DeletedBy(ctx context.Context, obj *models.Show) (*models
 }
 
 func (r *showResolver) Admins(ctx context.Context, obj *models.Show) ([]*models.ShowAdmin, error) {
-	return nil, fmt.Errorf("not implemented")
+	return showAdminsByShowID(ctx, r.ORM(ctx), obj.ID)
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error) {

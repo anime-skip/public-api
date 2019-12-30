@@ -7,5 +7,8 @@ type Query {
   # Shows
   findShow(showId: ID!): Show
   findShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
-  findShowAdmins(showId: ID!): [ShowAdmin!]
+
+  # ShowAdmins
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 }
