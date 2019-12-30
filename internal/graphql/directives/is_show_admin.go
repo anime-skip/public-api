@@ -10,7 +10,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
 func _findShowID(ctx context.Context, obj interface{}) (string, error) {
@@ -54,27 +53,37 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 }
 
 func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	log.D("1")
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("500 Internal Error [004]")
 	}
-	log.D("2: userID=%s", userID)
 	showID, err := _findShowID(ctx, obj)
 	if err != nil {
 		return nil, err
 	}
 
 	// Basic User that is an admin for the specified show
-	log.D("2: showID=%s", showID)
-	log.D("orm=%v", database.ORMInstance)
 	_, err = repos.FindShowAdminsByUserIDShowID(ctx, database.ORMInstance, userID, showID)
 	if err != nil {
 		return next(ctx)
 	}
 
+	// Basic User that created the show and there are no admins present
+	showAdmins, err := repos.FindShowAdminsByShowID(ctx, database.ORMInstance, showID)
+	if err != nil {
+		return nil, err
+	}
+	if len(showAdmins) == 0 {
+		show, err := repos.FindShowByID(ctx, database.ORMInstance, showID)
+		if err != nil {
+			return nil, err
+		}
+		if show.CreatedByUserID.String() == userID {
+			return next(ctx)
+		}
+	}
+
 	// Admin User
-	log.D("4")
 	user, err := repos.FindUserByID(ctx, database.ORMInstance, userID)
 	if err != nil {
 		return nil, err
@@ -83,6 +92,5 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 		return next(ctx)
 	}
 
-	log.D("5")
 	return nil, fmt.Errorf("403 Forebidden")
 }
