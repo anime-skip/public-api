@@ -53,6 +53,8 @@ type DirectiveRoot struct {
 	Authorized func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 
 	HasRole func(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (res interface{}, err error)
+
+	IsShowAdmin func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -90,6 +92,8 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateShow      func(childComplexity int, show models.InputShow) int
+		CreateShowAdmin func(childComplexity int, showAdmin models.InputShowAdmin) int
+		DeleteShowAdmin func(childComplexity int, showAdminID string) int
 		DeleteUser      func(childComplexity int, userID string) int
 		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
 		UpdateShow      func(childComplexity int, showID string, show models.InputShow) int
@@ -133,12 +137,13 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		FindShow           func(childComplexity int, showID string) int
-		FindShowAdmins     func(childComplexity int, showID string) int
-		FindShows          func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
-		FindUserByID       func(childComplexity int, userID string) int
-		FindUserByUsername func(childComplexity int, username string) int
-		MyUser             func(childComplexity int) int
+		FindShow               func(childComplexity int, showID string) int
+		FindShowAdminsByShowID func(childComplexity int, showID string) int
+		FindShowAdminsByUserID func(childComplexity int, userID string) int
+		FindShows              func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
+		FindUserByID           func(childComplexity int, userID string) int
+		FindUserByUsername     func(childComplexity int, username string) int
+		MyUser                 func(childComplexity int) int
 	}
 
 	Show struct {
@@ -232,6 +237,8 @@ type MutationResolver interface {
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
 	CreateShow(ctx context.Context, show models.InputShow) (*models.Show, error)
 	UpdateShow(ctx context.Context, showID string, show models.InputShow) (*models.Show, error)
+	CreateShowAdmin(ctx context.Context, showAdmin models.InputShowAdmin) (*models.ShowAdmin, error)
+	DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
 }
 type MyUserResolver interface {
 	AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error)
@@ -247,7 +254,8 @@ type QueryResolver interface {
 	FindUserByUsername(ctx context.Context, username string) (*models.User, error)
 	FindShow(ctx context.Context, showID string) (*models.Show, error)
 	FindShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error)
-	FindShowAdmins(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
+	FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
+	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
@@ -491,6 +499,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateShow(childComplexity, args["show"].(models.InputShow)), true
+
+	case "Mutation.createShowAdmin":
+		if e.complexity.Mutation.CreateShowAdmin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createShowAdmin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateShowAdmin(childComplexity, args["showAdmin"].(models.InputShowAdmin)), true
+
+	case "Mutation.deleteShowAdmin":
+		if e.complexity.Mutation.DeleteShowAdmin == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteShowAdmin_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteShowAdmin(childComplexity, args["showAdminId"].(string)), true
 
 	case "Mutation.deleteUser":
 		if e.complexity.Mutation.DeleteUser == nil {
@@ -757,17 +789,29 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.FindShow(childComplexity, args["showId"].(string)), true
 
-	case "Query.findShowAdmins":
-		if e.complexity.Query.FindShowAdmins == nil {
+	case "Query.findShowAdminsByShowId":
+		if e.complexity.Query.FindShowAdminsByShowID == nil {
 			break
 		}
 
-		args, err := ec.field_Query_findShowAdmins_args(context.TODO(), rawArgs)
+		args, err := ec.field_Query_findShowAdminsByShowId_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShowAdmins(childComplexity, args["showId"].(string)), true
+		return e.complexity.Query.FindShowAdminsByShowID(childComplexity, args["showId"].(string)), true
+
+	case "Query.findShowAdminsByUserId":
+		if e.complexity.Query.FindShowAdminsByUserID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findShowAdminsByUserId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindShowAdminsByUserID(childComplexity, args["userId"].(string)), true
 
 	case "Query.findShows":
 		if e.complexity.Query.FindShows == nil {
@@ -1282,6 +1326,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "internal/graphql/schemas/directives.graphql", Input: `directive @authorized on FIELD_DEFINITION
 directive @hasRole(role: Role!) on FIELD_DEFINITION
+directive @isShowAdmin on ARGUMENT_DEFINITION
 `},
 	&ast.Source{Name: "internal/graphql/schemas/enums.graphql", Input: `enum Role {
   DEV
@@ -1442,6 +1487,10 @@ type ShowAdmin implements BaseModel {
   userId: ID!
   user: User!
 }
+input InputShowAdmin {
+  showId: ID!
+  userId: ID!
+}
 
 # Timestamp
 type Timestamp implements BaseModel {
@@ -1497,7 +1546,11 @@ type User {
 
   # Shows
   createShow(show: InputShow!): Show @authorized
-  updateShow(showId: ID!, show: InputShow!): Show @authorized # @isShowAdmin
+  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized 
+
+  # Show Admins
+  createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
@@ -1509,7 +1562,10 @@ type User {
   # Shows
   findShow(showId: ID!): Show
   findShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
-  findShowAdmins(showId: ID!): [ShowAdmin!]
+
+  # ShowAdmins
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/scalars.graphql", Input: `scalar Time
@@ -1534,6 +1590,35 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createShowAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.InputShowAdmin
+	if tmp, ok := rawArgs["showAdmin"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNInputShowAdmin2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputShowAdmin(ctx, tmp)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(models.InputShowAdmin); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be github.com/aklinker1/anime-skip-backend/internal/graphql/models.InputShowAdmin`, tmp)
+		}
+	}
+	args["showAdmin"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1545,6 +1630,33 @@ func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, 
 		}
 	}
 	args["show"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showAdminId"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["showAdminId"] = arg0
 	return args, nil
 }
 
@@ -1581,9 +1693,22 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["showId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
 			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
 		}
 	}
 	args["showId"] = arg0
@@ -1612,7 +1737,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_findShowAdmins_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Query_findShowAdminsByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -1623,6 +1748,20 @@ func (ec *executionContext) field_Query_findShowAdmins_args(ctx context.Context,
 		}
 	}
 	args["showId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findShowAdminsByUserId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
 	return args, nil
 }
 
@@ -2928,6 +3067,128 @@ func (ec *executionContext) _Mutation_updateShow(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createShowAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createShowAdmin_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateShowAdmin(rctx, args["showAdmin"].(models.InputShowAdmin))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.ShowAdmin); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.ShowAdmin`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ShowAdmin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShowAdmin2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteShowAdmin(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteShowAdmin_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteShowAdmin(rctx, args["showAdminId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.ShowAdmin); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.ShowAdmin`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.ShowAdmin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShowAdmin2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MyUser_id(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
@@ -4289,7 +4550,7 @@ func (ec *executionContext) _Query_findShows(ctx context.Context, field graphql.
 	return ec.marshalOShow2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findShowAdmins(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_findShowAdminsByShowId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4306,7 +4567,7 @@ func (ec *executionContext) _Query_findShowAdmins(ctx context.Context, field gra
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findShowAdmins_args(ctx, rawArgs)
+	args, err := ec.field_Query_findShowAdminsByShowId_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4315,7 +4576,48 @@ func (ec *executionContext) _Query_findShowAdmins(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShowAdmins(rctx, args["showId"].(string))
+		return ec.resolvers.Query().FindShowAdminsByShowID(rctx, args["showId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.ShowAdmin)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShowAdmin2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdminᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findShowAdminsByUserId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findShowAdminsByUserId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindShowAdminsByUserID(rctx, args["userId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7792,6 +8094,30 @@ func (ec *executionContext) unmarshalInputInputShow(ctx context.Context, obj int
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInputShowAdmin(ctx context.Context, obj interface{}) (models.InputShowAdmin, error) {
+	var it models.InputShowAdmin
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "showId":
+			var err error
+			it.ShowID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "userId":
+			var err error
+			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -8061,6 +8387,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createShow(ctx, field)
 		case "updateShow":
 			out.Values[i] = ec._Mutation_updateShow(ctx, field)
+		case "createShowAdmin":
+			out.Values[i] = ec._Mutation_createShowAdmin(ctx, field)
+		case "deleteShowAdmin":
+			out.Values[i] = ec._Mutation_deleteShowAdmin(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8362,7 +8692,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_findShows(ctx, field)
 				return res
 			})
-		case "findShowAdmins":
+		case "findShowAdminsByShowId":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -8370,7 +8700,18 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_findShowAdmins(ctx, field)
+				res = ec._Query_findShowAdminsByShowId(ctx, field)
+				return res
+			})
+		case "findShowAdminsByUserId":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findShowAdminsByUserId(ctx, field)
 				return res
 			})
 		case "__type":
@@ -9221,6 +9562,10 @@ func (ec *executionContext) unmarshalNInputShow2githubᚗcomᚋaklinker1ᚋanime
 	return ec.unmarshalInputInputShow(ctx, v)
 }
 
+func (ec *executionContext) unmarshalNInputShowAdmin2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputShowAdmin(ctx context.Context, v interface{}) (models.InputShowAdmin, error) {
+	return ec.unmarshalInputInputShowAdmin(ctx, v)
+}
+
 func (ec *executionContext) marshalNPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐPreferences(ctx context.Context, sel ast.SelectionSet, v models.Preferences) graphql.Marshaler {
 	return ec._Preferences(ctx, sel, &v)
 }
@@ -9784,6 +10129,10 @@ func (ec *executionContext) marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑs
 	return ec._Show(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalOShowAdmin2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx context.Context, sel ast.SelectionSet, v models.ShowAdmin) graphql.Marshaler {
+	return ec._ShowAdmin(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalOShowAdmin2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdminᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.ShowAdmin) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
@@ -9822,6 +10171,13 @@ func (ec *executionContext) marshalOShowAdmin2ᚕᚖgithubᚗcomᚋaklinker1ᚋa
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOShowAdmin2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx context.Context, sel ast.SelectionSet, v *models.ShowAdmin) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ShowAdmin(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

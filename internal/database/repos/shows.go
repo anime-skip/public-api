@@ -11,7 +11,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
-// CreateShow finds a set of Show by it's id
 func CreateShow(ctx context.Context, orm *database.ORM, showInput models.InputShow) (*entities.Show, error) {
 	show := mappers.ShowInputModelToEntity(showInput, &entities.Show{})
 	err := orm.DB.Model(&show).Create(show).Error
@@ -22,7 +21,6 @@ func CreateShow(ctx context.Context, orm *database.ORM, showInput models.InputSh
 	return show, nil
 }
 
-// UpdateShow finds a set of Show by it's id
 func UpdateShow(ctx context.Context, orm *database.ORM, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
 	data := mappers.ShowInputModelToEntity(newShow, existingShow)
 	err := orm.DB.Model(data).Update(*data).Error
@@ -33,7 +31,6 @@ func UpdateShow(ctx context.Context, orm *database.ORM, newShow models.InputShow
 	return data, err
 }
 
-// FindShowByID finds a set of Show by it's id
 func FindShowByID(ctx context.Context, orm *database.ORM, showID string) (*entities.Show, error) {
 	show := &entities.Show{}
 	err := orm.DB.Where("id = ?", showID).Find(show).Error
@@ -44,7 +41,6 @@ func FindShowByID(ctx context.Context, orm *database.ORM, showID string) (*entit
 	return show, nil
 }
 
-// FindShowByID finds a set of Show by it's id
 func FindShows(ctx context.Context, orm *database.ORM, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
 	err := orm.DB.Where("LOWER(name) LIKE LOWER(?)", "%"+search+"%").Offset(offset).Limit(limit).Order("name " + sort).Find(&shows).Error

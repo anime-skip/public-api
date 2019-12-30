@@ -47,5 +47,5 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, userID string) (bool,
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) AdminOfShows(ctx context.Context, obj *models.User) ([]*models.ShowAdmin, error) {
-	return nil, fmt.Errorf("Not implemented")
+	return showAdminsByUserID(ctx, r.ORM(ctx), obj.ID)
 }

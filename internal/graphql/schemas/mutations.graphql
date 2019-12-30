@@ -9,5 +9,9 @@ type Mutation {
 
   # Shows
   createShow(show: InputShow!): Show @authorized
-  updateShow(showId: ID!, show: InputShow!): Show @authorized # @isShowAdmin
+  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized 
+
+  # Show Admins
+  createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
 }

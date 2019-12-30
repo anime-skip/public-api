@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
@@ -29,7 +28,7 @@ func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
 // Field Resolvers
 
 func (r *myUserResolver) AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error) {
-	return nil, fmt.Errorf("not implemented")
+	return showAdminsByUserID(ctx, r.ORM(ctx), obj.ID)
 }
 
 func (r *myUserResolver) Preferences(ctx context.Context, obj *models.MyUser) (*models.Preferences, error) {

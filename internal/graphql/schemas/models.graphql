@@ -151,6 +151,10 @@ type ShowAdmin implements BaseModel {
   userId: ID!
   user: User!
 }
+input InputShowAdmin {
+  showId: ID!
+  userId: ID!
+}
 
 # Timestamp
 type Timestamp implements BaseModel {
