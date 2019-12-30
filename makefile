@@ -10,8 +10,8 @@ run:
 watch:
 	@modd
 
-.PHONY: gqlgen
-gqlgen:
+.PHONY: gen
+gen:
 	@./scripts/gqlgen.sh
 
 .PHONY: clean
