@@ -65,6 +65,13 @@ type InputPreferences struct {
 	SkipTitleCard    bool `json:"skipTitleCard"`
 }
 
+type InputShow struct {
+	Name         string  `json:"name"`
+	OriginalName *string `json:"originalName"`
+	Website      *string `json:"website"`
+	Image        *string `json:"image"`
+}
+
 type MyUser struct {
 	ID            string       `json:"id"`
 	CreatedAt     time.Time    `json:"createdAt"`
