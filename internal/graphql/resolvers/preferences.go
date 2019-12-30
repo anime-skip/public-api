@@ -21,11 +21,11 @@ func (r *mutationResolver) SavePreferences(ctx context.Context, newPreferences m
 		return nil, err
 	}
 
-	existingPreferences, err := repos.FindPreferencesByUserID(ctx, r.DB(ctx), userID)
+	existingPreferences, err := repos.FindPreferencesByUserID(r.DB(ctx), userID)
 	if err != nil {
 		return nil, err
 	}
-	updatedPreferences, err := repos.SavePreferences(ctx, r.DB(ctx), newPreferences, existingPreferences)
+	updatedPreferences, err := repos.SavePreferences(r.DB(ctx), newPreferences, existingPreferences)
 
 	return mappers.PreferencesEntityToModel(updatedPreferences), nil
 }
@@ -33,5 +33,5 @@ func (r *mutationResolver) SavePreferences(ctx context.Context, newPreferences m
 // Field Resolvers
 
 func (r *preferencesResolver) User(ctx context.Context, obj *models.Preferences) (*models.User, error) {
-	return userByID(ctx, r.DB(ctx), obj.UserID)
+	return userByID(r.DB(ctx), obj.UserID)
 }

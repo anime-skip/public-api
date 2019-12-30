@@ -19,7 +19,7 @@ func HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role m
 	if err != nil {
 		return nil, fmt.Errorf("500 Internal Error [005]")
 	}
-	user, err := repos.FindUserByID(ctx, database.ORMInstance.DB, userID)
+	user, err := repos.FindUserByID(database.ORMInstance.DB, userID)
 	if err != nil {
 		return nil, err
 	}
