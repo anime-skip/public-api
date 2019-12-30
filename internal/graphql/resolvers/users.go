@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
@@ -37,10 +36,6 @@ func (r *queryResolver) FindUserByUsername(ctx context.Context, username string)
 }
 
 // Mutation Resolvers
-
-func (r *mutationResolver) DeleteUser(ctx context.Context, userID string) (bool, error) {
-	return false, fmt.Errorf("Not implemented")
-}
 
 // Field Resolvers
 

@@ -8,6 +8,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 )
 
 // Helpers
@@ -39,10 +40,24 @@ func (r *queryResolver) FindShows(ctx context.Context, search *string, offset *i
 
 // Mutation Resolvers
 
-func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow) (*models.Show, error) {
+func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (*models.Show, error) {
 	show, err := repos.CreateShow(ctx, r.ORM(ctx), showInput)
 	if err != nil {
 		return nil, err
+	}
+	if becomeAdmin {
+		userID, err := utils.UserIDFromContext(ctx)
+		if err != nil {
+			return nil, err
+		}
+		newAdmin := models.InputShowAdmin{
+			ShowID: show.ID.String(),
+			UserID: userID,
+		}
+		_, err = r.CreateShowAdmin(ctx, newAdmin)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return mappers.ShowEntityToModel(show), nil
 }
