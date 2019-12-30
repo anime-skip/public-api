@@ -40,7 +40,7 @@ func UserEntityToMyUserModel(entity *entities.User) *models.MyUser {
 		ProfileURL:    entity.ProfileURL,
 		AdminOfShows:  nil,
 		EmailVerified: entity.EmailVerified,
-		Role:          models.RoleAdmin, // TODO - entity.Role,
+		Role:          RoleIntToEnum(entity.Role),
 		Preferences:   nil,
 	}
 }

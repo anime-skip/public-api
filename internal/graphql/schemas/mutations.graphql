@@ -6,7 +6,8 @@ type Mutation {
 
   # Shows
   createShow(show: InputShow!, becomeAdmin: Boolean!): Show @authorized
-  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized 
+  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized
+  deleteShow(showId: ID!): Show @authorized @hasRole(role: ADMIN)
 
   # Show Admins
   createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 

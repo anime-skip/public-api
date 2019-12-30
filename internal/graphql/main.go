@@ -93,6 +93,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreateShow      func(childComplexity int, show models.InputShow, becomeAdmin bool) int
 		CreateShowAdmin func(childComplexity int, showAdmin models.InputShowAdmin) int
+		DeleteShow      func(childComplexity int, showID string) int
 		DeleteShowAdmin func(childComplexity int, showAdminID string) int
 		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
 		UpdateShow      func(childComplexity int, showID string, show models.InputShow) int
@@ -235,6 +236,7 @@ type MutationResolver interface {
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
 	CreateShow(ctx context.Context, show models.InputShow, becomeAdmin bool) (*models.Show, error)
 	UpdateShow(ctx context.Context, showID string, show models.InputShow) (*models.Show, error)
+	DeleteShow(ctx context.Context, showID string) (*models.Show, error)
 	CreateShowAdmin(ctx context.Context, showAdmin models.InputShowAdmin) (*models.ShowAdmin, error)
 	DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
 }
@@ -509,6 +511,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateShowAdmin(childComplexity, args["showAdmin"].(models.InputShowAdmin)), true
+
+	case "Mutation.deleteShow":
+		if e.complexity.Mutation.DeleteShow == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteShow_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteShow(childComplexity, args["showId"].(string)), true
 
 	case "Mutation.deleteShowAdmin":
 		if e.complexity.Mutation.DeleteShowAdmin == nil {
@@ -1529,7 +1543,8 @@ type User {
 
   # Shows
   createShow(show: InputShow!, becomeAdmin: Boolean!): Show @authorized
-  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized 
+  updateShow(showId: ID! @isShowAdmin, show: InputShow!): Show @authorized
+  deleteShow(showId: ID!): Show @authorized @hasRole(role: ADMIN)
 
   # Show Admins
   createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
@@ -1648,6 +1663,20 @@ func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Cont
 		}
 	}
 	args["showAdminId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showId"] = arg0
 	return args, nil
 }
 
@@ -2958,6 +2987,77 @@ func (ec *executionContext) _Mutation_updateShow(ctx context.Context, field grap
 		}
 
 		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Show); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Show`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Show)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOShow2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteShow(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteShow_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteShow(rctx, args["showId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive1, role)
+		}
+
+		tmp, err := directive2(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -8295,6 +8395,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createShow(ctx, field)
 		case "updateShow":
 			out.Values[i] = ec._Mutation_updateShow(ctx, field)
+		case "deleteShow":
+			out.Values[i] = ec._Mutation_deleteShow(ctx, field)
 		case "createShowAdmin":
 			out.Values[i] = ec._Mutation_createShowAdmin(ctx, field)
 		case "deleteShowAdmin":
