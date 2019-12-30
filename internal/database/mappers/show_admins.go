@@ -31,6 +31,7 @@ func ShowAdminEntityToModel(entity *entities.ShowAdmin) *models.ShowAdmin {
 		UpdatedByUserID: entity.UpdatedByUserID.String(),
 		DeletedAt:       entity.DeletedAt,
 		DeletedByUserID: deletedByUserID,
+
 		ShowID:          entity.ShowID.String(),
 		UserID:          entity.UserID.String(),
 	}
