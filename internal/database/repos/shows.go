@@ -31,6 +31,15 @@ func UpdateShow(ctx context.Context, db *gorm.DB, newShow models.InputShow, exis
 	return data, err
 }
 
+func DeleteShow(ctx context.Context, db *gorm.DB, show *entities.Show) error {
+	err := db.Model(show).Delete(show).Error
+	if err != nil {
+		log.E("Failed to delete show for id='%s': %v", show.ID, err)
+		return fmt.Errorf("Failed to delete show with id='%s'", show.ID)
+	}
+	return err
+}
+
 func FindShowByID(ctx context.Context, db *gorm.DB, showID string) (*entities.Show, error) {
 	show := &entities.Show{}
 	err := db.Where("id = ?", showID).Find(show).Error

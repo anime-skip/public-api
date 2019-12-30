@@ -90,6 +90,21 @@ func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newSho
 	return mappers.ShowEntityToModel(updatedShow), nil
 }
 
+func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*models.Show, error) {
+	db := r.DB(ctx)
+	show, err := repos.FindShowByID(ctx, db, showID)
+	showModel := mappers.ShowEntityToModel(show)
+	if err != nil {
+		return nil, err
+	}
+
+	err = repos.DeleteShow(ctx, db, show)
+	if err != nil {
+		return nil, err
+	}
+	return showModel, nil
+}
+
 // Field Resolvers
 
 func (r *showResolver) CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error) {
