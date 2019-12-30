@@ -13,7 +13,10 @@ import (
 
 func userByID(db *gorm.DB, userID string) (*models.User, error) {
 	user, err := repos.FindUserByID(db, userID)
-	return mappers.UserEntityToModel(user), err
+	if err != nil {
+		return nil, err
+	}
+	return mappers.UserEntityToModel(user), nil
 }
 
 func deletedUserByID(db *gorm.DB, userID *string) (*models.User, error) {
@@ -21,12 +24,15 @@ func deletedUserByID(db *gorm.DB, userID *string) (*models.User, error) {
 		return nil, nil
 	}
 	user, err := repos.FindUserByID(db, *userID)
-	return mappers.UserEntityToModel(user), err
+	if err != nil {
+		return nil, err
+	}
+	return mappers.UserEntityToModel(user), nil
 }
 
 // Query Resolvers
 
-func (r *queryResolver) FindUserByID(ctx context.Context, userID string) (*models.User, error) {
+func (r *queryResolver) FindUser(ctx context.Context, userID string) (*models.User, error) {
 	return userByID(r.DB(ctx), userID)
 }
 

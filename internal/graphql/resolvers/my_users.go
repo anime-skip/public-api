@@ -9,6 +9,8 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 )
 
+// Helpers
+
 // Query Resolvers
 
 type myUserResolver struct{ *Resolver }
@@ -20,7 +22,10 @@ func (r *queryResolver) MyUser(ctx context.Context) (*models.MyUser, error) {
 	}
 
 	user, err := repos.FindUserByID(r.DB(ctx), userID)
-	return mappers.UserEntityToMyUserModel(user), err
+	if err != nil {
+		return nil, err
+	}
+	return mappers.UserEntityToMyUserModel(user), nil
 }
 
 // Mutation Resolvers

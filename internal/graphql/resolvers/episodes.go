@@ -6,6 +6,8 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
+// Helpers
+
 // Query Resolvers
 
 type episodeResolver struct{ *Resolver }
