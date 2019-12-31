@@ -12,4 +12,9 @@ type Mutation {
   # Show Admins
   createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
   deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
+
+  # Episodes
+  createEpisode(showId: ID! @isShowAdmin, episode: InputEpisode!): Episode @authorized 
+  updateEpisode(episodeId: ID! @isShowAdmin, episode: InputEpisode!): Episode @authorized 
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode @authorized
 }

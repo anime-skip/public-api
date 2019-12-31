@@ -91,11 +91,14 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		CreateEpisode   func(childComplexity int, showID string, episode models.InputEpisode) int
 		CreateShow      func(childComplexity int, show models.InputShow, becomeAdmin bool) int
 		CreateShowAdmin func(childComplexity int, showAdmin models.InputShowAdmin) int
+		DeleteEpisode   func(childComplexity int, episodeID string) int
 		DeleteShow      func(childComplexity int, showID string) int
 		DeleteShowAdmin func(childComplexity int, showAdminID string) int
 		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
+		UpdateEpisode   func(childComplexity int, episodeID string, episode models.InputEpisode) int
 		UpdateShow      func(childComplexity int, showID string, show models.InputShow) int
 	}
 
@@ -137,6 +140,8 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		FindEpisode            func(childComplexity int, episodeID string) int
+		FindEpisodesByShowID   func(childComplexity int, showID string) int
 		FindShow               func(childComplexity int, showID string) int
 		FindShowAdmin          func(childComplexity int, showAdminID string) int
 		FindShowAdminsByShowID func(childComplexity int, showID string) int
@@ -144,6 +149,7 @@ type ComplexityRoot struct {
 		FindUser               func(childComplexity int, userID string) int
 		FindUserByUsername     func(childComplexity int, username string) int
 		MyUser                 func(childComplexity int) int
+		SearchEpisodes         func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 		SearchShows            func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
 
@@ -227,6 +233,10 @@ type EpisodeResolver interface {
 	UpdatedBy(ctx context.Context, obj *models.Episode) (*models.User, error)
 
 	DeletedBy(ctx context.Context, obj *models.Episode) (*models.User, error)
+
+	Show(ctx context.Context, obj *models.Episode) (*models.Show, error)
+
+	Timestamps(ctx context.Context, obj *models.Episode) ([]*models.Timestamp, error)
 }
 type EpisodeUrlResolver interface {
 	CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
@@ -240,6 +250,9 @@ type MutationResolver interface {
 	DeleteShow(ctx context.Context, showID string) (*models.Show, error)
 	CreateShowAdmin(ctx context.Context, showAdmin models.InputShowAdmin) (*models.ShowAdmin, error)
 	DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
+	CreateEpisode(ctx context.Context, showID string, episode models.InputEpisode) (*models.Episode, error)
+	UpdateEpisode(ctx context.Context, episodeID string, episode models.InputEpisode) (*models.Episode, error)
+	DeleteEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
 }
 type MyUserResolver interface {
 	AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error)
@@ -258,6 +271,9 @@ type QueryResolver interface {
 	FindShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
 	FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
 	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error)
+	FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
+	FindEpisodesByShowID(ctx context.Context, showID string) ([]*models.Episode, error)
+	SearchEpisodes(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
@@ -490,6 +506,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EpisodeURL.UpdatedByUserID(childComplexity), true
 
+	case "Mutation.createEpisode":
+		if e.complexity.Mutation.CreateEpisode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createEpisode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateEpisode(childComplexity, args["showId"].(string), args["episode"].(models.InputEpisode)), true
+
 	case "Mutation.createShow":
 		if e.complexity.Mutation.CreateShow == nil {
 			break
@@ -513,6 +541,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateShowAdmin(childComplexity, args["showAdmin"].(models.InputShowAdmin)), true
+
+	case "Mutation.deleteEpisode":
+		if e.complexity.Mutation.DeleteEpisode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteEpisode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteEpisode(childComplexity, args["episodeId"].(string)), true
 
 	case "Mutation.deleteShow":
 		if e.complexity.Mutation.DeleteShow == nil {
@@ -549,6 +589,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(models.InputPreferences)), true
+
+	case "Mutation.updateEpisode":
+		if e.complexity.Mutation.UpdateEpisode == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateEpisode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateEpisode(childComplexity, args["episodeId"].(string), args["episode"].(models.InputEpisode)), true
 
 	case "Mutation.updateShow":
 		if e.complexity.Mutation.UpdateShow == nil {
@@ -779,6 +831,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.UserID(childComplexity), true
 
+	case "Query.findEpisode":
+		if e.complexity.Query.FindEpisode == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findEpisode_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindEpisode(childComplexity, args["episodeId"].(string)), true
+
+	case "Query.findEpisodesByShowId":
+		if e.complexity.Query.FindEpisodesByShowID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findEpisodesByShowId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindEpisodesByShowID(childComplexity, args["showId"].(string)), true
+
 	case "Query.findShow":
 		if e.complexity.Query.FindShow == nil {
 			break
@@ -857,6 +933,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.MyUser(childComplexity), true
+
+	case "Query.searchEpisodes":
+		if e.complexity.Query.SearchEpisodes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_searchEpisodes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.SearchEpisodes(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.searchShows":
 		if e.complexity.Query.SearchShows == nil {
@@ -1382,6 +1470,12 @@ type Episode implements BaseModel {
   showId: ID!
   timestamps: [Timestamp!]!
 }
+input InputEpisode {
+  season: Int
+  number: Int
+  absoluteNumber: Int
+  name: String
+}
 
 # EpisodeUrl
 type EpisodeUrl {
@@ -1563,6 +1657,11 @@ type User {
   # Show Admins
   createShowAdmin(showAdmin: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
   deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
+
+  # Episodes
+  createEpisode(showId: ID! @isShowAdmin, episode: InputEpisode!): Episode @authorized 
+  updateEpisode(episodeId: ID! @isShowAdmin, episode: InputEpisode!): Episode @authorized 
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode @authorized
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
@@ -1579,6 +1678,11 @@ type User {
   findShowAdmin(showAdminId: ID!): ShowAdmin
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
+
+  # Episodes
+  findEpisode(episodeId: ID!): Episode
+  findEpisodesByShowId(showId: ID!): [Episode!]
+  searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/scalars.graphql", Input: `scalar Time
@@ -1600,6 +1704,41 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showId"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["showId"] = arg0
+	var arg1 models.InputEpisode
+	if tmp, ok := rawArgs["episode"]; ok {
+		arg1, err = ec.unmarshalNInputEpisode2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisode(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episode"] = arg1
 	return args, nil
 }
 
@@ -1651,6 +1790,33 @@ func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, 
 		}
 	}
 	args["becomeAdmin"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeId"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["episodeId"] = arg0
 	return args, nil
 }
 
@@ -1709,6 +1875,41 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeId"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["episodeId"] = arg0
+	var arg1 models.InputEpisode
+	if tmp, ok := rawArgs["episode"]; ok {
+		arg1, err = ec.unmarshalNInputEpisode2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisode(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episode"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1755,6 +1956,34 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episodeId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findEpisodesByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showId"] = arg0
 	return args, nil
 }
 
@@ -1839,6 +2068,44 @@ func (ec *executionContext) field_Query_findUser_args(ctx context.Context, rawAr
 		}
 	}
 	args["userId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_searchEpisodes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["search"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["search"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["sort"]; ok {
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg3
 	return args, nil
 }
 
@@ -2426,13 +2693,13 @@ func (ec *executionContext) _Episode_show(ctx context.Context, field graphql.Col
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Show, nil
+		return ec.resolvers.Episode().Show(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2500,13 +2767,13 @@ func (ec *executionContext) _Episode_timestamps(ctx context.Context, field graph
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Timestamps, nil
+		return ec.resolvers.Episode().Timestamps(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3231,6 +3498,189 @@ func (ec *executionContext) _Mutation_deleteShowAdmin(ctx context.Context, field
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOShowAdmin2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdmin(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createEpisode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createEpisode_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(string), args["episode"].(models.InputEpisode))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateEpisode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateEpisode_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(string), args["episode"].(models.InputEpisode))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteEpisode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteEpisode_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _MyUser_id(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
@@ -4713,6 +5163,129 @@ func (ec *executionContext) _Query_findShowAdminsByUserId(ctx context.Context, f
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOShowAdmin2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdminᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findEpisode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findEpisode_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindEpisode(rctx, args["episodeId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findEpisodesByShowId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findEpisodesByShowId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindEpisodesByShowID(rctx, args["showId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_searchEpisodes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_searchEpisodes_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SearchEpisodes(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Episode)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisode2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8039,6 +8612,42 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj interface{}) (models.InputEpisode, error) {
+	var it models.InputEpisode
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "season":
+			var err error
+			it.Season, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "number":
+			var err error
+			it.Number, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "absoluteNumber":
+			var err error
+			it.AbsoluteNumber, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, obj interface{}) (models.InputPreferences, error) {
 	var it models.InputPreferences
 	var asMap = obj.(map[string]interface{})
@@ -8334,20 +8943,38 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 		case "name":
 			out.Values[i] = ec._Episode_name(ctx, field, obj)
 		case "show":
-			out.Values[i] = ec._Episode_show(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_show(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "showId":
 			out.Values[i] = ec._Episode_showId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "timestamps":
-			out.Values[i] = ec._Episode_timestamps(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_timestamps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8471,6 +9098,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createShowAdmin(ctx, field)
 		case "deleteShowAdmin":
 			out.Values[i] = ec._Mutation_deleteShowAdmin(ctx, field)
+		case "createEpisode":
+			out.Values[i] = ec._Mutation_createEpisode(ctx, field)
+		case "updateEpisode":
+			out.Values[i] = ec._Mutation_updateEpisode(ctx, field)
+		case "deleteEpisode":
+			out.Values[i] = ec._Mutation_deleteEpisode(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -8803,6 +9436,39 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findShowAdminsByUserId(ctx, field)
+				return res
+			})
+		case "findEpisode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findEpisode(ctx, field)
+				return res
+			})
+		case "findEpisodesByShowId":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findEpisodesByShowId(ctx, field)
+				return res
+			})
+		case "searchEpisodes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_searchEpisodes(ctx, field)
 				return res
 			})
 		case "__type":
@@ -9645,6 +10311,10 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNInputEpisode2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisode(ctx context.Context, v interface{}) (models.InputEpisode, error) {
+	return ec.unmarshalInputInputEpisode(ctx, v)
+}
+
 func (ec *executionContext) unmarshalNInputPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputPreferences(ctx context.Context, v interface{}) (models.InputPreferences, error) {
 	return ec.unmarshalInputInputPreferences(ctx, v)
 }
@@ -10099,6 +10769,57 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return ec.marshalOBoolean2bool(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOEpisode2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx context.Context, sel ast.SelectionSet, v models.Episode) graphql.Marshaler {
+	return ec._Episode(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOEpisode2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Episode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx context.Context, sel ast.SelectionSet, v *models.Episode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Episode(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {
