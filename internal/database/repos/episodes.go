@@ -6,6 +6,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -33,8 +34,8 @@ func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode 
 	return data, err
 }
 
-func DeleteEpisode(db *gorm.DB, episode *entities.Episode) (err error) {
-	tx := db.Begin()
+func DeleteEpisode(db *gorm.DB, inTransaction bool, episode *entities.Episode) (err error) {
+	tx := utils.StartTransaction(db, inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Failed to delete episode and it's admins: %+v", r)
@@ -52,7 +53,7 @@ func DeleteEpisode(db *gorm.DB, episode *entities.Episode) (err error) {
 
 	log.W("TODO - Delete timestamps when deleting a episode")
 
-	tx.Commit()
+	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

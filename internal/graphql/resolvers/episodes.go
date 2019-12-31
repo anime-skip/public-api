@@ -83,7 +83,7 @@ func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID string) 
 		return nil, err
 	}
 
-	err = repos.DeleteEpisode(r.DB(ctx), episode)
+	err = repos.DeleteEpisode(r.DB(ctx), false, episode)
 	if err != nil {
 		return nil, err
 	}

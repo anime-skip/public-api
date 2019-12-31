@@ -44,7 +44,8 @@ func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset 
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (showModel *models.Show, err error) {
-	tx := r.DB(ctx).Begin()
+	inTransaction := false
+	tx := utils.StartTransaction(r.DB(ctx), inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Failed to create show: %+v", r)
@@ -59,7 +60,7 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 	}
 	showModel = mappers.ShowEntityToModel(show)
 	if !becomeAdmin {
-		tx.Commit()
+		utils.CommitTransaction(tx, inTransaction)
 		return showModel, nil
 	}
 
@@ -79,7 +80,7 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 		return nil, err
 	}
 
-	tx.Commit()
+	utils.CommitTransaction(tx, inTransaction)
 	return showModel, nil
 }
 
@@ -100,7 +101,7 @@ func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*mode
 		return nil, err
 	}
 
-	err = repos.DeleteShow(db, show)
+	err = repos.DeleteShow(db, false, show)
 	if err != nil {
 		return nil, err
 	}

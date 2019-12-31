@@ -19,7 +19,7 @@ func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.
 }
 
 func EpisodeEntityToModel(entity *entities.Episode) *models.Episode {
-	var deletedByUserID *string = nil
+	var deletedByUserID *string
 	if entity.DeletedByUserID != nil {
 		str := entity.DeletedByUserID.String()
 		deletedByUserID = &str

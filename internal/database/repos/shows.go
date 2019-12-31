@@ -6,6 +6,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -30,8 +31,8 @@ func UpdateShow(db *gorm.DB, newShow models.InputShow, existingShow *entities.Sh
 	return data, err
 }
 
-func DeleteShow(db *gorm.DB, show *entities.Show) (err error) {
-	tx := db.Begin()
+func DeleteShow(db *gorm.DB, inTransaction bool, show *entities.Show) (err error) {
+	tx := utils.StartTransaction(db, inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Failed to delete show and it's admins: %+v", r)
@@ -60,9 +61,20 @@ func DeleteShow(db *gorm.DB, show *entities.Show) (err error) {
 		}
 	}
 
-	log.W("TODO - Delete episodes when deleting a show")
+	// Episodes
+	episodes, err := FindEpisodesByShowID(tx, show.ID.String())
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, episode := range episodes {
+		if err = DeleteEpisode(tx, true, episode); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
 
-	tx.Commit()
+	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

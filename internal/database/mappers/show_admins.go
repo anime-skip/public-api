@@ -18,7 +18,7 @@ func ShowAdminInputModelToEntity(inputModel models.InputShowAdmin, entity *entit
 }
 
 func ShowAdminEntityToModel(entity *entities.ShowAdmin) *models.ShowAdmin {
-	var deletedByUserID *string = nil
+	var deletedByUserID *string
 	if entity.DeletedByUserID != nil {
 		str := entity.DeletedByUserID.String()
 		deletedByUserID = &str
