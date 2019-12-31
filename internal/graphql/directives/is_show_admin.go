@@ -28,12 +28,12 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 	}
 
 	// showAdminId
+	db := database.ORMInstance.DB
 	if showAdminID, ok := args["showAdminId"]; ok {
 		showAdminIDStr, isString := showAdminID.(string)
 		if !isString {
 			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showAdminID", showAdminID, showAdminID)
 		}
-		db := database.ORMInstance.DB
 		showAdmin, err := repos.FindShowAdminByID(db, showAdminIDStr)
 		if err != nil {
 			return "", err
@@ -48,6 +48,20 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 			return inputShowAdmin.ShowID, nil
 		}
 		return "", fmt.Errorf("args['%+v'] must be a InputShowAdmin, but was %v (%T)", "showAdmin", showAdmin, showAdmin)
+	}
+
+	// episodeId
+	if episodeID, ok := args["episodeId"]; ok {
+		episodeIDStr, isString := episodeID.(string)
+		if !isString {
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeID", episodeID, episodeID)
+		}
+		db := database.ORMInstance.DB
+		episode, err := repos.FindEpisodeByID(db, episodeIDStr)
+		if err != nil {
+			return "", err
+		}
+		return episode.ShowID.String(), nil
 	}
 
 	return "", fmt.Errorf("isShowAdmin directive not implemented for the provided arguments: %+v", obj)

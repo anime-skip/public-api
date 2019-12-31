@@ -1,0 +1,42 @@
+package mappers
+
+import (
+	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
+	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+)
+
+func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.Episode) *entities.Episode {
+	if entity == nil {
+		return nil
+	}
+
+	entity.Name = inputModel.Name
+	entity.Season = inputModel.Season
+	entity.Number = inputModel.Number
+	entity.AbsoluteNumber = inputModel.AbsoluteNumber
+
+	return entity
+}
+
+func EpisodeEntityToModel(entity *entities.Episode) *models.Episode {
+	var deletedByUserID *string = nil
+	if entity.DeletedByUserID != nil {
+		str := entity.DeletedByUserID.String()
+		deletedByUserID = &str
+	}
+	return &models.Episode{
+		ID:              entity.ID.String(),
+		CreatedAt:       entity.CreatedAt,
+		CreatedByUserID: entity.CreatedByUserID.String(),
+		UpdatedAt:       entity.UpdatedAt,
+		UpdatedByUserID: entity.UpdatedByUserID.String(),
+		DeletedAt:       entity.DeletedAt,
+		DeletedByUserID: deletedByUserID,
+
+		Name:           entity.Name,
+		Season:         entity.Season,
+		Number:         entity.Number,
+		AbsoluteNumber: entity.AbsoluteNumber,
+		ShowID:         entity.ShowID.String(),
+	}
+}

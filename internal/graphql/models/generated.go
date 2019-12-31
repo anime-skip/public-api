@@ -47,6 +47,13 @@ type EpisodeURL struct {
 	Episode         *Episode  `json:"episode"`
 }
 
+type InputEpisode struct {
+	Season         *int    `json:"season"`
+	Number         *int    `json:"number"`
+	AbsoluteNumber *int    `json:"absoluteNumber"`
+	Name           *string `json:"name"`
+}
+
 type InputPreferences struct {
 	EnableAutoSkip   bool `json:"enableAutoSkip"`
 	EnableAutoPlay   bool `json:"enableAutoPlay"`
