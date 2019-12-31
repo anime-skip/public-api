@@ -11,14 +11,16 @@ import (
 
 func updateColumn(columnName string) func(scope *gorm.Scope) {
 	return func(scope *gorm.Scope) {
-		userID, ok := scope.DB().Get(constants.CTX_USER_ID)
-		if !ok {
-			log.V("CTX_USER_ID does not exist on database values, skipping update")
-			return
-		}
 
-		if !scope.HasError() && scope.HasColumn(columnName) {
-			scope.SetColumn(columnName, userID)
+		if !scope.HasError() {
+			if scope.HasColumn(columnName) {
+				userID, ok := scope.DB().Get(constants.CTX_USER_ID)
+				if !ok {
+					log.V("CTX_USER_ID does not exist on database values, skipping update")
+					return
+				}
+				scope.SetColumn(columnName, userID)
+			}
 		}
 	}
 }
