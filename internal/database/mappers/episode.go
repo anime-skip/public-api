@@ -5,26 +5,26 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 )
 
-func ShowInputModelToEntity(inputModel models.InputShow, entity *entities.Show) *entities.Show {
+func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.Episode) *entities.Episode {
 	if entity == nil {
 		return nil
 	}
 
 	entity.Name = inputModel.Name
-	entity.OriginalName = inputModel.OriginalName
-	entity.Website = inputModel.Website
-	entity.Image = inputModel.Image
+	entity.Season = inputModel.Season
+	entity.Number = inputModel.Number
+	entity.AbsoluteNumber = inputModel.AbsoluteNumber
 
 	return entity
 }
 
-func ShowEntityToModel(entity *entities.Show) *models.Show {
+func EpisodeEntityToModel(entity *entities.Episode) *models.Episode {
 	var deletedByUserID *string
 	if entity.DeletedByUserID != nil {
 		str := entity.DeletedByUserID.String()
 		deletedByUserID = &str
 	}
-	return &models.Show{
+	return &models.Episode{
 		ID:              entity.ID.String(),
 		CreatedAt:       entity.CreatedAt,
 		CreatedByUserID: entity.CreatedByUserID.String(),
@@ -33,9 +33,10 @@ func ShowEntityToModel(entity *entities.Show) *models.Show {
 		DeletedAt:       entity.DeletedAt,
 		DeletedByUserID: deletedByUserID,
 
-		Name:            entity.Name,
-		OriginalName:    entity.OriginalName,
-		Website:         entity.Website,
-		Image:           entity.Image,
+		Name:           entity.Name,
+		Season:         entity.Season,
+		Number:         entity.Number,
+		AbsoluteNumber: entity.AbsoluteNumber,
+		ShowID:         entity.ShowID.String(),
 	}
 }

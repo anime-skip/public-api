@@ -8,7 +8,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -45,7 +44,8 @@ func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset 
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (showModel *models.Show, err error) {
-	tx := r.DB(ctx).Begin()
+	inTransaction := false
+	tx := utils.StartTransaction(r.DB(ctx), inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Failed to create show: %+v", r)
@@ -60,7 +60,7 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 	}
 	showModel = mappers.ShowEntityToModel(show)
 	if !becomeAdmin {
-		tx.Commit()
+		utils.CommitTransaction(tx, inTransaction)
 		return showModel, nil
 	}
 
@@ -80,7 +80,7 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 		return nil, err
 	}
 
-	tx.Commit()
+	utils.CommitTransaction(tx, inTransaction)
 	return showModel, nil
 }
 
@@ -96,16 +96,11 @@ func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newSho
 
 func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*models.Show, error) {
 	db := r.DB(ctx)
-	show, err := repos.FindShowByID(db, showID)
+	err := repos.DeleteShow(db, false, showID)
 	if err != nil {
 		return nil, err
 	}
-
-	err = repos.DeleteShow(db, show)
-	if err != nil {
-		return nil, err
-	}
-	return mappers.ShowEntityToModel(show), nil
+	return showByID(db.Unscoped(), showID)
 }
 
 // Field Resolvers
@@ -127,6 +122,5 @@ func (r *showResolver) Admins(ctx context.Context, obj *models.Show) ([]*models.
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error) {
-	log.W("TODO - add episodes field resolver for show model")
-	return nil, nil
+	return episodesByShowID(r.DB(ctx), obj.ID)
 }

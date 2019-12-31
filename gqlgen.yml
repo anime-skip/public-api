@@ -27,6 +27,10 @@ models:
         resolver: true
       deletedBy:
         resolver: true
+      show:
+        resolver: true
+      timestamps:
+        resolver: true
   EpisodeUrl:
     fields:
       createdBy:

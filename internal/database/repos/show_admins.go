@@ -30,11 +30,11 @@ func UpdateShowAdmin(db *gorm.DB, newShowAdmin models.InputShowAdmin, existingSh
 	return data, err
 }
 
-func DeleteShowAdmin(db *gorm.DB, showAdmin *entities.ShowAdmin) error {
-	err := db.Model(showAdmin).Delete(showAdmin).Error
+func DeleteShowAdmin(db *gorm.DB, showAdminID string) error {
+	err := db.Delete(entities.ShowAdmin{}, "id = ?", showAdminID).Error
 	if err != nil {
-		log.E("Failed to delete show admin for id='%s': %v", showAdmin.ID, err)
-		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdmin.ID)
+		log.E("Failed to delete show admin for id='%s': %v", showAdminID, err)
+		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdminID)
 	}
 	return err
 }
@@ -43,7 +43,7 @@ func FindShowAdminByID(db *gorm.DB, showAdminID string) (*entities.ShowAdmin, er
 	showAdmin := &entities.ShowAdmin{}
 	err := db.Unscoped().Where("id = ?", showAdminID).Find(showAdmin).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
+		log.W("Failed query: %v", err)
 		return nil, fmt.Errorf("No show admin found with id='%s'", showAdminID)
 	}
 	return showAdmin, nil
@@ -53,7 +53,7 @@ func FindShowAdminsByUserID(db *gorm.DB, userID string) ([]*entities.ShowAdmin, 
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("user_id = ?", userID).Find(&showAdmin).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
+		log.W("Failed query: %v", err)
 		return nil, fmt.Errorf("Query for show admins for user_id='%s' failed", userID)
 	}
 	return showAdmin, nil
@@ -63,7 +63,7 @@ func FindShowAdminsByShowID(db *gorm.DB, showID string) ([]*entities.ShowAdmin, 
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("show_id = ?", showID).Find(&showAdmin).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
+		log.W("Failed query: %v", err)
 		return nil, fmt.Errorf("Query for show admins for show_id='%s' failed", showID)
 	}
 	return showAdmin, nil
@@ -73,7 +73,7 @@ func FindShowAdminsByUserIDShowID(db *gorm.DB, userID string, showID string) (*e
 	showAdmin := &entities.ShowAdmin{}
 	err := db.Where("user_id = ? AND show_id = ?", userID, showID).Find(&showAdmin).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
+		log.W("Failed query: %v", err)
 		return nil, fmt.Errorf("Query for show admins for user_id='%s' AND show_id='%s' failed", userID, showID)
 	}
 	return showAdmin, nil

@@ -6,6 +6,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -30,8 +31,8 @@ func UpdateShow(db *gorm.DB, newShow models.InputShow, existingShow *entities.Sh
 	return data, err
 }
 
-func DeleteShow(db *gorm.DB, show *entities.Show) (err error) {
-	tx := db.Begin()
+func DeleteShow(db *gorm.DB, inTransaction bool, showID string) (err error) {
+	tx := utils.StartTransaction(db, inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
 			err = fmt.Errorf("Failed to delete show and it's admins: %+v", r)
@@ -40,29 +41,40 @@ func DeleteShow(db *gorm.DB, show *entities.Show) (err error) {
 	}()
 
 	// Delete the show
-	err = tx.Model(show).Delete(show).Error
+	err = tx.Delete(entities.Show{}, "id=?", showID).Error
 	if err != nil {
-		log.E("Failed to delete show for id='%s': %v", show.ID, err)
+		log.E("Failed to delete show for id='%s': %v", showID, err)
 		tx.Rollback()
-		return fmt.Errorf("Failed to delete show with id='%s'", show.ID)
+		return fmt.Errorf("Failed to delete show with id='%s'", showID)
 	}
 
 	// Delete the admins for that show
-	admins, err := FindShowAdminsByShowID(tx, show.ID.String())
+	admins, err := FindShowAdminsByShowID(tx, showID)
 	if err != nil {
 		tx.Rollback()
 		return err
 	}
 	for _, admin := range admins {
-		if err = DeleteShowAdmin(tx, admin); err != nil {
+		if err = DeleteShowAdmin(tx, admin.ID.String()); err != nil {
 			tx.Rollback()
 			return err
 		}
 	}
 
-	log.W("TODO - Delete episodes when deleting a show")
+	// Episodes
+	episodes, err := FindEpisodesByShowID(tx, showID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, episode := range episodes {
+		if err = DeleteEpisode(tx, true, episode.ID.String()); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
 
-	tx.Commit()
+	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

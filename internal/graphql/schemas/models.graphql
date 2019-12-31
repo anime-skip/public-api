@@ -32,6 +32,12 @@ type Episode implements BaseModel {
   showId: ID!
   timestamps: [Timestamp!]!
 }
+input InputEpisode {
+  season: Int
+  number: Int
+  absoluteNumber: Int
+  name: String
+}
 
 # EpisodeUrl
 type EpisodeUrl {

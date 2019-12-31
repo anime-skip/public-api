@@ -12,4 +12,9 @@ type Query {
   findShowAdmin(showAdminId: ID!): ShowAdmin
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
+
+  # Episodes
+  findEpisode(episodeId: ID!): Episode
+  findEpisodesByShowId(showId: ID!): [Episode!]
+  searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
 }

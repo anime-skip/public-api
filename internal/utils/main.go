@@ -7,6 +7,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
+	"github.com/jinzhu/gorm"
 )
 
 func GinContext(ctx context.Context) (*gin.Context, error) {
@@ -33,4 +34,21 @@ func UserIDFromContext(ctx context.Context) (string, error) {
 		log.E("Failed getting userID from context")
 	}
 	return "", fmt.Errorf("500 Internal Error [003]")
+}
+
+func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
+	if inTransaction {
+		return db
+	} else {
+		tx := db.Begin()
+		return tx
+	}
+}
+
+func CommitTransaction(tx *gorm.DB, inTransaction bool) *gorm.DB {
+	if inTransaction {
+		return tx
+	} else {
+		return tx.Commit()
+	}
 }
