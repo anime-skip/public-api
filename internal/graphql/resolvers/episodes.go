@@ -78,17 +78,13 @@ func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID string, 
 }
 
 func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID string) (*models.Episode, error) {
-	episode, err := repos.FindEpisodeByID(r.DB(ctx), episodeID)
+	db := r.DB(ctx)
+	err := repos.DeleteEpisode(r.DB(ctx), false, episodeID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = repos.DeleteEpisode(r.DB(ctx), false, episode)
-	if err != nil {
-		return nil, err
-	}
-
-	return mappers.EpisodeEntityToModel(episode), nil
+	return episodeByID(db.Unscoped(), episodeID)
 }
 
 // Field Resolvers

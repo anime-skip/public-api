@@ -41,12 +41,14 @@ func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
 		return db
 	} else {
 		tx := db.Begin()
-		// userID, hasUserID := db.Get(constants.CTX_USER_ID)
-		// if !hasUserID {
-		// 	log.W("Failed to pass CTX_USER_ID into transaction")
-		// 	return tx
-		// }
-		// tx.Set(constants.CTX_USER_ID, userID)
 		return tx
+	}
+}
+
+func CommitTransaction(tx *gorm.DB, inTransaction bool) *gorm.DB {
+	if inTransaction {
+		return tx
+	} else {
+		return tx.Commit()
 	}
 }

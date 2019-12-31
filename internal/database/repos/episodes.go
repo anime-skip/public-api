@@ -34,7 +34,7 @@ func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode 
 	return data, err
 }
 
-func DeleteEpisode(db *gorm.DB, inTransaction bool, episode *entities.Episode) (err error) {
+func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error) {
 	tx := utils.StartTransaction(db, inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
@@ -44,11 +44,11 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episode *entities.Episode) (
 	}()
 
 	// Delete the episode
-	err = tx.Model(episode).Delete(episode).Error
+	err = tx.Delete(entities.Episode{}, "id = ?", episodeID).Error
 	if err != nil {
-		log.E("Failed to delete episode for id='%s': %v", episode.ID, err)
+		log.E("Failed to delete episode for id='%s': %v", episodeID, err)
 		tx.Rollback()
-		return fmt.Errorf("Failed to delete episode with id='%s'", episode.ID)
+		return fmt.Errorf("Failed to delete episode with id='%s'", episodeID)
 	}
 
 	log.W("TODO - Delete timestamps when deleting a episode")

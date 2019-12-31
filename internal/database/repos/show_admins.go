@@ -30,11 +30,11 @@ func UpdateShowAdmin(db *gorm.DB, newShowAdmin models.InputShowAdmin, existingSh
 	return data, err
 }
 
-func DeleteShowAdmin(db *gorm.DB, showAdmin *entities.ShowAdmin) error {
-	err := db.Model(showAdmin).Delete(showAdmin).Error
+func DeleteShowAdmin(db *gorm.DB, showAdminID string) error {
+	err := db.Delete(entities.ShowAdmin{}, "id = ?", showAdminID).Error
 	if err != nil {
-		log.E("Failed to delete show admin for id='%s': %v", showAdmin.ID, err)
-		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdmin.ID)
+		log.E("Failed to delete show admin for id='%s': %v", showAdminID, err)
+		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdminID)
 	}
 	return err
 }
