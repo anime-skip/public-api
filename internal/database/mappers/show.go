@@ -19,7 +19,7 @@ func ShowInputModelToEntity(inputModel models.InputShow, entity *entities.Show) 
 }
 
 func ShowEntityToModel(entity *entities.Show) *models.Show {
-	var deletedByUserID *string = nil
+	var deletedByUserID *string
 	if entity.DeletedByUserID != nil {
 		str := entity.DeletedByUserID.String()
 		deletedByUserID = &str
