@@ -72,17 +72,13 @@ func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput m
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error) {
-	showAdmin, err := repos.FindShowAdminByID(r.DB(ctx), showAdminID)
+	db := r.DB(ctx)
+	err := repos.DeleteShowAdmin(r.DB(ctx), showAdminID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = repos.DeleteShowAdmin(r.DB(ctx), showAdmin)
-	if err != nil {
-		return nil, err
-	}
-
-	return mappers.ShowAdminEntityToModel(showAdmin), nil
+	return showAdminByID(db.Unscoped(), showAdminID)
 }
 
 // Field Resolvers
