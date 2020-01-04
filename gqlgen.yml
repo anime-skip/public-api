@@ -89,6 +89,14 @@ models:
         resolver: true
       episode:
         resolver: true
+  TimestampType:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
   User:
     fields:
       adminOfShows:

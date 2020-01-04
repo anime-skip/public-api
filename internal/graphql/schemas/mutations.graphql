@@ -22,4 +22,9 @@ type Mutation {
   createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp @authorized 
   updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp @authorized 
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp @authorized
+
+  # Timestamp Types
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
+  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
+  deleteTimestampType(timestampTypeId: ID!): TimestampType @authorized @hasRole(role: ADMIN)
 }

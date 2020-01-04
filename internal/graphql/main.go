@@ -46,6 +46,7 @@ type ResolverRoot interface {
 	Show() ShowResolver
 	ShowAdmin() ShowAdminResolver
 	Timestamp() TimestampResolver
+	TimestampType() TimestampTypeResolver
 	User() UserResolver
 }
 
@@ -91,18 +92,21 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateEpisode   func(childComplexity int, showID string, episodeInput models.InputEpisode) int
-		CreateShow      func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
-		CreateShowAdmin func(childComplexity int, showAdminInput models.InputShowAdmin) int
-		CreateTimestamp func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
-		DeleteEpisode   func(childComplexity int, episodeID string) int
-		DeleteShow      func(childComplexity int, showID string) int
-		DeleteShowAdmin func(childComplexity int, showAdminID string) int
-		DeleteTimestamp func(childComplexity int, timestampID string) int
-		SavePreferences func(childComplexity int, preferences models.InputPreferences) int
-		UpdateEpisode   func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
-		UpdateShow      func(childComplexity int, showID string, newShow models.InputShow) int
-		UpdateTimestamp func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
+		CreateEpisode       func(childComplexity int, showID string, episodeInput models.InputEpisode) int
+		CreateShow          func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
+		CreateShowAdmin     func(childComplexity int, showAdminInput models.InputShowAdmin) int
+		CreateTimestamp     func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
+		CreateTimestampType func(childComplexity int, timestampTypeInput models.InputTimestampType) int
+		DeleteEpisode       func(childComplexity int, episodeID string) int
+		DeleteShow          func(childComplexity int, showID string) int
+		DeleteShowAdmin     func(childComplexity int, showAdminID string) int
+		DeleteTimestamp     func(childComplexity int, timestampID string) int
+		DeleteTimestampType func(childComplexity int, timestampTypeID string) int
+		SavePreferences     func(childComplexity int, preferences models.InputPreferences) int
+		UpdateEpisode       func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
+		UpdateShow          func(childComplexity int, showID string, newShow models.InputShow) int
+		UpdateTimestamp     func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
+		UpdateTimestampType func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
 	}
 
 	MyUser struct {
@@ -143,6 +147,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AllTimestampTypes         func(childComplexity int) int
 		FindEpisode               func(childComplexity int, episodeID string) int
 		FindEpisodesByShowID      func(childComplexity int, showID string) int
 		FindShow                  func(childComplexity int, showID string) int
@@ -150,6 +155,7 @@ type ComplexityRoot struct {
 		FindShowAdminsByShowID    func(childComplexity int, showID string) int
 		FindShowAdminsByUserID    func(childComplexity int, userID string) int
 		FindTimestamp             func(childComplexity int, timestampID string) int
+		FindTimestampType         func(childComplexity int, timestampTypeID string) int
 		FindTimestampsByEpisodeID func(childComplexity int, episodeID string) int
 		FindUser                  func(childComplexity int, userID string) int
 		FindUserByUsername        func(childComplexity int, username string) int
@@ -213,12 +219,18 @@ type ComplexityRoot struct {
 	}
 
 	TimestampType struct {
-		CreatedAt   func(childComplexity int) int
-		DeletedAt   func(childComplexity int) int
-		Description func(childComplexity int) int
-		ID          func(childComplexity int) int
-		Name        func(childComplexity int) int
-		UpdatedAt   func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		CreatedBy       func(childComplexity int) int
+		CreatedByUserID func(childComplexity int) int
+		DeletedAt       func(childComplexity int) int
+		DeletedBy       func(childComplexity int) int
+		DeletedByUserID func(childComplexity int) int
+		Description     func(childComplexity int) int
+		ID              func(childComplexity int) int
+		Name            func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+		UpdatedBy       func(childComplexity int) int
+		UpdatedByUserID func(childComplexity int) int
 	}
 
 	User struct {
@@ -261,6 +273,9 @@ type MutationResolver interface {
 	CreateTimestamp(ctx context.Context, episodeID string, timestampInput models.InputTimestamp) (*models.Timestamp, error)
 	UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp models.InputTimestamp) (*models.Timestamp, error)
 	DeleteTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
+	CreateTimestampType(ctx context.Context, timestampTypeInput models.InputTimestampType) (*models.TimestampType, error)
+	UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType models.InputTimestampType) (*models.TimestampType, error)
+	DeleteTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
 }
 type MyUserResolver interface {
 	AdminOfShows(ctx context.Context, obj *models.MyUser) ([]*models.ShowAdmin, error)
@@ -284,6 +299,8 @@ type QueryResolver interface {
 	SearchEpisodes(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
 	FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
 	FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*models.Timestamp, error)
+	FindTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
+	AllTimestampTypes(ctx context.Context) ([]*models.TimestampType, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
@@ -314,6 +331,13 @@ type TimestampResolver interface {
 	DeletedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error)
 
 	Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error)
+}
+type TimestampTypeResolver interface {
+	CreatedBy(ctx context.Context, obj *models.TimestampType) (*models.User, error)
+
+	UpdatedBy(ctx context.Context, obj *models.TimestampType) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.TimestampType) (*models.User, error)
 }
 type UserResolver interface {
 	AdminOfShows(ctx context.Context, obj *models.User) ([]*models.ShowAdmin, error)
@@ -564,6 +588,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTimestamp(childComplexity, args["episodeId"].(string), args["timestampInput"].(models.InputTimestamp)), true
 
+	case "Mutation.createTimestampType":
+		if e.complexity.Mutation.CreateTimestampType == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTimestampType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTimestampType(childComplexity, args["timestampTypeInput"].(models.InputTimestampType)), true
+
 	case "Mutation.deleteEpisode":
 		if e.complexity.Mutation.DeleteEpisode == nil {
 			break
@@ -612,6 +648,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTimestamp(childComplexity, args["timestampId"].(string)), true
 
+	case "Mutation.deleteTimestampType":
+		if e.complexity.Mutation.DeleteTimestampType == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteTimestampType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteTimestampType(childComplexity, args["timestampTypeId"].(string)), true
+
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
 			break
@@ -659,6 +707,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTimestamp(childComplexity, args["timestampId"].(string), args["newTimestamp"].(models.InputTimestamp)), true
+
+	case "Mutation.updateTimestampType":
+		if e.complexity.Mutation.UpdateTimestampType == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTimestampType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTimestampType(childComplexity, args["timestampTypeId"].(string), args["newTimestampType"].(models.InputTimestampType)), true
 
 	case "MyUser.adminOfShows":
 		if e.complexity.MyUser.AdminOfShows == nil {
@@ -877,6 +937,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.UserID(childComplexity), true
 
+	case "Query.allTimestampTypes":
+		if e.complexity.Query.AllTimestampTypes == nil {
+			break
+		}
+
+		return e.complexity.Query.AllTimestampTypes(childComplexity), true
+
 	case "Query.findEpisode":
 		if e.complexity.Query.FindEpisode == nil {
 			break
@@ -960,6 +1027,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindTimestamp(childComplexity, args["timestampId"].(string)), true
+
+	case "Query.findTimestampType":
+		if e.complexity.Query.FindTimestampType == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findTimestampType_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindTimestampType(childComplexity, args["timestampTypeId"].(string)), true
 
 	case "Query.findTimestampsByEpisodeId":
 		if e.complexity.Query.FindTimestampsByEpisodeID == nil {
@@ -1350,12 +1429,40 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimestampType.CreatedAt(childComplexity), true
 
+	case "TimestampType.createdBy":
+		if e.complexity.TimestampType.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.CreatedBy(childComplexity), true
+
+	case "TimestampType.createdByUserId":
+		if e.complexity.TimestampType.CreatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.CreatedByUserID(childComplexity), true
+
 	case "TimestampType.deletedAt":
 		if e.complexity.TimestampType.DeletedAt == nil {
 			break
 		}
 
 		return e.complexity.TimestampType.DeletedAt(childComplexity), true
+
+	case "TimestampType.deletedBy":
+		if e.complexity.TimestampType.DeletedBy == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.DeletedBy(childComplexity), true
+
+	case "TimestampType.deletedByUserId":
+		if e.complexity.TimestampType.DeletedByUserID == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.DeletedByUserID(childComplexity), true
 
 	case "TimestampType.description":
 		if e.complexity.TimestampType.Description == nil {
@@ -1384,6 +1491,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TimestampType.UpdatedAt(childComplexity), true
+
+	case "TimestampType.updatedBy":
+		if e.complexity.TimestampType.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.UpdatedBy(childComplexity), true
+
+	case "TimestampType.updatedByUserId":
+		if e.complexity.TimestampType.UpdatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.TimestampType.UpdatedByUserID(childComplexity), true
 
 	case "User.adminOfShows":
 		if e.complexity.User.AdminOfShows == nil {
@@ -1695,14 +1816,24 @@ input InputTimestamp {
 }
 
 # TimestampType
-type TimestampType {
+type TimestampType implements BaseModel {
   id: ID!
   createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
   updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
   deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
 
-  name: String
-  description: String
+  name: String!
+  description: String!
+}
+input InputTimestampType {
+  name: String!
+  description: String!
 }
 
 # User
@@ -1741,6 +1872,11 @@ type User {
   createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp @authorized 
   updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp @authorized 
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp @authorized
+
+  # Timestamp Types
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
+  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
+  deleteTimestampType(timestampTypeId: ID!): TimestampType @authorized @hasRole(role: ADMIN)
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
@@ -1766,6 +1902,10 @@ type User {
   # Timestamps
   findTimestamp(timestampId: ID!): Timestamp
   findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]
+
+  # Timestamp Types
+  findTimestampType(timestampTypeId: ID!): TimestampType
+  allTimestampTypes: [TimestampType!]
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/scalars.graphql", Input: `scalar Time
@@ -1876,6 +2016,20 @@ func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.InputTimestampType
+	if tmp, ok := rawArgs["timestampTypeInput"]; ok {
+		arg0, err = ec.unmarshalNInputTimestampType2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestampTypeInput"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -1976,6 +2130,20 @@ func (ec *executionContext) field_Mutation_deleteShow_args(ctx context.Context, 
 		}
 	}
 	args["showId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["timestampTypeId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestampTypeId"] = arg0
 	return args, nil
 }
 
@@ -2087,6 +2255,28 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 		}
 	}
 	args["newShow"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["timestampTypeId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestampTypeId"] = arg0
+	var arg1 models.InputTimestampType
+	if tmp, ok := rawArgs["newTimestampType"]; ok {
+		arg1, err = ec.unmarshalNInputTimestampType2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampType(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newTimestampType"] = arg1
 	return args, nil
 }
 
@@ -2220,6 +2410,20 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 		}
 	}
 	args["showId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["timestampTypeId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["timestampTypeId"] = arg0
 	return args, nil
 }
 
@@ -4074,6 +4278,219 @@ func (ec *executionContext) _Mutation_deleteTimestamp(ctx context.Context, field
 	return ec.marshalOTimestamp2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestamp(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createTimestampType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTimestampType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTimestampType(rctx, args["timestampTypeInput"].(models.InputTimestampType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive1, role)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.TimestampType); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TimestampType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTimestampType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTimestampType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTimestampType(rctx, args["timestampTypeId"].(string), args["newTimestampType"].(models.InputTimestampType))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive1, role)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.TimestampType); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TimestampType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteTimestampType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTimestampType(rctx, args["timestampTypeId"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive1, role)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.TimestampType); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TimestampType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _MyUser_id(ctx context.Context, field graphql.CollectedField, obj *models.MyUser) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -5759,6 +6176,81 @@ func (ec *executionContext) _Query_findTimestampsByEpisodeId(ctx context.Context
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOTimestamp2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findTimestampType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findTimestampType_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTimestampType(rctx, args["timestampTypeId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.TimestampType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_allTimestampTypes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AllTimestampTypes(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.TimestampType)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTimestampType2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampTypeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -7539,6 +8031,80 @@ func (ec *executionContext) _TimestampType_createdAt(ctx context.Context, field 
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TimestampType_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimestampType_createdBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TimestampType().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TimestampType_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -7576,6 +8142,80 @@ func (ec *executionContext) _TimestampType_updatedAt(ctx context.Context, field 
 	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TimestampType_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimestampType_updatedBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TimestampType().UpdatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TimestampType_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -7610,6 +8250,74 @@ func (ec *executionContext) _TimestampType_deletedAt(ctx context.Context, field 
 	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _TimestampType_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _TimestampType_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "TimestampType",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TimestampType().DeletedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _TimestampType_name(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -7636,12 +8344,15 @@ func (ec *executionContext) _TimestampType_name(ctx context.Context, field graph
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_description(ctx context.Context, field graphql.CollectedField, obj *models.TimestampType) (ret graphql.Marshaler) {
@@ -7670,12 +8381,15 @@ func (ec *executionContext) _TimestampType_description(ctx context.Context, fiel
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -9307,6 +10021,30 @@ func (ec *executionContext) unmarshalInputInputTimestamp(ctx context.Context, ob
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInputTimestampType(ctx context.Context, obj interface{}) (models.InputTimestampType, error) {
+	var it models.InputTimestampType
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "description":
+			var err error
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -9343,6 +10081,13 @@ func (ec *executionContext) _BaseModel(ctx context.Context, sel ast.SelectionSet
 			return graphql.Null
 		}
 		return ec._Timestamp(ctx, sel, obj)
+	case models.TimestampType:
+		return ec._TimestampType(ctx, sel, &obj)
+	case *models.TimestampType:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._TimestampType(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -9607,6 +10352,12 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTimestamp(ctx, field)
 		case "deleteTimestamp":
 			out.Values[i] = ec._Mutation_deleteTimestamp(ctx, field)
+		case "createTimestampType":
+			out.Values[i] = ec._Mutation_createTimestampType(ctx, field)
+		case "updateTimestampType":
+			out.Values[i] = ec._Mutation_updateTimestampType(ctx, field)
+		case "deleteTimestampType":
+			out.Values[i] = ec._Mutation_deleteTimestampType(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9994,6 +10745,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findTimestampsByEpisodeId(ctx, field)
+				return res
+			})
+		case "findTimestampType":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findTimestampType(ctx, field)
+				return res
+			})
+		case "allTimestampTypes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_allTimestampTypes(ctx, field)
 				return res
 			})
 		case "__type":
@@ -10392,7 +11165,7 @@ func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var timestampTypeImplementors = []string{"TimestampType"}
+var timestampTypeImplementors = []string{"TimestampType", "BaseModel"}
 
 func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.SelectionSet, obj *models.TimestampType) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.RequestContext, sel, timestampTypeImplementors)
@@ -10406,24 +11179,81 @@ func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.Selectio
 		case "id":
 			out.Values[i] = ec._TimestampType_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			out.Values[i] = ec._TimestampType_createdAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "createdByUserId":
+			out.Values[i] = ec._TimestampType_createdByUserId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TimestampType_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "updatedAt":
 			out.Values[i] = ec._TimestampType_updatedAt(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "updatedByUserId":
+			out.Values[i] = ec._TimestampType_updatedByUserId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TimestampType_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "deletedAt":
 			out.Values[i] = ec._TimestampType_deletedAt(ctx, field, obj)
+		case "deletedByUserId":
+			out.Values[i] = ec._TimestampType_deletedByUserId(ctx, field, obj)
+		case "deletedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TimestampType_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "name":
 			out.Values[i] = ec._TimestampType_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "description":
 			out.Values[i] = ec._TimestampType_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10854,6 +11684,10 @@ func (ec *executionContext) unmarshalNInputShowAdmin2githubᚗcomᚋaklinker1ᚋ
 
 func (ec *executionContext) unmarshalNInputTimestamp2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx context.Context, v interface{}) (models.InputTimestamp, error) {
 	return ec.unmarshalInputInputTimestamp(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNInputTimestampType2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampType(ctx context.Context, v interface{}) (models.InputTimestampType, error) {
+	return ec.unmarshalInputInputTimestampType(ctx, v)
 }
 
 func (ec *executionContext) marshalNPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐPreferences(ctx context.Context, sel ast.SelectionSet, v models.Preferences) graphql.Marshaler {
@@ -11616,6 +12450,57 @@ func (ec *executionContext) marshalOTimestamp2ᚖgithubᚗcomᚋaklinker1ᚋanim
 		return graphql.Null
 	}
 	return ec._Timestamp(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOTimestampType2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx context.Context, sel ast.SelectionSet, v models.TimestampType) graphql.Marshaler {
+	return ec._TimestampType(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOTimestampType2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampTypeᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.TimestampType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOTimestampType2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx context.Context, sel ast.SelectionSet, v *models.TimestampType) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TimestampType(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUser2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v models.User) graphql.Marshaler {
