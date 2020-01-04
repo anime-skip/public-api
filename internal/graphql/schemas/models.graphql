@@ -181,6 +181,10 @@ type Timestamp implements BaseModel {
   episodeId: ID!
   epiosde: Episode!
 }
+input InputTimestamp {
+  at: Float!
+  typeId: ID!
+}
 
 # TimestampType
 type TimestampType {

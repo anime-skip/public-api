@@ -17,4 +17,8 @@ type Query {
   findEpisode(episodeId: ID!): Episode
   findEpisodesByShowId(showId: ID!): [Episode!]
   searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+
+  # Timestamps
+  findTimestamp(timestampId: ID!): Timestamp
+  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]
 }

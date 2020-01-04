@@ -6,7 +6,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -106,6 +105,5 @@ func (r *episodeResolver) Show(ctx context.Context, obj *models.Episode) (*model
 }
 
 func (r *episodeResolver) Timestamps(ctx context.Context, obj *models.Episode) ([]*models.Timestamp, error) {
-	log.W("Field resolver for timestamps not implemented on episode")
-	return []*models.Timestamp{}, nil
+	return timestampsByEpisodeID(r.DB(ctx), obj.ID)
 }
