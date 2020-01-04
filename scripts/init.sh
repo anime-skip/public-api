@@ -27,7 +27,8 @@ POSTGRES_DISABLE_SSL=true
 POSTGRES_ENABLE_SEEDING=true
 
 # Secrets
-JWT_SECRET=<get_from_aaron>" > .env
+JWT_SECRET=<get_from_aaron>
+EMAIL_PASSWORD=<get_from_aaron>" > .env
 fi
 
 ./scripts/help.sh

@@ -1,18 +1,19 @@
 {
     "cSpell.words": [
-        "funimation",
-        "unscoped",
         "aklinker",
         "bcrypt",
         "bcyrpted",
         "dbname",
+        "funimation",
         "gorm",
         "gormigrate",
         "graphql",
         "jinzhu",
         "postgres",
         "repos",
+        "stmp",
         "structs",
+        "unscoped",
         "uuid"
     ],
     "editor.tabSize": 2,
