@@ -43,3 +43,4 @@ This is the backend for the Anime Skip web extension.
 - [ ] Delete Account
 - [ ] Validate Email
 - [ ] Add validation check to isShowAdmin
+- [ ] Add foreign key constraints
