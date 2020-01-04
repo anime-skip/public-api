@@ -9,17 +9,34 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+var _timestampTypeCache = map[string]*models.TimestampType{}
+var _timestampTypeCacheHasAll = false
+
 // Helpers
 
 func timestampTypeByID(db *gorm.DB, timestampTypeID string) (*models.TimestampType, error) {
+	if timestampType, isCached := _timestampTypeCache[timestampTypeID]; isCached {
+		return timestampType, nil
+	}
 	timestampType, err := repos.FindTimestampTypeByID(db, timestampTypeID)
 	if err != nil {
 		return nil, err
 	}
-	return mappers.TimestampTypeEntityToModel(timestampType), nil
+
+	model := mappers.TimestampTypeEntityToModel(timestampType)
+	_timestampTypeCache[model.ID] = model
+
+	return model, nil
 }
 
 func allTimestampTypes(db *gorm.DB) ([]*models.TimestampType, error) {
+	if _timestampTypeCacheHasAll {
+		timestampTypeModels := []*models.TimestampType{}
+		for _, model := range _timestampTypeCache {
+			timestampTypeModels = append(timestampTypeModels, model)
+		}
+		return timestampTypeModels, nil
+	}
 	timestampTypes, err := repos.FindAllTimestampTypes(db)
 	if err != nil {
 		return nil, err
@@ -27,8 +44,11 @@ func allTimestampTypes(db *gorm.DB) ([]*models.TimestampType, error) {
 
 	timestampTypeModels := make([]*models.TimestampType, len(timestampTypes))
 	for index, timestampType := range timestampTypes {
-		timestampTypeModels[index] = mappers.TimestampTypeEntityToModel(timestampType)
+		model := mappers.TimestampTypeEntityToModel(timestampType)
+		timestampTypeModels[index] = model
+		_timestampTypeCache[model.ID] = model
 	}
+	_timestampTypeCacheHasAll = true
 	return timestampTypeModels, nil
 }
 
@@ -49,7 +69,11 @@ func (r *mutationResolver) CreateTimestampType(ctx context.Context, timestampTyp
 	if err != nil {
 		return nil, err
 	}
-	return mappers.TimestampTypeEntityToModel(timestampType), nil
+
+	model := mappers.TimestampTypeEntityToModel(timestampType)
+	_timestampTypeCache[model.ID] = model
+
+	return model, nil
 }
 
 func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType models.InputTimestampType) (*models.TimestampType, error) {
@@ -59,7 +83,10 @@ func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTyp
 	}
 	updatedTimestampType, err := repos.UpdateTimestampType(r.DB(ctx), newTimestampType, existingTimestampType)
 
-	return mappers.TimestampTypeEntityToModel(updatedTimestampType), nil
+	model := mappers.TimestampTypeEntityToModel(updatedTimestampType)
+	_timestampTypeCache[model.ID] = model
+
+	return model, nil
 }
 
 func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error) {
@@ -69,7 +96,13 @@ func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTyp
 		return nil, err
 	}
 
-	return timestampTypeByID(db.Unscoped(), timestampTypeID)
+	model, err := timestampTypeByID(db.Unscoped(), timestampTypeID)
+	if err != nil {
+		return nil, err
+	}
+	delete(_timestampTypeCache, model.ID)
+
+	return model, nil
 }
 
 // Field Resolvers
