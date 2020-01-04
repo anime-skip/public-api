@@ -32,6 +32,7 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 	handler := handler.GraphQL(
 		gql.NewExecutableSchema(config),
 		handler.IntrospectionEnabled(isIntrospectionEnabled),
+		// handler.ComplexityLimit(5),
 	)
 	return func(c *gin.Context) {
 		handler.ServeHTTP(c.Writer, c.Request)
