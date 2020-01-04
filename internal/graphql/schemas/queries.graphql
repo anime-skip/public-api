@@ -21,4 +21,8 @@ type Query {
   # Timestamps
   findTimestamp(timestampId: ID!): Timestamp
   findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]
+
+  # Timestamp Types
+  findTimestampType(timestampTypeId: ID!): TimestampType
+  allTimestampTypes: [TimestampType!]
 }
