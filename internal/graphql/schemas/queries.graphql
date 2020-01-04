@@ -8,7 +8,7 @@ type Query {
   findShow(showId: ID!): Show
   searchShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
 
-  # ShowAdmins
+  # Show Admins
   findShowAdmin(showAdminId: ID!): ShowAdmin
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
@@ -17,6 +17,10 @@ type Query {
   findEpisode(episodeId: ID!): Episode
   findEpisodesByShowId(showId: ID!): [Episode!]
   searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+
+  # Episode Urls
+  findEpisodeUrl(episodeUrl: String!): EpisodeUrl
+  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]
 
   # Timestamps
   findTimestamp(timestampId: ID!): Timestamp

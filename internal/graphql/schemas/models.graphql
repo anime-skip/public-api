@@ -31,6 +31,7 @@ type Episode implements BaseModel {
   show: Show!
   showId: ID!
   timestamps: [Timestamp!]!
+  urls: [EpisodeUrl!]!
 }
 input InputEpisode {
   season: Int
@@ -48,9 +49,16 @@ type EpisodeUrl {
   updatedAt: Time!
   updatedByUserId: ID!
   updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
 
   episodeId: ID!
   episode: Episode!
+  source: EpisodeSource!
+}
+input InputEpisodeUrl {
+  url: String!
 }
 
 # MyUser
@@ -179,7 +187,7 @@ type Timestamp implements BaseModel {
   typeId: ID!
   type: TimestampType!
   episodeId: ID!
-  epiosde: Episode!
+  episode: Episode!
 }
 input InputTimestamp {
   at: Float!

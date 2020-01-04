@@ -12,6 +12,7 @@ var CreateEpisodeURLsTable = migrateTable(
 		"    updated_at timestamp with time zone NOT NULL,",
 		"    updated_by_user_id uuid NOT NULL,",
 		"    episode_id uuid NOT NULL,",
+		"    source integer NOT NULL,",
 		"    CONSTRAINT episode_urls_pkey PRIMARY KEY (url)",
 		")",
 		"WITH (",

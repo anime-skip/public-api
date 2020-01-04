@@ -31,11 +31,17 @@ models:
         resolver: true
       timestamps:
         resolver: true
+      urls:
+        resolver: true
   EpisodeUrl:
     fields:
       createdBy:
         resolver: true
       updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      episode:
         resolver: true
   MyUser:
     fields:
