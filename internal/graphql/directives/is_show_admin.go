@@ -22,7 +22,7 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 	if showID, ok := args["showId"]; ok {
 		showIDStr, isString := showID.(string)
 		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showID", showID, showID)
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showId", showID, showID)
 		}
 		return showIDStr, nil
 	}
@@ -32,7 +32,7 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 	if showAdminID, ok := args["showAdminId"]; ok {
 		showAdminIDStr, isString := showAdminID.(string)
 		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showAdminID", showAdminID, showAdminID)
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showAdminId", showAdminID, showAdminID)
 		}
 		showAdmin, err := repos.FindShowAdminByID(db, showAdminIDStr)
 		if err != nil {
@@ -50,13 +50,29 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 		return "", fmt.Errorf("args['%+v'] must be a InputShowAdmin, but was %v (%T)", "showAdmin", showAdmin, showAdmin)
 	}
 
+	// timestampId
+	if timestampID, ok := args["timestampId"]; ok {
+		timestampIDStr, isString := timestampID.(string)
+		if !isString {
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "timestampId", timestampID, timestampID)
+		}
+		timestamp, err := repos.FindTimestampByID(db, timestampIDStr)
+		if err != nil {
+			return "", err
+		}
+		episode, err := repos.FindEpisodeByID(db, timestamp.EpisodeID.String())
+		if err != nil {
+			return "", err
+		}
+		return episode.ShowID.String(), nil
+	}
+
 	// episodeId
 	if episodeID, ok := args["episodeId"]; ok {
 		episodeIDStr, isString := episodeID.(string)
 		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeID", episodeID, episodeID)
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeId", episodeID, episodeID)
 		}
-		db := database.ORMInstance.DB
 		episode, err := repos.FindEpisodeByID(db, episodeIDStr)
 		if err != nil {
 			return "", err

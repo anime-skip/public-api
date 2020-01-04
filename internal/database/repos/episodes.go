@@ -51,7 +51,18 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error
 		return fmt.Errorf("Failed to delete episode with id='%s'", episodeID)
 	}
 
-	log.W("TODO - Delete timestamps when deleting a episode")
+	// Delete the timestamps for that episode
+	timestamps, err := FindTimestampsByEpisodeID(tx, episodeID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, timestamp := range timestamps {
+		if err = DeleteShowAdmin(tx, timestamp.ID.String()); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
 
 	utils.CommitTransaction(tx, inTransaction)
 	return nil
