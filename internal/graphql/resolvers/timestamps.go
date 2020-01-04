@@ -3,17 +3,77 @@ package resolvers
 import (
 	"context"
 
+	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
+	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"github.com/jinzhu/gorm"
 )
 
 // Helpers
+
+func timestampByID(db *gorm.DB, timestampID string) (*models.Timestamp, error) {
+	timestamp, err := repos.FindTimestampByID(db, timestampID)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.TimestampEntityToModel(timestamp), nil
+}
+
+func timestampsByEpisodeID(db *gorm.DB, episodeID string) ([]*models.Timestamp, error) {
+	timestamps, err := repos.FindTimestampsByEpisodeID(db, episodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	timestampModels := make([]*models.Timestamp, len(timestamps))
+	for index, timestamp := range timestamps {
+		timestampModels[index] = mappers.TimestampEntityToModel(timestamp)
+	}
+	return timestampModels, nil
+}
 
 // Query Resolvers
 
 type timestampResolver struct{ *Resolver }
 
+func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error) {
+	return timestampByID(r.DB(ctx), timestampID)
+}
+
+func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*models.Timestamp, error) {
+	return timestampsByEpisodeID(r.DB(ctx), episodeID)
+}
+
 // Mutation Resolvers
+
+func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID string, timestampInput models.InputTimestamp) (*models.Timestamp, error) {
+	timestamp, err := repos.CreateTimestamp(r.DB(ctx), episodeID, timestampInput)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.TimestampEntityToModel(timestamp), nil
+}
+
+func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp models.InputTimestamp) (*models.Timestamp, error) {
+	existingTimestamp, err := repos.FindTimestampByID(r.DB(ctx), timestampID)
+	if err != nil {
+		return nil, err
+	}
+	updatedTimestamp, err := repos.UpdateTimestamp(r.DB(ctx), newTimestamp, existingTimestamp)
+
+	return mappers.TimestampEntityToModel(updatedTimestamp), nil
+}
+
+func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error) {
+	db := r.DB(ctx)
+	err := repos.DeleteTimestamp(r.DB(ctx), false, timestampID)
+	if err != nil {
+		return nil, err
+	}
+
+	return timestampByID(db.Unscoped(), timestampID)
+}
 
 // Field Resolvers
 

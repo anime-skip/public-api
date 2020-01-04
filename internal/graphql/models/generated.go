@@ -84,6 +84,11 @@ type InputShowAdmin struct {
 	UserID string `json:"userId"`
 }
 
+type InputTimestamp struct {
+	At     float64 `json:"at"`
+	TypeID string  `json:"typeId"`
+}
+
 type MyUser struct {
 	ID            string       `json:"id"`
 	CreatedAt     time.Time    `json:"createdAt"`
