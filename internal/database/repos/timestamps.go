@@ -12,9 +12,9 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func CreateTimestamp(db *gorm.DB, showID string, timestampInput models.InputTimestamp) (*entities.Timestamp, error) {
+func CreateTimestamp(db *gorm.DB, episodeID string, timestampInput models.InputTimestamp) (*entities.Timestamp, error) {
 	timestamp := mappers.TimestampInputModelToEntity(timestampInput, &entities.Timestamp{
-		EpisodeID: uuid.FromStringOrNil(showID),
+		EpisodeID: uuid.FromStringOrNil(episodeID),
 	})
 	err := db.Model(&timestamp).Create(timestamp).Error
 	if err != nil {
@@ -50,8 +50,6 @@ func DeleteTimestamp(db *gorm.DB, inTransaction bool, timestampID string) (err e
 		tx.Rollback()
 		return fmt.Errorf("Failed to delete timestamp with id='%s'", timestampID)
 	}
-
-	log.W("TODO - Delete timestamps when deleting a timestamp")
 
 	utils.CommitTransaction(tx, inTransaction)
 	return nil
