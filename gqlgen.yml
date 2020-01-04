@@ -43,7 +43,7 @@ models:
         resolver: true
       episode:
         resolver: true
-  MyUser:
+  Account:
     fields:
       adminOfShows: 
         resolver: true

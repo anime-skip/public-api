@@ -13,6 +13,19 @@ type BaseModel interface {
 	IsBaseModel()
 }
 
+type Account struct {
+	ID            string       `json:"id"`
+	CreatedAt     time.Time    `json:"createdAt"`
+	DeletedAt     *time.Time   `json:"deletedAt"`
+	Username      string       `json:"username"`
+	Email         string       `json:"email"`
+	ProfileURL    string       `json:"profileUrl"`
+	AdminOfShows  []*ShowAdmin `json:"adminOfShows"`
+	EmailVerified bool         `json:"emailVerified"`
+	Role          Role         `json:"role"`
+	Preferences   *Preferences `json:"preferences"`
+}
+
 type Episode struct {
 	ID              string        `json:"id"`
 	CreatedAt       time.Time     `json:"createdAt"`
@@ -101,19 +114,6 @@ type InputTimestamp struct {
 type InputTimestampType struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
-}
-
-type MyUser struct {
-	ID            string       `json:"id"`
-	CreatedAt     time.Time    `json:"createdAt"`
-	DeletedAt     *time.Time   `json:"deletedAt"`
-	Username      string       `json:"username"`
-	Email         string       `json:"email"`
-	ProfileURL    string       `json:"profileUrl"`
-	AdminOfShows  []*ShowAdmin `json:"adminOfShows"`
-	EmailVerified bool         `json:"emailVerified"`
-	Role          Role         `json:"role"`
-	Preferences   *Preferences `json:"preferences"`
 }
 
 type Preferences struct {
