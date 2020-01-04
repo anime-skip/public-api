@@ -2,7 +2,7 @@ package server
 
 import (
 	database "github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/handlers"
+	"github.com/aklinker1/anime-skip-backend/internal/server/handlers"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
