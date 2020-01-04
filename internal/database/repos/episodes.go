@@ -58,7 +58,20 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error
 		return err
 	}
 	for _, timestamp := range timestamps {
-		if err = DeleteShowAdmin(tx, timestamp.ID.String()); err != nil {
+		if err = DeleteTimestamp(tx, true, timestamp.ID.String()); err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// Delete the urls for that episode
+	urls, err := FindEpisodeURLsByEpisodeID(tx, episodeID)
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+	for _, url := range urls {
+		if err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
 			tx.Rollback()
 			return err
 		}
