@@ -67,7 +67,7 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 		return episode.ShowID.String(), nil
 	}
 
-	// timestampId
+	// episodeUrl
 	if epiosdeURL, ok := args["episodeUrl"]; ok {
 		epiosdeURLStr, isString := epiosdeURL.(string)
 		if !isString {
