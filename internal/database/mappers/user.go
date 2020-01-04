@@ -26,12 +26,12 @@ func UserEntityToModel(entity *entities.User) *models.User {
 	}
 }
 
-// UserEntityToMyUserModel -
-func UserEntityToMyUserModel(entity *entities.User) *models.MyUser {
+// UserEntityToAccountModel -
+func UserEntityToAccountModel(entity *entities.User) *models.Account {
 	if entity == nil {
 		return nil
 	}
-	return &models.MyUser{
+	return &models.Account{
 		ID:            entity.ID.String(),
 		CreatedAt:     entity.CreatedAt,
 		DeletedAt:     entity.DeletedAt,

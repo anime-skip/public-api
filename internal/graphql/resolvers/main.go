@@ -34,8 +34,8 @@ func (r *Resolver) Episode() gql.EpisodeResolver {
 func (r *Resolver) EpisodeUrl() gql.EpisodeUrlResolver {
 	return &episodeUrlResolver{r}
 }
-func (r *Resolver) MyUser() gql.MyUserResolver {
-	return &myUserResolver{r}
+func (r *Resolver) Account() gql.AccountResolver {
+	return &AccountResolver{r}
 }
 func (r *Resolver) Preferences() gql.PreferencesResolver {
 	return &preferencesResolver{r}
