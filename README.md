@@ -36,8 +36,8 @@ This is the backend for the Anime Skip web extension.
 
 ## TODO
 
-- [ ] Timestamp Types
-- [ ] Episode URLs
+- [x] Timestamp Types
+- [x] Episode URLs
 - [ ] [Email helper](https://medium.com/glottery/sending-emails-with-go-golang-and-gmail-39bc20423cf0)
 - [ ] Create Account
 - [ ] Delete Account

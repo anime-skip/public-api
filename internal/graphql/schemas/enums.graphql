@@ -3,3 +3,9 @@ enum Role {
   ADMIN
   USER
 }
+
+enum EpisodeSource {
+  UNKNOWN
+  VRV
+  FUNIMATION
+}

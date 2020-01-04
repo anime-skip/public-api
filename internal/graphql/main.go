@@ -77,14 +77,19 @@ type ComplexityRoot struct {
 		UpdatedAt       func(childComplexity int) int
 		UpdatedBy       func(childComplexity int) int
 		UpdatedByUserID func(childComplexity int) int
+		Urls            func(childComplexity int) int
 	}
 
 	EpisodeURL struct {
 		CreatedAt       func(childComplexity int) int
 		CreatedBy       func(childComplexity int) int
 		CreatedByUserID func(childComplexity int) int
+		DeletedAt       func(childComplexity int) int
+		DeletedBy       func(childComplexity int) int
+		DeletedByUserID func(childComplexity int) int
 		Episode         func(childComplexity int) int
 		EpisodeID       func(childComplexity int) int
+		Source          func(childComplexity int) int
 		URL             func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 		UpdatedBy       func(childComplexity int) int
@@ -93,11 +98,13 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		CreateEpisode       func(childComplexity int, showID string, episodeInput models.InputEpisode) int
+		CreateEpisodeURL    func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
 		CreateShow          func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
 		CreateShowAdmin     func(childComplexity int, showAdminInput models.InputShowAdmin) int
 		CreateTimestamp     func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
 		CreateTimestampType func(childComplexity int, timestampTypeInput models.InputTimestampType) int
 		DeleteEpisode       func(childComplexity int, episodeID string) int
+		DeleteEpisodeURL    func(childComplexity int, episodeURL string) int
 		DeleteShow          func(childComplexity int, showID string) int
 		DeleteShowAdmin     func(childComplexity int, showAdminID string) int
 		DeleteTimestamp     func(childComplexity int, timestampID string) int
@@ -147,21 +154,23 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AllTimestampTypes         func(childComplexity int) int
-		FindEpisode               func(childComplexity int, episodeID string) int
-		FindEpisodesByShowID      func(childComplexity int, showID string) int
-		FindShow                  func(childComplexity int, showID string) int
-		FindShowAdmin             func(childComplexity int, showAdminID string) int
-		FindShowAdminsByShowID    func(childComplexity int, showID string) int
-		FindShowAdminsByUserID    func(childComplexity int, userID string) int
-		FindTimestamp             func(childComplexity int, timestampID string) int
-		FindTimestampType         func(childComplexity int, timestampTypeID string) int
-		FindTimestampsByEpisodeID func(childComplexity int, episodeID string) int
-		FindUser                  func(childComplexity int, userID string) int
-		FindUserByUsername        func(childComplexity int, username string) int
-		MyUser                    func(childComplexity int) int
-		SearchEpisodes            func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
-		SearchShows               func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
+		AllTimestampTypes          func(childComplexity int) int
+		FindEpisode                func(childComplexity int, episodeID string) int
+		FindEpisodeURL             func(childComplexity int, episodeURL string) int
+		FindEpisodeUrlsByEpisodeID func(childComplexity int, episodeID string) int
+		FindEpisodesByShowID       func(childComplexity int, showID string) int
+		FindShow                   func(childComplexity int, showID string) int
+		FindShowAdmin              func(childComplexity int, showAdminID string) int
+		FindShowAdminsByShowID     func(childComplexity int, showID string) int
+		FindShowAdminsByUserID     func(childComplexity int, userID string) int
+		FindTimestamp              func(childComplexity int, timestampID string) int
+		FindTimestampType          func(childComplexity int, timestampTypeID string) int
+		FindTimestampsByEpisodeID  func(childComplexity int, episodeID string) int
+		FindUser                   func(childComplexity int, userID string) int
+		FindUserByUsername         func(childComplexity int, username string) int
+		MyUser                     func(childComplexity int) int
+		SearchEpisodes             func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
+		SearchShows                func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
 
 	Show struct {
@@ -208,7 +217,7 @@ type ComplexityRoot struct {
 		DeletedAt       func(childComplexity int) int
 		DeletedBy       func(childComplexity int) int
 		DeletedByUserID func(childComplexity int) int
-		Epiosde         func(childComplexity int) int
+		Episode         func(childComplexity int) int
 		EpisodeID       func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Type            func(childComplexity int) int
@@ -254,11 +263,16 @@ type EpisodeResolver interface {
 	Show(ctx context.Context, obj *models.Episode) (*models.Show, error)
 
 	Timestamps(ctx context.Context, obj *models.Episode) ([]*models.Timestamp, error)
+	Urls(ctx context.Context, obj *models.Episode) ([]*models.EpisodeURL, error)
 }
 type EpisodeUrlResolver interface {
 	CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
 
 	UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
+
+	DeletedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
+
+	Episode(ctx context.Context, obj *models.EpisodeURL) (*models.Episode, error)
 }
 type MutationResolver interface {
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
@@ -270,6 +284,8 @@ type MutationResolver interface {
 	CreateEpisode(ctx context.Context, showID string, episodeInput models.InputEpisode) (*models.Episode, error)
 	UpdateEpisode(ctx context.Context, episodeID string, newEpisode models.InputEpisode) (*models.Episode, error)
 	DeleteEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
+	CreateEpisodeURL(ctx context.Context, episodeID string, episodeURLInput models.InputEpisodeURL) (*models.EpisodeURL, error)
+	DeleteEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error)
 	CreateTimestamp(ctx context.Context, episodeID string, timestampInput models.InputTimestamp) (*models.Timestamp, error)
 	UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp models.InputTimestamp) (*models.Timestamp, error)
 	DeleteTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
@@ -297,6 +313,8 @@ type QueryResolver interface {
 	FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
 	FindEpisodesByShowID(ctx context.Context, showID string) ([]*models.Episode, error)
 	SearchEpisodes(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
+	FindEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error)
+	FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID string) ([]*models.EpisodeURL, error)
 	FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
 	FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*models.Timestamp, error)
 	FindTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
@@ -331,6 +349,8 @@ type TimestampResolver interface {
 	DeletedBy(ctx context.Context, obj *models.Timestamp) (*models.User, error)
 
 	Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error)
+
+	Episode(ctx context.Context, obj *models.Timestamp) (*models.Episode, error)
 }
 type TimestampTypeResolver interface {
 	CreatedBy(ctx context.Context, obj *models.TimestampType) (*models.User, error)
@@ -477,6 +497,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Episode.UpdatedByUserID(childComplexity), true
 
+	case "Episode.urls":
+		if e.complexity.Episode.Urls == nil {
+			break
+		}
+
+		return e.complexity.Episode.Urls(childComplexity), true
+
 	case "EpisodeUrl.createdAt":
 		if e.complexity.EpisodeURL.CreatedAt == nil {
 			break
@@ -498,6 +525,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EpisodeURL.CreatedByUserID(childComplexity), true
 
+	case "EpisodeUrl.deletedAt":
+		if e.complexity.EpisodeURL.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.DeletedAt(childComplexity), true
+
+	case "EpisodeUrl.deletedBy":
+		if e.complexity.EpisodeURL.DeletedBy == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.DeletedBy(childComplexity), true
+
+	case "EpisodeUrl.deletedByUserId":
+		if e.complexity.EpisodeURL.DeletedByUserID == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.DeletedByUserID(childComplexity), true
+
 	case "EpisodeUrl.episode":
 		if e.complexity.EpisodeURL.Episode == nil {
 			break
@@ -511,6 +559,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EpisodeURL.EpisodeID(childComplexity), true
+
+	case "EpisodeUrl.source":
+		if e.complexity.EpisodeURL.Source == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.Source(childComplexity), true
 
 	case "EpisodeUrl.url":
 		if e.complexity.EpisodeURL.URL == nil {
@@ -551,6 +606,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateEpisode(childComplexity, args["showId"].(string), args["episodeInput"].(models.InputEpisode)), true
+
+	case "Mutation.createEpisodeUrl":
+		if e.complexity.Mutation.CreateEpisodeURL == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createEpisodeUrl_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateEpisodeURL(childComplexity, args["episodeId"].(string), args["episodeUrlInput"].(models.InputEpisodeURL)), true
 
 	case "Mutation.createShow":
 		if e.complexity.Mutation.CreateShow == nil {
@@ -611,6 +678,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteEpisode(childComplexity, args["episodeId"].(string)), true
+
+	case "Mutation.deleteEpisodeUrl":
+		if e.complexity.Mutation.DeleteEpisodeURL == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteEpisodeUrl_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteEpisodeURL(childComplexity, args["episodeUrl"].(string)), true
 
 	case "Mutation.deleteShow":
 		if e.complexity.Mutation.DeleteShow == nil {
@@ -955,6 +1034,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindEpisode(childComplexity, args["episodeId"].(string)), true
+
+	case "Query.findEpisodeUrl":
+		if e.complexity.Query.FindEpisodeURL == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findEpisodeUrl_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindEpisodeURL(childComplexity, args["episodeUrl"].(string)), true
+
+	case "Query.findEpisodeUrlsByEpisodeId":
+		if e.complexity.Query.FindEpisodeUrlsByEpisodeID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findEpisodeUrlsByEpisodeId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindEpisodeUrlsByEpisodeID(childComplexity, args["episodeId"].(string)), true
 
 	case "Query.findEpisodesByShowId":
 		if e.complexity.Query.FindEpisodesByShowID == nil {
@@ -1366,12 +1469,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Timestamp.DeletedByUserID(childComplexity), true
 
-	case "Timestamp.epiosde":
-		if e.complexity.Timestamp.Epiosde == nil {
+	case "Timestamp.episode":
+		if e.complexity.Timestamp.Episode == nil {
 			break
 		}
 
-		return e.complexity.Timestamp.Epiosde(childComplexity), true
+		return e.complexity.Timestamp.Episode(childComplexity), true
 
 	case "Timestamp.episodeId":
 		if e.complexity.Timestamp.EpisodeID == nil {
@@ -1626,6 +1729,12 @@ directive @isShowAdmin on ARGUMENT_DEFINITION
   ADMIN
   USER
 }
+
+enum EpisodeSource {
+  UNKNOWN
+  VRV
+  FUNIMATION
+}
 `},
 	&ast.Source{Name: "internal/graphql/schemas/models.graphql", Input: `interface BaseModel {
   id: ID!
@@ -1660,6 +1769,7 @@ type Episode implements BaseModel {
   show: Show!
   showId: ID!
   timestamps: [Timestamp!]!
+  urls: [EpisodeUrl!]!
 }
 input InputEpisode {
   season: Int
@@ -1677,9 +1787,16 @@ type EpisodeUrl {
   updatedAt: Time!
   updatedByUserId: ID!
   updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
 
   episodeId: ID!
   episode: Episode!
+  source: EpisodeSource!
+}
+input InputEpisodeUrl {
+  url: String!
 }
 
 # MyUser
@@ -1808,7 +1925,7 @@ type Timestamp implements BaseModel {
   typeId: ID!
   type: TimestampType!
   episodeId: ID!
-  epiosde: Episode!
+  episode: Episode!
 }
 input InputTimestamp {
   at: Float!
@@ -1868,6 +1985,10 @@ type User {
   updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode @authorized 
   deleteEpisode(episodeId: ID! @isShowAdmin): Episode @authorized
 
+  # Episode Urls
+  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl @authorized
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl @authorized
+
   # Timestamps
   createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp @authorized 
   updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp @authorized 
@@ -1889,7 +2010,7 @@ type User {
   findShow(showId: ID!): Show
   searchShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
 
-  # ShowAdmins
+  # Show Admins
   findShowAdmin(showAdminId: ID!): ShowAdmin
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
@@ -1898,6 +2019,10 @@ type User {
   findEpisode(episodeId: ID!): Episode
   findEpisodesByShowId(showId: ID!): [Episode!]
   searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+
+  # Episode Urls
+  findEpisodeUrl(episodeUrl: String!): EpisodeUrl
+  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]
 
   # Timestamps
   findTimestamp(timestampId: ID!): Timestamp
@@ -1927,6 +2052,41 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeId"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["episodeId"] = arg0
+	var arg1 models.InputEpisodeURL
+	if tmp, ok := rawArgs["episodeUrlInput"]; ok {
+		arg1, err = ec.unmarshalNInputEpisodeUrl2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisodeURL(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episodeUrlInput"] = arg1
 	return args, nil
 }
 
@@ -2062,6 +2222,33 @@ func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Cont
 		}
 	}
 	args["timestampInput"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeUrl"]; ok {
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["episodeUrl"] = arg0
 	return args, nil
 }
 
@@ -2326,6 +2513,34 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeUrl"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episodeUrl"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findEpisodeUrlsByEpisodeId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["episodeId"] = arg0
 	return args, nil
 }
 
@@ -3203,6 +3418,43 @@ func (ec *executionContext) _Episode_timestamps(ctx context.Context, field graph
 	return ec.marshalNTimestamp2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Episode_urls(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Episode",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Episode().Urls(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.EpisodeURL)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEpisodeUrl2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURLᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EpisodeUrl_url(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3462,6 +3714,108 @@ func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field gra
 	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _EpisodeUrl_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.EpisodeUrl().DeletedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _EpisodeUrl_episodeId(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -3512,13 +3866,13 @@ func (ec *executionContext) _EpisodeUrl_episode(ctx context.Context, field graph
 		Object:   "EpisodeUrl",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Episode, nil
+		return ec.resolvers.EpisodeUrl().Episode(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3534,6 +3888,43 @@ func (ec *executionContext) _EpisodeUrl_episode(ctx context.Context, field graph
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_source(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Source, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.EpisodeSource)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNEpisodeSource2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeSource(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -4093,6 +4484,128 @@ func (ec *executionContext) _Mutation_deleteEpisode(ctx context.Context, field g
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createEpisodeUrl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createEpisodeUrl_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(string), args["episodeUrlInput"].(models.InputEpisodeURL))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.EpisodeURL); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.EpisodeURL`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.EpisodeURL)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteEpisodeUrl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteEpisodeUrl_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.EpisodeURL); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.EpisodeURL`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.EpisodeURL)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTimestamp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -6096,6 +6609,88 @@ func (ec *executionContext) _Query_searchEpisodes(ctx context.Context, field gra
 	return ec.marshalOEpisode2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_findEpisodeUrl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findEpisodeUrl_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindEpisodeURL(rctx, args["episodeUrl"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.EpisodeURL)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findEpisodeUrlsByEpisodeId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+		ec.Tracer.EndFieldExecution(ctx)
+	}()
+	rctx := &graphql.ResolverContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findEpisodeUrlsByEpisodeId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindEpisodeUrlsByEpisodeID(rctx, args["episodeId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.EpisodeURL)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOEpisodeUrl2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURLᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_findTimestamp(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -7920,7 +8515,7 @@ func (ec *executionContext) _Timestamp_episodeId(ctx context.Context, field grap
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Timestamp_epiosde(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
+func (ec *executionContext) _Timestamp_episode(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -7933,13 +8528,13 @@ func (ec *executionContext) _Timestamp_epiosde(ctx context.Context, field graphq
 		Object:   "Timestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Epiosde, nil
+		return ec.resolvers.Timestamp().Episode(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9835,6 +10430,24 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInputEpisodeUrl(ctx context.Context, obj interface{}) (models.InputEpisodeURL, error) {
+	var it models.InputEpisodeURL
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "url":
+			var err error
+			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, obj interface{}) (models.InputPreferences, error) {
 	var it models.InputPreferences
 	var asMap = obj.(map[string]interface{})
@@ -10217,6 +10830,20 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 				}
 				return res
 			})
+		case "urls":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_urls(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -10292,13 +10919,42 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "deletedAt":
+			out.Values[i] = ec._EpisodeUrl_deletedAt(ctx, field, obj)
+		case "deletedByUserId":
+			out.Values[i] = ec._EpisodeUrl_deletedByUserId(ctx, field, obj)
+		case "deletedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EpisodeUrl_deletedBy(ctx, field, obj)
+				return res
+			})
 		case "episodeId":
 			out.Values[i] = ec._EpisodeUrl_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "episode":
-			out.Values[i] = ec._EpisodeUrl_episode(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EpisodeUrl_episode(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "source":
+			out.Values[i] = ec._EpisodeUrl_source(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -10346,6 +11002,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateEpisode(ctx, field)
 		case "deleteEpisode":
 			out.Values[i] = ec._Mutation_deleteEpisode(ctx, field)
+		case "createEpisodeUrl":
+			out.Values[i] = ec._Mutation_createEpisodeUrl(ctx, field)
+		case "deleteEpisodeUrl":
+			out.Values[i] = ec._Mutation_deleteEpisodeUrl(ctx, field)
 		case "createTimestamp":
 			out.Values[i] = ec._Mutation_createTimestamp(ctx, field)
 		case "updateTimestamp":
@@ -10723,6 +11383,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_searchEpisodes(ctx, field)
+				return res
+			})
+		case "findEpisodeUrl":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findEpisodeUrl(ctx, field)
+				return res
+			})
+		case "findEpisodeUrlsByEpisodeId":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findEpisodeUrlsByEpisodeId(ctx, field)
 				return res
 			})
 		case "findTimestamp":
@@ -11149,11 +11831,20 @@ func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "epiosde":
-			out.Values[i] = ec._Timestamp_epiosde(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+		case "episode":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Timestamp_episode(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -11638,6 +12329,66 @@ func (ec *executionContext) marshalNEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanime�
 	return ec._Episode(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNEpisodeSource2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeSource(ctx context.Context, v interface{}) (models.EpisodeSource, error) {
+	var res models.EpisodeSource
+	return res, res.UnmarshalGQL(v)
+}
+
+func (ec *executionContext) marshalNEpisodeSource2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeSource(ctx context.Context, sel ast.SelectionSet, v models.EpisodeSource) graphql.Marshaler {
+	return v
+}
+
+func (ec *executionContext) marshalNEpisodeUrl2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v models.EpisodeURL) graphql.Marshaler {
+	return ec._EpisodeUrl(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNEpisodeUrl2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURLᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.EpisodeURL) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v *models.EpisodeURL) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._EpisodeUrl(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {
 	return graphql.UnmarshalFloat(v)
 }
@@ -11668,6 +12419,10 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 
 func (ec *executionContext) unmarshalNInputEpisode2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisode(ctx context.Context, v interface{}) (models.InputEpisode, error) {
 	return ec.unmarshalInputInputEpisode(ctx, v)
+}
+
+func (ec *executionContext) unmarshalNInputEpisodeUrl2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisodeURL(ctx context.Context, v interface{}) (models.InputEpisodeURL, error) {
+	return ec.unmarshalInputInputEpisodeUrl(ctx, v)
 }
 
 func (ec *executionContext) unmarshalNInputPreferences2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐInputPreferences(ctx context.Context, v interface{}) (models.InputPreferences, error) {
@@ -12183,6 +12938,57 @@ func (ec *executionContext) marshalOEpisode2ᚖgithubᚗcomᚋaklinker1ᚋanime�
 		return graphql.Null
 	}
 	return ec._Episode(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOEpisodeUrl2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v models.EpisodeURL) graphql.Marshaler {
+	return ec._EpisodeUrl(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOEpisodeUrl2ᚕᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURLᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.EpisodeURL) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		rctx := &graphql.ResolverContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithResolverContext(ctx, rctx)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOEpisodeUrl2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v *models.EpisodeURL) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._EpisodeUrl(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOID2string(ctx context.Context, v interface{}) (string, error) {

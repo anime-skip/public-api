@@ -67,6 +67,23 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 		return episode.ShowID.String(), nil
 	}
 
+	// timestampId
+	if epiosdeURL, ok := args["episodeUrl"]; ok {
+		epiosdeURLStr, isString := epiosdeURL.(string)
+		if !isString {
+			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeUrl", epiosdeURL, epiosdeURL)
+		}
+		episodeURL, err := repos.FindEpisodeURLByURL(db, epiosdeURLStr)
+		if err != nil {
+			return "", err
+		}
+		episode, err := repos.FindEpisodeByID(db, episodeURL.EpisodeID.String())
+		if err != nil {
+			return "", err
+		}
+		return episode.ShowID.String(), nil
+	}
+
 	// episodeId
 	if episodeID, ok := args["episodeId"]; ok {
 		episodeIDStr, isString := episodeID.(string)

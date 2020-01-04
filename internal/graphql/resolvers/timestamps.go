@@ -6,7 +6,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -90,6 +89,9 @@ func (r *timestampResolver) DeletedBy(ctx context.Context, obj *models.Timestamp
 }
 
 func (r *timestampResolver) Type(ctx context.Context, obj *models.Timestamp) (*models.TimestampType, error) {
-	log.W("TODO - add timestamp type field resolver for timestamp model")
-	return nil, nil
+	return timestampTypeByID(r.DB(ctx), obj.TypeID)
+}
+
+func (r *timestampResolver) Episode(ctx context.Context, obj *models.Timestamp) (*models.Episode, error) {
+	return episodeByID(r.DB(ctx), obj.EpisodeID)
 }
