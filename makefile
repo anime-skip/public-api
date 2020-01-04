@@ -17,3 +17,11 @@ gen:
 .PHONY: clean
 clean:
 	@go clean --modcache
+
+.PHONY: init
+init:
+	@./scripts/init.sh
+
+.PHONY: help
+help:
+	@./scripts/help.sh
