@@ -14,37 +14,42 @@ type BaseModel interface {
 }
 
 type Episode struct {
-	ID              string       `json:"id"`
-	CreatedAt       time.Time    `json:"createdAt"`
-	CreatedByUserID string       `json:"createdByUserId"`
-	CreatedBy       *User        `json:"createdBy"`
-	UpdatedAt       time.Time    `json:"updatedAt"`
-	UpdatedByUserID string       `json:"updatedByUserId"`
-	UpdatedBy       *User        `json:"updatedBy"`
-	DeletedAt       *time.Time   `json:"deletedAt"`
-	DeletedByUserID *string      `json:"deletedByUserId"`
-	DeletedBy       *User        `json:"deletedBy"`
-	Season          *int         `json:"season"`
-	Number          *int         `json:"number"`
-	AbsoluteNumber  *int         `json:"absoluteNumber"`
-	Name            *string      `json:"name"`
-	Show            *Show        `json:"show"`
-	ShowID          string       `json:"showId"`
-	Timestamps      []*Timestamp `json:"timestamps"`
+	ID              string        `json:"id"`
+	CreatedAt       time.Time     `json:"createdAt"`
+	CreatedByUserID string        `json:"createdByUserId"`
+	CreatedBy       *User         `json:"createdBy"`
+	UpdatedAt       time.Time     `json:"updatedAt"`
+	UpdatedByUserID string        `json:"updatedByUserId"`
+	UpdatedBy       *User         `json:"updatedBy"`
+	DeletedAt       *time.Time    `json:"deletedAt"`
+	DeletedByUserID *string       `json:"deletedByUserId"`
+	DeletedBy       *User         `json:"deletedBy"`
+	Season          *int          `json:"season"`
+	Number          *int          `json:"number"`
+	AbsoluteNumber  *int          `json:"absoluteNumber"`
+	Name            *string       `json:"name"`
+	Show            *Show         `json:"show"`
+	ShowID          string        `json:"showId"`
+	Timestamps      []*Timestamp  `json:"timestamps"`
+	Urls            []*EpisodeURL `json:"urls"`
 }
 
 func (Episode) IsBaseModel() {}
 
 type EpisodeURL struct {
-	URL             string    `json:"url"`
-	CreatedAt       time.Time `json:"createdAt"`
-	CreatedByUserID string    `json:"createdByUserId"`
-	CreatedBy       *User     `json:"createdBy"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	UpdatedByUserID string    `json:"updatedByUserId"`
-	UpdatedBy       *User     `json:"updatedBy"`
-	EpisodeID       string    `json:"episodeId"`
-	Episode         *Episode  `json:"episode"`
+	URL             string        `json:"url"`
+	CreatedAt       time.Time     `json:"createdAt"`
+	CreatedByUserID string        `json:"createdByUserId"`
+	CreatedBy       *User         `json:"createdBy"`
+	UpdatedAt       time.Time     `json:"updatedAt"`
+	UpdatedByUserID string        `json:"updatedByUserId"`
+	UpdatedBy       *User         `json:"updatedBy"`
+	DeletedAt       *time.Time    `json:"deletedAt"`
+	DeletedByUserID *string       `json:"deletedByUserId"`
+	DeletedBy       *User         `json:"deletedBy"`
+	EpisodeID       string        `json:"episodeId"`
+	Episode         *Episode      `json:"episode"`
+	Source          EpisodeSource `json:"source"`
 }
 
 type InputEpisode struct {
@@ -52,6 +57,10 @@ type InputEpisode struct {
 	Number         *int    `json:"number"`
 	AbsoluteNumber *int    `json:"absoluteNumber"`
 	Name           *string `json:"name"`
+}
+
+type InputEpisodeURL struct {
+	URL string `json:"url"`
 }
 
 type InputPreferences struct {
@@ -186,7 +195,7 @@ type Timestamp struct {
 	TypeID          string         `json:"typeId"`
 	Type            *TimestampType `json:"type"`
 	EpisodeID       string         `json:"episodeId"`
-	Epiosde         *Episode       `json:"epiosde"`
+	Episode         *Episode       `json:"episode"`
 }
 
 func (Timestamp) IsBaseModel() {}
@@ -216,6 +225,49 @@ type User struct {
 	Email        string       `json:"email"`
 	ProfileURL   string       `json:"profileUrl"`
 	AdminOfShows []*ShowAdmin `json:"adminOfShows"`
+}
+
+type EpisodeSource string
+
+const (
+	EpisodeSourceUnknown    EpisodeSource = "UNKNOWN"
+	EpisodeSourceVrv        EpisodeSource = "VRV"
+	EpisodeSourceFunimation EpisodeSource = "FUNIMATION"
+)
+
+var AllEpisodeSource = []EpisodeSource{
+	EpisodeSourceUnknown,
+	EpisodeSourceVrv,
+	EpisodeSourceFunimation,
+}
+
+func (e EpisodeSource) IsValid() bool {
+	switch e {
+	case EpisodeSourceUnknown, EpisodeSourceVrv, EpisodeSourceFunimation:
+		return true
+	}
+	return false
+}
+
+func (e EpisodeSource) String() string {
+	return string(e)
+}
+
+func (e *EpisodeSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = EpisodeSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid EpisodeSource", str)
+	}
+	return nil
+}
+
+func (e EpisodeSource) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
 type Role string

@@ -107,3 +107,7 @@ func (r *episodeResolver) Show(ctx context.Context, obj *models.Episode) (*model
 func (r *episodeResolver) Timestamps(ctx context.Context, obj *models.Episode) ([]*models.Timestamp, error) {
 	return timestampsByEpisodeID(r.DB(ctx), obj.ID)
 }
+
+func (r *episodeResolver) Urls(ctx context.Context, obj *models.Episode) ([]*models.EpisodeURL, error) {
+	return episodeURLsByEpisodeID(r.DB(ctx), obj.ID)
+}
