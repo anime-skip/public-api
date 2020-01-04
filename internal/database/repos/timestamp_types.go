@@ -15,7 +15,7 @@ func CreateTimestampType(db *gorm.DB, timestampTypeInput models.InputTimestampTy
 	timestampType := mappers.TimestampTypeInputModelToEntity(timestampTypeInput, &entities.TimestampType{})
 	err := db.Model(&timestampType).Create(timestampType).Error
 	if err != nil {
-		log.E("Failed to create timestampType with [%+v]: %v", timestampTypeInput, err)
+		log.E("Failed to create timestamp type with [%+v]: %v", timestampTypeInput, err)
 		return nil, fmt.Errorf("Failed to create timestamp type: %v", err)
 	}
 	return timestampType, nil
@@ -25,7 +25,7 @@ func UpdateTimestampType(db *gorm.DB, newTimestampType models.InputTimestampType
 	data := mappers.TimestampTypeInputModelToEntity(newTimestampType, existingTimestampType)
 	err := db.Model(data).Update(*data).Error
 	if err != nil {
-		log.E("Failed to update timestampType for [%+v]: %v", data, err)
+		log.E("Failed to update timestamp type for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update timestamp type with id='%s'", data.ID)
 	}
 	return data, err
@@ -43,7 +43,7 @@ func DeleteTimestampType(db *gorm.DB, inTransaction bool, timestampTypeID string
 	// Delete the timestampType
 	err = tx.Delete(entities.TimestampType{}, "id = ?", timestampTypeID).Error
 	if err != nil {
-		log.E("Failed to delete timestampType for id='%s': %v", timestampTypeID, err)
+		log.E("Failed to delete timestamp type for id='%s': %v", timestampTypeID, err)
 		tx.Rollback()
 		return fmt.Errorf("Failed to delete timestamp type with id='%s'", timestampTypeID)
 	}
