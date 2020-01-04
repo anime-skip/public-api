@@ -187,14 +187,24 @@ input InputTimestamp {
 }
 
 # TimestampType
-type TimestampType {
+type TimestampType implements BaseModel {
   id: ID!
   createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
   updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
   deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
 
-  name: String
-  description: String
+  name: String!
+  description: String!
+}
+input InputTimestampType {
+  name: String!
+  description: String!
 }
 
 # User

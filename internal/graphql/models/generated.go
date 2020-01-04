@@ -89,6 +89,11 @@ type InputTimestamp struct {
 	TypeID string  `json:"typeId"`
 }
 
+type InputTimestampType struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
 type MyUser struct {
 	ID            string       `json:"id"`
 	CreatedAt     time.Time    `json:"createdAt"`
@@ -187,13 +192,21 @@ type Timestamp struct {
 func (Timestamp) IsBaseModel() {}
 
 type TimestampType struct {
-	ID          string     `json:"id"`
-	CreatedAt   time.Time  `json:"createdAt"`
-	UpdatedAt   time.Time  `json:"updatedAt"`
-	DeletedAt   *time.Time `json:"deletedAt"`
-	Name        *string    `json:"name"`
-	Description *string    `json:"description"`
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	Name            string     `json:"name"`
+	Description     string     `json:"description"`
 }
+
+func (TimestampType) IsBaseModel() {}
 
 type User struct {
 	ID           string       `json:"id"`
