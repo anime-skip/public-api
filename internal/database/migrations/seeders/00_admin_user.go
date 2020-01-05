@@ -15,7 +15,7 @@ var adminUser = &entities.User{
 	CreatedAt:     now,
 	DeletedAt:     nil,
 	Username:      "the_admin",
-	Email:         "aaronklinker1@gmail.com",
+	Email:         "admin@anime-skip.com",
 	PasswordHash:  "password",
 	ProfileURL:    "https://ca.slack-edge.com/T02F01E85-UD1534SV6-df241d756573-512",
 	EmailVerified: true,
