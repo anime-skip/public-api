@@ -1,0 +1,15 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+
+  heroku-push:
+    name: Heroku
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: git push heroku master
+      uses: actions/heroku@1.0.0
