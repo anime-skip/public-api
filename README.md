@@ -51,3 +51,9 @@ This is the backend for the Anime Skip web extension.
 - [ ] Add validation directive
 - [ ] Delete Account
 - [ ] Add foreign key constraints
+
+## Help
+
+If you can't send an email from a gmail account, sign it with it, then go to this link:
+
+https://accounts.google.com/b/0/DisplayUnlockCaptcha
