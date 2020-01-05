@@ -90,8 +90,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 	return refreshTokenString, nil
 }
 
-// GenerateValidateEmailToken creates a refresh token to be used with the login query
-func GenerateValidateEmailToken(user *entities.User) (string, error) {
+func GenerateVerifyEmailToken(user *entities.User) (string, error) {
 	now := CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
@@ -104,12 +103,12 @@ func GenerateValidateEmailToken(user *entities.User) (string, error) {
 			"validationToken": true,
 		},
 	)
-	validateEmailTokenString, err := token.SignedString(jwtSecret)
+	verifyEmailTokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		log.E("%v", err)
-		return "", fmt.Errorf("Internal error: failed to generate validate email token")
+		return "", fmt.Errorf("Internal error: failed to generate verify email token")
 	}
-	return validateEmailTokenString, nil
+	return verifyEmailTokenString, nil
 }
 
 // ValidatePassword checks the password is valid against the bcyrpted hash in the database

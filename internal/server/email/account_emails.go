@@ -14,11 +14,11 @@ func SendWelcome(account *entities.User) error {
 	return email.Send()
 }
 
-func SendEmailAddressValidation(account *entities.User, token string) error {
+func SendEmailAddressVerification(account *entities.User, token string) error {
 	email := Email{
 		To:       []string{account.Email},
-		Subject:  "Validate Email Address",
-		Template: "email_validate.html",
+		Subject:  "Verify Email Address",
+		Template: "email_verify.html",
 		TemplateData: map[string]string{
 			"token": token,
 		},
