@@ -9,20 +9,21 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-const escape = "\x1b"
-const red = escape + "[91m"
-const green = escape + "[92m"
-const yellow = escape + "[93m"
-const blue = escape + "[94m"
-const magenta = escape + "[95m"
-const cyan = escape + "[96m"
-const reset = escape + "[0m"
-const bold = escape + "[1m"
-const dim = escape + "[2m"
-const italic = escape + "[3m"
-const underline = escape + "[4m"
+var escape = "\x1b"
+var red = escape + "[91m"
+var green = escape + "[92m"
+var yellow = escape + "[93m"
+var blue = escape + "[94m"
+var magenta = escape + "[95m"
+var cyan = escape + "[96m"
+var reset = escape + "[0m"
+var bold = escape + "[1m"
+var dim = escape + "[2m"
+var italic = escape + "[3m"
+var underline = escape + "[4m"
 
 var logLevel int
+var enableColorLogs bool
 
 func init() {
 	logLevelStr := os.Getenv("LOG_LEVEL")
@@ -37,6 +38,20 @@ func init() {
 		} else {
 			logLevel = level
 		}
+	}
+
+	if os.Getenv("ENABLE_COLOR_LOGS") != "true" {
+		red = ""
+		green = ""
+		yellow = ""
+		blue = ""
+		magenta = ""
+		cyan = ""
+		reset = ""
+		bold = ""
+		dim = ""
+		italic = ""
+		underline = ""
 	}
 }
 
