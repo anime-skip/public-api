@@ -18,7 +18,10 @@ func Run(db *gorm.DB) error {
 		// Add the UUID extension
 		return db.Exec("create extension \"uuid-ossp\";").Error
 	})
-	m.Migrate()
+	err := m.Migrate()
+	if err != nil {
+		return err
+	}
 
 	// Create the Tables
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
@@ -31,7 +34,10 @@ func Run(db *gorm.DB) error {
 		tables.CreateTimestampTypesTable,
 		tables.CreateTimestampsTable,
 	})
-	m.Migrate()
+	err = m.Migrate()
+	if err != nil {
+		return err
+	}
 
 	// Seed the database
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
