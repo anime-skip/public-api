@@ -126,6 +126,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	err = emailService.SendWelcome(user)
 	if err != nil {
 		tx.Rollback()
+		log.E("Failed to send email: %v", err)
 		return nil, fmt.Errorf("Failed to create user")
 	}
 
@@ -135,7 +136,10 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	if err != nil {
 		log.E("Failed to send token validation email: %v", err)
 	} else {
-		emailService.SendEmailAddressVerification(user, verifyEmailToken)
+		err = emailService.SendEmailAddressVerification(user, verifyEmailToken)
+		if err != nil {
+			log.E("Failed to send email address verification email: %v", err)
+		}
 	}
 
 	return mappers.UserEntityToAccountModel(user), nil
