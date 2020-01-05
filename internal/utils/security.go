@@ -96,11 +96,12 @@ func GenerateValidateEmailToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"aud":    "anime-skip.com",
-			"exp":    now + 172800, // 2 days in seconds = 2*24*60*60
-			"iat":    now,
-			"iss":    "anime-skip.com",
-			"userId": user.ID,
+			"aud":             "anime-skip.com",
+			"exp":             now + 172800, // 2 days in seconds = 2*24*60*60
+			"iat":             now,
+			"iss":             "anime-skip.com",
+			"userId":          user.ID,
+			"validationToken": true,
 		},
 	)
 	validateEmailTokenString, err := token.SignedString(jwtSecret)
