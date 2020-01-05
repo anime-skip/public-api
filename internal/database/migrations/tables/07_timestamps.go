@@ -22,8 +22,5 @@ var CreateTimestampsTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-		"",
-		"ALTER TABLE public.timestamps",
-		"    OWNER to postgres;",
 	},
 )
