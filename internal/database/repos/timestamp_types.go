@@ -56,7 +56,7 @@ func FindTimestampTypeByID(db *gorm.DB, timestampTypeID string) (*entities.Times
 	timestampType := &entities.TimestampType{}
 	err := db.Unscoped().Where("id = ?", timestampTypeID).Find(timestampType).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No timestamp type found with id='%s'", timestampTypeID)
 	}
 	return timestampType, nil
@@ -66,7 +66,7 @@ func FindAllTimestampTypes(db *gorm.DB) ([]*entities.TimestampType, error) {
 	timestampTypes := []*entities.TimestampType{}
 	err := db.Find(&timestampTypes).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No timestamp types found")
 	}
 	return timestampTypes, nil

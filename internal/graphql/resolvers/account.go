@@ -31,6 +31,69 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 	return mappers.UserEntityToAccountModel(user), nil
 }
 
+func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
+	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
+	if err != nil {
+		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
+		return nil, fmt.Errorf("Bad login credentials")
+	}
+
+	if err = utils.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
+		log.V("Failed validate password: %v", err)
+		return nil, fmt.Errorf("Bad login credentials")
+	}
+
+	authToken, err := utils.GenerateAuthToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: refreshToken,
+		Account:      mappers.UserEntityToAccountModel(user),
+	}, nil
+}
+
+func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*models.LoginData, error) {
+	claims, err := utils.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, fmt.Errorf("Invalid refresh token")
+	}
+
+	userID := claims["userId"].(string)
+	user, err := repos.FindUserByID(r.DB(ctx), userID)
+	if err != nil {
+		log.V("Failed to get user with id='%s': %v", userID, err)
+		return nil, fmt.Errorf("Bad login credentials")
+	}
+
+	authToken, err := utils.GenerateAuthToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token: %v", err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	newRefreshToken, err := utils.GenerateRefreshToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token: %v", err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: newRefreshToken,
+		Account:      mappers.UserEntityToAccountModel(user),
+	}, nil
+}
+
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error) {
@@ -95,12 +158,9 @@ func (r *mutationResolver) SendEmailAddressVerificationEmail(ctx context.Context
 }
 
 func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {
-	payload, err := utils.ValidateToken(validationToken)
+	payload, err := utils.ValidateEmailVerificationToken(validationToken)
 	if err != nil {
 		return nil, err
-	}
-	if !payload.VerifyAudience("anime-skip.com/verify-email-address", true) {
-		return nil, fmt.Errorf("Invalid email address validation token")
 	}
 
 	// Update the user to have their email verified

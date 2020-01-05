@@ -21,11 +21,11 @@ func ValidateAuthHeader(authHeader string) (jwt.MapClaims, error) {
 	}
 
 	tokenString := matches[1]
-	return ValidateToken(tokenString)
+	return validateToken(tokenString)
 }
 
-// ValidateToken returns the payload for the token
-func ValidateToken(tokenString string) (jwt.MapClaims, error) {
+// validateToken returns the payload for the token
+func validateToken(tokenString string) (jwt.MapClaims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		// Validate Algorithm
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
@@ -41,14 +41,42 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	}
 	payload, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		log.V("%v", err)
 		return nil, fmt.Errorf("Invalid claims")
+	}
+	if isValidExpiresAt := payload.VerifyIssuedAt(CurrentTimeSec(), true); !isValidExpiresAt {
+		return nil, fmt.Errorf("Token is expired")
+	}
+	if isValidIssuer := payload.VerifyIssuer("anime-skip.com", true); !isValidIssuer {
+		return nil, fmt.Errorf("Invalid issuer, expected 'anime-skip.com', but got '%v'", payload["iss"])
 	}
 	return payload, nil
 }
 
-// GenerateToken creates a jwt token for the specified user
-func GenerateToken(user *entities.User) (string, error) {
+func validateTokenWithAud(token, aud string) (jwt.MapClaims, error) {
+	claims, err := validateToken(token)
+	if err != nil {
+		return nil, err
+	}
+	if isValidAud := claims.VerifyAudience(aud, true); !isValidAud {
+		return nil, fmt.Errorf("Invalid aud, expected '%s'", aud)
+	}
+	return claims, nil
+}
+
+func ValidateAuthToken(token string) (jwt.MapClaims, error) {
+	return validateTokenWithAud(token, "anime-skip.com")
+}
+
+func ValidateRefreshToken(token string) (jwt.MapClaims, error) {
+	return validateTokenWithAud(token, "anime-skip.com/graphql?loginRefresh")
+}
+
+func ValidateEmailVerificationToken(token string) (jwt.MapClaims, error) {
+	return validateTokenWithAud(token, "anime-skip.com/verify-email-address")
+}
+
+// GenerateAuthToken creates a jwt token for the specified user
+func GenerateAuthToken(user *entities.User) (string, error) {
 	now := CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
@@ -75,7 +103,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"aud":    "anime-skip.com/graphql?refreshToken",
+			"aud":    "anime-skip.com/graphql?loginRefresh",
 			"exp":    now + 604800, // 7 days in seconds = 7*24*60*60
 			"iat":    now,
 			"iss":    "anime-skip.com",

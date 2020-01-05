@@ -36,13 +36,18 @@ This is the backend for the Anime Skip web extension.
 
 ## TODO
 
+### MVP
+
 - [x] Timestamp Types
 - [x] Episode URLs
-- [x] [Email helper](https://medium.com/glottery/sending-emails-with-go-golang-and-gmail-39bc20423cf0)
+- [x] Email helper
 - [x] Create Account
 - [x] Verify Email
-- [ ] Login
-- [ ] Refresh auth token
-- [ ] Add validation check to isShowAdmin
+- [x] Login
+- [x] Refresh auth token
+
+### Next Goals
+
+- [ ] Add validation directive
 - [ ] Delete Account
 - [ ] Add foreign key constraints

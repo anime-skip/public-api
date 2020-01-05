@@ -74,3 +74,13 @@ func FindUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 	}
 	return user, nil
 }
+
+func FindUserByUsernameOrEmail(db *gorm.DB, usernameOrEmail string) (*entities.User, error) {
+	user := &entities.User{}
+	err := db.Where("email = ? OR username = ?", usernameOrEmail, usernameOrEmail).Find(user).Error
+	if err != nil {
+		log.E("Failed query: %v", err)
+		return nil, fmt.Errorf("No user found with email or username = '%s'", usernameOrEmail)
+	}
+	return user, nil
+}
