@@ -41,6 +41,6 @@ This is the backend for the Anime Skip web extension.
 - [x] [Email helper](https://medium.com/glottery/sending-emails-with-go-golang-and-gmail-39bc20423cf0)
 - [x] Create Account
 - [x] Verify Email
-- [ ] Delete Account
 - [ ] Add validation check to isShowAdmin
+- [ ] Delete Account
 - [ ] Add foreign key constraints
