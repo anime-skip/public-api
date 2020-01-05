@@ -3,7 +3,6 @@ module github.com/aklinker1/anime-skip-backend
 go 1.13
 
 // +heroku goVersion go1.13
-// +heroku install cmd/anime-skip-backend
 
 require (
 	github.com/99designs/gqlgen v0.10.2
