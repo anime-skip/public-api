@@ -9,6 +9,7 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	emailService "github.com/aklinker1/anime-skip-backend/internal/server/email"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 )
 
 // Helpers
@@ -66,6 +67,14 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	}
 
 	utils.CommitTransaction(tx, false)
+
+	validateEmailToken, err := utils.GenerateValidateEmailToken(user)
+	if err != nil {
+		log.E("Failed to send token validation email: %v", err)
+	} else {
+		emailService.SendEmailAddressValidation(user, validateEmailToken)
+	}
+
 	return mappers.UserEntityToAccountModel(user), nil
 }
 
