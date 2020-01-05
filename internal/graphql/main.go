@@ -110,28 +110,28 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount                   func(childComplexity int, username string, email string, passwordHash string) int
-		CreateEpisode                   func(childComplexity int, showID string, episodeInput models.InputEpisode) int
-		CreateEpisodeURL                func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
-		CreateShow                      func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
-		CreateShowAdmin                 func(childComplexity int, showAdminInput models.InputShowAdmin) int
-		CreateTimestamp                 func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
-		CreateTimestampType             func(childComplexity int, timestampTypeInput models.InputTimestampType) int
-		DeleteAccount                   func(childComplexity int, deleteToken string) int
-		DeleteAccountRequest            func(childComplexity int, accoutnID string, passwordHash string) int
-		DeleteEpisode                   func(childComplexity int, episodeID string) int
-		DeleteEpisodeURL                func(childComplexity int, episodeURL string) int
-		DeleteShow                      func(childComplexity int, showID string) int
-		DeleteShowAdmin                 func(childComplexity int, showAdminID string) int
-		DeleteTimestamp                 func(childComplexity int, timestampID string) int
-		DeleteTimestampType             func(childComplexity int, timestampTypeID string) int
-		SavePreferences                 func(childComplexity int, preferences models.InputPreferences) int
-		SendEmailAddressValidationEmail func(childComplexity int, userID string) int
-		UpdateEpisode                   func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
-		UpdateShow                      func(childComplexity int, showID string, newShow models.InputShow) int
-		UpdateTimestamp                 func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
-		UpdateTimestampType             func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
-		ValidateEmailAddress            func(childComplexity int, validationToken string) int
+		CreateAccount                     func(childComplexity int, username string, email string, passwordHash string) int
+		CreateEpisode                     func(childComplexity int, showID string, episodeInput models.InputEpisode) int
+		CreateEpisodeURL                  func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
+		CreateShow                        func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
+		CreateShowAdmin                   func(childComplexity int, showAdminInput models.InputShowAdmin) int
+		CreateTimestamp                   func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
+		CreateTimestampType               func(childComplexity int, timestampTypeInput models.InputTimestampType) int
+		DeleteAccount                     func(childComplexity int, deleteToken string) int
+		DeleteAccountRequest              func(childComplexity int, accoutnID string, passwordHash string) int
+		DeleteEpisode                     func(childComplexity int, episodeID string) int
+		DeleteEpisodeURL                  func(childComplexity int, episodeURL string) int
+		DeleteShow                        func(childComplexity int, showID string) int
+		DeleteShowAdmin                   func(childComplexity int, showAdminID string) int
+		DeleteTimestamp                   func(childComplexity int, timestampID string) int
+		DeleteTimestampType               func(childComplexity int, timestampTypeID string) int
+		SavePreferences                   func(childComplexity int, preferences models.InputPreferences) int
+		SendEmailAddressVerificationEmail func(childComplexity int, userID string) int
+		UpdateEpisode                     func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
+		UpdateShow                        func(childComplexity int, showID string, newShow models.InputShow) int
+		UpdateTimestamp                   func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
+		UpdateTimestampType               func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
+		VerifyEmailAddress                func(childComplexity int, validationToken string) int
 	}
 
 	Preferences struct {
@@ -286,8 +286,8 @@ type EpisodeUrlResolver interface {
 }
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error)
-	SendEmailAddressValidationEmail(ctx context.Context, userID string) (*bool, error)
-	ValidateEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
+	SendEmailAddressVerificationEmail(ctx context.Context, userID string) (*bool, error)
+	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error)
 	DeleteAccount(ctx context.Context, deleteToken string) (*models.Account, error)
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
@@ -867,17 +867,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(models.InputPreferences)), true
 
-	case "Mutation.sendEmailAddressValidationEmail":
-		if e.complexity.Mutation.SendEmailAddressValidationEmail == nil {
+	case "Mutation.sendEmailAddressVerificationEmail":
+		if e.complexity.Mutation.SendEmailAddressVerificationEmail == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_sendEmailAddressValidationEmail_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_sendEmailAddressVerificationEmail_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SendEmailAddressValidationEmail(childComplexity, args["userId"].(string)), true
+		return e.complexity.Mutation.SendEmailAddressVerificationEmail(childComplexity, args["userId"].(string)), true
 
 	case "Mutation.updateEpisode":
 		if e.complexity.Mutation.UpdateEpisode == nil {
@@ -927,17 +927,17 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateTimestampType(childComplexity, args["timestampTypeId"].(string), args["newTimestampType"].(models.InputTimestampType)), true
 
-	case "Mutation.validateEmailAddress":
-		if e.complexity.Mutation.ValidateEmailAddress == nil {
+	case "Mutation.verifyEmailAddress":
+		if e.complexity.Mutation.VerifyEmailAddress == nil {
 			break
 		}
 
-		args, err := ec.field_Mutation_validateEmailAddress_args(context.TODO(), rawArgs)
+		args, err := ec.field_Mutation_verifyEmailAddress_args(context.TODO(), rawArgs)
 		if err != nil {
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ValidateEmailAddress(childComplexity, args["validationToken"].(string)), true
+		return e.complexity.Mutation.VerifyEmailAddress(childComplexity, args["validationToken"].(string)), true
 
 	case "Preferences.createdAt":
 		if e.complexity.Preferences.CreatedAt == nil {
@@ -2038,8 +2038,8 @@ type User {
 	&ast.Source{Name: "internal/graphql/schemas/mutations.graphql", Input: `type Mutation {
   # Account
   createAccount(username: String!, email: String!, passwordHash: String!): Account
-  sendEmailAddressValidationEmail(userId: ID!): Boolean
-  validateEmailAddress(validationToken: String!): Account
+  sendEmailAddressVerificationEmail(userId: ID!): Boolean
+  verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account
 
@@ -2518,7 +2518,7 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_sendEmailAddressValidationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_sendEmailAddressVerificationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2659,7 +2659,7 @@ func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Cont
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_validateEmailAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+func (ec *executionContext) field_Mutation_verifyEmailAddress_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -4506,7 +4506,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	return ec.marshalOAccount2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_sendEmailAddressValidationEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_sendEmailAddressVerificationEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4523,7 +4523,7 @@ func (ec *executionContext) _Mutation_sendEmailAddressValidationEmail(ctx contex
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_sendEmailAddressValidationEmail_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_sendEmailAddressVerificationEmail_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4532,7 +4532,7 @@ func (ec *executionContext) _Mutation_sendEmailAddressValidationEmail(ctx contex
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendEmailAddressValidationEmail(rctx, args["userId"].(string))
+		return ec.resolvers.Mutation().SendEmailAddressVerificationEmail(rctx, args["userId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4547,7 +4547,7 @@ func (ec *executionContext) _Mutation_sendEmailAddressValidationEmail(ctx contex
 	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_validateEmailAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_verifyEmailAddress(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4564,7 +4564,7 @@ func (ec *executionContext) _Mutation_validateEmailAddress(ctx context.Context, 
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_validateEmailAddress_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_verifyEmailAddress_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4573,7 +4573,7 @@ func (ec *executionContext) _Mutation_validateEmailAddress(ctx context.Context, 
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ValidateEmailAddress(rctx, args["validationToken"].(string))
+		return ec.resolvers.Mutation().VerifyEmailAddress(rctx, args["validationToken"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11449,10 +11449,10 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createAccount":
 			out.Values[i] = ec._Mutation_createAccount(ctx, field)
-		case "sendEmailAddressValidationEmail":
-			out.Values[i] = ec._Mutation_sendEmailAddressValidationEmail(ctx, field)
-		case "validateEmailAddress":
-			out.Values[i] = ec._Mutation_validateEmailAddress(ctx, field)
+		case "sendEmailAddressVerificationEmail":
+			out.Values[i] = ec._Mutation_sendEmailAddressVerificationEmail(ctx, field)
+		case "verifyEmailAddress":
+			out.Values[i] = ec._Mutation_verifyEmailAddress(ctx, field)
 		case "deleteAccountRequest":
 			out.Values[i] = ec._Mutation_deleteAccountRequest(ctx, field)
 		case "deleteAccount":

@@ -75,7 +75,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"aud":    "anime-skip.com",
+			"aud":    "anime-skip.com/graphql?refreshToken",
 			"exp":    now + 604800, // 7 days in seconds = 7*24*60*60
 			"iat":    now,
 			"iss":    "anime-skip.com",
@@ -95,12 +95,11 @@ func GenerateVerifyEmailToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"aud":             "anime-skip.com",
-			"exp":             now + 172800, // 2 days in seconds = 2*24*60*60
-			"iat":             now,
-			"iss":             "anime-skip.com",
-			"userId":          user.ID,
-			"validationToken": true,
+			"aud":    "anime-skip.com/verify-email-address",
+			"exp":    now + 172800, // 2 days in seconds = 2*24*60*60
+			"iat":    now,
+			"iss":    "anime-skip.com",
+			"userId": user.ID,
 		},
 	)
 	verifyEmailTokenString, err := token.SignedString(jwtSecret)
