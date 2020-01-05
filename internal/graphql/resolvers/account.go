@@ -94,8 +94,24 @@ func (r *mutationResolver) SendEmailAddressVerificationEmail(ctx context.Context
 	return &isSent, nil
 }
 
-func (r *mutationResolver) verifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {
-	return nil, fmt.Errorf("not implemented")
+func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {
+	payload, err := utils.ValidateToken(validationToken)
+	if err != nil {
+		return nil, err
+	}
+	if !payload.VerifyAudience("anime-skip.com/verify-email-address", true) {
+		return nil, fmt.Errorf("Invalid email address validation token")
+	}
+
+	// Update the user to have their email verified
+	userID := payload["userId"].(string)
+	existingUser, err := repos.FindUserByID(r.DB(ctx), userID)
+	if err != nil {
+		return nil, err
+	}
+	updatedUser, err := repos.VerifyUserEmail(r.DB(ctx), existingUser)
+
+	return mappers.UserEntityToAccountModel(updatedUser), nil
 }
 
 func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error) {
