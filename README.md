@@ -40,7 +40,7 @@ This is the backend for the Anime Skip web extension.
 - [x] Episode URLs
 - [x] [Email helper](https://medium.com/glottery/sending-emails-with-go-golang-and-gmail-39bc20423cf0)
 - [x] Create Account
-- [x] Validate Email
+- [x] Verify Email
 - [ ] Delete Account
 - [ ] Add validation check to isShowAdmin
 - [ ] Add foreign key constraints
