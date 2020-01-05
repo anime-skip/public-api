@@ -18,10 +18,9 @@ func SendEmailAddressValidation(account *entities.User, token string) error {
 	email := Email{
 		To:       []string{account.Email},
 		Subject:  "Validate Email Address",
-		Template: "email_validate.hmtl",
+		Template: "email_validate.html",
 		TemplateData: map[string]string{
-			"username": account.Username,
-			"token":    token,
+			"token": token,
 		},
 	}
 	return email.Send()
