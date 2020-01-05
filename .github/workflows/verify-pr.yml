@@ -1,20 +1,30 @@
 name: Verify PR
-on: [push]
+on:
+  push:
+    branches-ignore:
+      - master
+
 jobs:
 
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-
-    - name: Install Go 1.13
-      uses: actions/setup-go@v1
+    - uses: actions/setup-go@v1
       with:
         go-version: 1.13
-      id: go
-
-    - name: Checkout code
-      uses: actions/checkout@v1
-
+    - uses: actions/checkout@v1
     - name: Build
-      run: go build cmd/anime-skip-backend/main.go
+      run: ./.github/build.sh
+  e2e:
+    name: E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+    - uses: actions/checkout@v1
+    - name: Build
+      run: ./.github/build.sh
+    - name: Tests
+      run: echo "Test"

@@ -10,6 +10,6 @@ jobs:
     name: Heroku
     runs-on: ubuntu-latest
     steps:
-
-    - name: git push heroku master
-      uses: actions/heroku@1.0.0
+    - uses: ./.github/actions/setup.yml
+    - uses: ./.github/actions/build.yml
+    - uses: ./.github/actions/deploy.yml
