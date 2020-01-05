@@ -1,6 +1,7 @@
 type Mutation {
   # Account
   createAccount(username: String!, email: String!, passwordHash: String!): Account
+  sendEmailAddressValidationEmail(userId: ID!): Boolean
   validateEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account

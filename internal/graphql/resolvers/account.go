@@ -78,6 +78,22 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	return mappers.UserEntityToAccountModel(user), nil
 }
 
+func (r *mutationResolver) SendEmailAddressValidationEmail(ctx context.Context, userID string) (*bool, error) {
+	user, err := repos.FindUserByID(r.DB(ctx), userID)
+	if err != nil {
+		return nil, err
+	}
+
+	token, err := utils.GenerateValidateEmailToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = emailService.SendEmailAddressValidation(user, token)
+	isSent := err == nil
+	return &isSent, nil
+}
+
 func (r *mutationResolver) ValidateEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {
 	return nil, fmt.Errorf("not implemented")
 }
