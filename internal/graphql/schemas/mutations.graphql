@@ -1,5 +1,9 @@
 type Mutation {
-  # Users
+  # Account
+  createAccount(username: String!, email: String!, passwordHash: String!): Account
+  validateEmailAddress(validationToken: String!): Account
+  deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
+  deleteAccount(deleteToken: String!): Account
 
   # Prefernces
   savePreferences(preferences: InputPreferences!): Preferences @authorized

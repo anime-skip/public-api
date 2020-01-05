@@ -61,8 +61,8 @@ input InputEpisodeUrl {
   url: String!
 }
 
-# MyUser
-type MyUser {
+# Account
+type Account {
   id: ID!
   createdAt: Time!
   deletedAt: Time

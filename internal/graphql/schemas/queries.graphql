@@ -1,6 +1,8 @@
 type Query {
+  # Account
+  account: Account @authorized
+  
   # Users
-  myUser: MyUser @authorized
   findUser(userId: ID!): User
   findUserByUsername(username: String!): User
 
