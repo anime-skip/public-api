@@ -24,7 +24,7 @@ func FindPreferencesByUserID(db *gorm.DB, userID string) (*entities.Preferences,
 	preferences := &entities.Preferences{}
 	err := db.Unscoped().Where("user_id = ?", userID).Find(preferences).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No preferences found with user_id='%s'", userID)
 	}
 	return preferences, nil

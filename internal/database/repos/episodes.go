@@ -85,7 +85,7 @@ func FindEpisodeByID(db *gorm.DB, episodeID string) (*entities.Episode, error) {
 	episode := &entities.Episode{}
 	err := db.Unscoped().Where("id = ?", episodeID).Find(episode).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode found with id='%s'", episodeID)
 	}
 	return episode, nil
@@ -95,7 +95,7 @@ func FindEpisodesByShowID(db *gorm.DB, showID string) ([]*entities.Episode, erro
 	episodes := []*entities.Episode{}
 	err := db.Where("show_id = ?", showID).Order("season ASC, number ASC, absolute_number ASC").Find(&episodes).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episodes found with show_id='%s'", showID)
 	}
 	return episodes, nil
@@ -106,7 +106,7 @@ func SearchEpisodes(db *gorm.DB, search string, offset int, limit int, sort stri
 	searchVar := "%" + search + "%"
 	err := db.Where("LOWER(name) LIKE LOWER(?)", searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&episodes).Error
 	if err != nil {
-		log.W("Failed query: %v", err)
+		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episodes found with name LIKE '%s'", search)
 	}
 	return episodes, nil
