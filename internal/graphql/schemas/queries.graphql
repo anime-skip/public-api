@@ -1,6 +1,8 @@
 type Query {
   # Account
   account: Account @authorized
+  login(usernameEmail: String!, passwordHash: String!): LoginData
+  loginRefresh(refreshToken: String!): LoginData
   
   # Users
   findUser(userId: ID!): User

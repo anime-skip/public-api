@@ -116,6 +116,12 @@ type InputTimestampType struct {
 	Description string `json:"description"`
 }
 
+type LoginData struct {
+	AuthToken    string   `json:"authToken"`
+	RefreshToken string   `json:"refreshToken"`
+	Account      *Account `json:"account"`
+}
+
 type Preferences struct {
 	ID               string     `json:"id"`
 	CreatedAt        time.Time  `json:"createdAt"`

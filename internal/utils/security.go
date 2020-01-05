@@ -47,8 +47,8 @@ func ValidateToken(tokenString string) (jwt.MapClaims, error) {
 	return payload, nil
 }
 
-// GenerateToken creates a jwt token for the specified user
-func GenerateToken(user *entities.User) (string, error) {
+// GenerateAuthToken creates a jwt token for the specified user
+func GenerateAuthToken(user *entities.User) (string, error) {
 	now := CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,

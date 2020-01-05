@@ -31,6 +31,41 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 	return mappers.UserEntityToAccountModel(user), nil
 }
 
+func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
+	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
+	if err != nil {
+		log.E("Failed to get user for username or email = '%s': %v", usernameEmail, err)
+		return nil, fmt.Errorf("Bad login credentials")
+	}
+
+	if err = utils.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
+		log.E("Failed validate password: %v", err)
+		return nil, fmt.Errorf("Bad login credentials")
+	}
+
+	authToken, err := utils.GenerateAuthToken(user)
+	if err != nil {
+		log.E("Failed to generate auth token: %v", usernameEmail, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(user)
+	if err != nil {
+		log.E("Failed to generate auth token: %v", usernameEmail, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: refreshToken,
+		Account:      mappers.UserEntityToAccountModel(user),
+	}, nil
+}
+
+func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*models.LoginData, error) {
+	return nil, fmt.Errorf("not implemented")
+}
+
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error) {
