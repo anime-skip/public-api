@@ -100,8 +100,8 @@ func ValidatePassword(password string, bcryptHash string) error {
 }
 
 // GenerateEncryptedPassword takes a md5 hashed password and
-func GenerateEncryptedPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+func GenerateEncryptedPassword(passwordHash string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(passwordHash), 14)
 	if err != nil {
 		return "", fmt.Errorf("Failed to encrypt password")
 	}

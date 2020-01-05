@@ -45,10 +45,14 @@ func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
 	}
 }
 
-func CommitTransaction(tx *gorm.DB, inTransaction bool) *gorm.DB {
-	if inTransaction {
+func CommitTransaction(tx *gorm.DB, wasInTransaction bool) *gorm.DB {
+	if wasInTransaction {
 		return tx
 	} else {
 		return tx.Commit()
 	}
+}
+
+func RandomProfileURL() string {
+	return "https://avatars3.githubusercontent.com/u/1400247?s=460&v=4"
 }
