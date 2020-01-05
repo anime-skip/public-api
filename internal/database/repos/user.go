@@ -35,6 +35,16 @@ func CreateUser(db *gorm.DB, username, email, encryptedPasswordHash string) (*en
 	return user, nil
 }
 
+func VerifyUserEmail(db *gorm.DB, existingUser *entities.User) (*entities.User, error) {
+	existingUser.EmailVerified = true
+	err := db.Model(existingUser).Update(*existingUser).Error
+	if err != nil {
+		log.E("Failed to update user for [%+v]: %v", existingUser, err)
+		return nil, fmt.Errorf("Failed to update user with id='%s'", existingUser.ID)
+	}
+	return existingUser, err
+}
+
 func FindUserByID(db *gorm.DB, userID string) (*entities.User, error) {
 	user := &entities.User{}
 	err := db.Unscoped().Where("id = ?", userID).Find(user).Error

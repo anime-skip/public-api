@@ -75,7 +75,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
-			"aud":    "anime-skip.com",
+			"aud":    "anime-skip.com/graphql?refreshToken",
 			"exp":    now + 604800, // 7 days in seconds = 7*24*60*60
 			"iat":    now,
 			"iss":    "anime-skip.com",
@@ -88,6 +88,26 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 		return "", fmt.Errorf("Internal error: failed to generate refresh token")
 	}
 	return refreshTokenString, nil
+}
+
+func GenerateVerifyEmailToken(user *entities.User) (string, error) {
+	now := CurrentTimeSec()
+	token := jwt.NewWithClaims(
+		jwt.SigningMethodHS256,
+		jwt.MapClaims{
+			"aud":    "anime-skip.com/verify-email-address",
+			"exp":    now + 172800, // 2 days in seconds = 2*24*60*60
+			"iat":    now,
+			"iss":    "anime-skip.com",
+			"userId": user.ID,
+		},
+	)
+	verifyEmailTokenString, err := token.SignedString(jwtSecret)
+	if err != nil {
+		log.E("%v", err)
+		return "", fmt.Errorf("Internal error: failed to generate verify email token")
+	}
+	return verifyEmailTokenString, nil
 }
 
 // ValidatePassword checks the password is valid against the bcyrpted hash in the database
