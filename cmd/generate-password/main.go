@@ -1,12 +1,12 @@
 package main
 
-import "os"
+import (
+	"crypto/md5"
+	"fmt"
+	"os"
 
-import "fmt"
-
-import "crypto/md5"
-
-import "github.com/aklinker1/anime-skip-backend/internal/utils"
+	"github.com/aklinker1/anime-skip-backend/internal/utils"
+)
 
 func main() {
 	password := os.Args[1]
