@@ -34,24 +34,24 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
 	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
 	if err != nil {
-		log.E("Failed to get user for username or email = '%s': %v", usernameEmail, err)
+		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
 	if err = utils.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
-		log.E("Failed validate password: %v", err)
+		log.V("Failed validate password: %v", err)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
 	authToken, err := utils.GenerateAuthToken(user)
 	if err != nil {
-		log.E("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
 	refreshToken, err := utils.GenerateRefreshToken(user)
 	if err != nil {
-		log.E("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
@@ -71,19 +71,19 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 	userID := claims["userId"].(string)
 	user, err := repos.FindUserByID(r.DB(ctx), userID)
 	if err != nil {
-		log.E("Failed to get user with id='%s': %v", userID, err)
+		log.V("Failed to get user with id='%s': %v", userID, err)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
 	authToken, err := utils.GenerateAuthToken(user)
 	if err != nil {
-		log.E("Failed to generate auth token: %v", err)
+		log.V("Failed to generate auth token: %v", err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
 	newRefreshToken, err := utils.GenerateRefreshToken(user)
 	if err != nil {
-		log.E("Failed to generate auth token: %v", err)
+		log.V("Failed to generate auth token: %v", err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
