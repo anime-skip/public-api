@@ -21,8 +21,5 @@ var CreateShowAdminsTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-		"",
-		"ALTER TABLE public.show_admins",
-		"    OWNER to postgres;",
 	},
 )

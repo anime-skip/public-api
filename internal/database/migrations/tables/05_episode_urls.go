@@ -21,8 +21,5 @@ var CreateEpisodeURLsTable = migrateTable(
 		"    OIDS = FALSE",
 		")",
 		"TABLESPACE pg_default;",
-		"",
-		"ALTER TABLE public.episode_urls",
-		"    OWNER to postgres;",
 	},
 )
