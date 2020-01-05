@@ -1,19 +1,21 @@
 package server
 
 import (
+	"os"
+	"time"
+
 	database "github.com/aklinker1/anime-skip-backend/internal/database"
 	"github.com/aklinker1/anime-skip-backend/internal/server/handlers"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
-	"time"
 )
 
 var host, port, graphqlPath string
 var enablePlayground, isDev bool
 
 func init() {
-	host = utils.EnvString("HOST")
+	host = os.Getenv("HOST")
 	port = utils.EnvString("PORT")
 	graphqlPath = "/graphql"
 	enablePlayground = utils.EnvBool("ENABLE_PLAYGROUND")
