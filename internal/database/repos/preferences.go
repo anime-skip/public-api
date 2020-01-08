@@ -12,7 +12,6 @@ import (
 
 func SavePreferences(db *gorm.DB, newPreferences models.InputPreferences, existingPreferences *entities.Preferences) (*entities.Preferences, error) {
 	data := mappers.PreferencesInputModelToEntity(newPreferences, existingPreferences)
-	log.V("Data to save: %+v", data)
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update preferences for [%+v]: %v", data, err)
