@@ -26,7 +26,7 @@ func CreateEpisodeURL(db *gorm.DB, episodeID string, episodeURLInput models.Inpu
 
 func UpdateEpisodeURL(db *gorm.DB, newEpisodeURL models.InputEpisodeURL, existingEpisodeURL *entities.EpisodeURL) (*entities.EpisodeURL, error) {
 	data := mappers.EpisodeURLInputModelToEntity(newEpisodeURL, existingEpisodeURL)
-	err := db.Model(data).Update(*data).Error
+	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update episode url for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update episode url with url='%s'", data.URL)

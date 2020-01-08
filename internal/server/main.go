@@ -33,6 +33,7 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	// Middleware
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
+	server.Use(corsMiddleware)
 
 	// REST endpoints
 	server.GET("/status", handlers.Status())

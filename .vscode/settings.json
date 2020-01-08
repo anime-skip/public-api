@@ -3,6 +3,7 @@
         "aklinker",
         "bcrypt",
         "bcyrpted",
+        "cors",
         "dbname",
         "funimation",
         "gorm",

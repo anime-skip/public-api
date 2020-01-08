@@ -28,3 +28,19 @@ func ginContextToContextMiddleware(c *gin.Context) {
 	c.Request = c.Request.WithContext(ctx)
 	c.Next()
 }
+
+func corsMiddleware(c *gin.Context) {
+	if utils.EnvBool("IS_DEV") {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+	} else {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // TODO - Figure out origins for prod
+	}
+	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, DELETE")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+
+	if c.Request.Method == "OPTIONS" {
+		c.AbortWithStatus(200)
+	} else {
+		c.Next()
+	}
+}
