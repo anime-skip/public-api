@@ -2,6 +2,7 @@ package tables
 
 // CreateTimestampTypesTable inserts the admin user
 var CreateTimestampTypesTable = migrateTable(
+	"CREATE_TIMESTAMP_TYPES_TABLE",
 	"timestamp_types",
 	[]string{
 		"CREATE TABLE public.timestamp_types",

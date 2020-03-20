@@ -16,7 +16,7 @@ func CreateEpisodeURL(db *gorm.DB, episodeID string, episodeURLInput models.Inpu
 	episodeURL := mappers.EpisodeURLInputModelToEntity(episodeURLInput, &entities.EpisodeURL{
 		EpisodeID: uuid.FromStringOrNil(episodeID),
 	})
-	err := db.Model(&episodeURL).Create(episodeURL).Error
+	err := db.Create(&episodeURL).Error
 	if err != nil {
 		log.E("Failed to create episode url with [%+v]: %v", episodeURLInput, err)
 		return nil, fmt.Errorf("Failed to create episode url: %v", err)
@@ -34,7 +34,7 @@ func UpdateEpisodeURL(db *gorm.DB, newEpisodeURL models.InputEpisodeURL, existin
 	return data, err
 }
 
-func DeleteEpisodeURL(db *gorm.DB, inTransaction bool, episodeURLID string) (err error) {
+func DeleteEpisodeURL(db *gorm.DB, inTransaction bool, episodeURLID string) (episodeURLData *entities.EpisodeURL, err error) {
 	tx := utils.StartTransaction(db, inTransaction)
 	defer func() {
 		if r := recover(); r != nil {
@@ -43,16 +43,18 @@ func DeleteEpisodeURL(db *gorm.DB, inTransaction bool, episodeURLID string) (err
 		}
 	}()
 
+	episodeURLData, _ = FindEpisodeURLByURL(tx, episodeURLID)
+
 	// Delete the episodeURL
 	err = tx.Delete(entities.EpisodeURL{}, "url = ?", episodeURLID).Error
 	if err != nil {
 		log.E("Failed to delete episode url for url='%s': %v", episodeURLID, err)
 		tx.Rollback()
-		return fmt.Errorf("Failed to delete episode url with url='%s'", episodeURLID)
+		return nil, fmt.Errorf("Failed to delete episode url with url='%s'", episodeURLID)
 	}
 
 	utils.CommitTransaction(tx, inTransaction)
-	return nil
+	return episodeURLData, nil
 }
 
 func FindEpisodeURLByURL(db *gorm.DB, url string) (*entities.EpisodeURL, error) {

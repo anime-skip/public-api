@@ -71,7 +71,7 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error
 		return err
 	}
 	for _, url := range urls {
-		if err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
+		if _, err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
 			tx.Rollback()
 			return err
 		}

@@ -2,6 +2,7 @@ package tables
 
 // CreateEpisodesTable inserts the admin user
 var CreateEpisodesTable = migrateTable(
+	"CREATE_EPISODES_TABLE",
 	"episodes",
 	[]string{
 		"CREATE TABLE public.episodes",

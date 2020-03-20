@@ -1,3 +1,10 @@
+"""
+Check if the user is signed in
+"""
 directive @authorized on FIELD_DEFINITION
+
+# Checks if the user is signed in and has a given role
 directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+# Checks if the user is signed in and is an admin
 directive @isShowAdmin on ARGUMENT_DEFINITION

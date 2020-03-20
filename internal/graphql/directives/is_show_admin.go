@@ -101,6 +101,10 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 }
 
 func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+	if err := isAuthorized(ctx); err != nil {
+		return nil, err
+	}
+
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("500 Internal Error [004]")
@@ -113,7 +117,7 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 	// Basic User that is an admin for the specified show
 	db := database.ORMInstance.DB
 	_, err = repos.FindShowAdminsByUserIDShowID(db, userID, showID)
-	if err != nil {
+	if err == nil {
 		return next(ctx)
 	}
 
@@ -141,5 +145,5 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 		return next(ctx)
 	}
 
-	return nil, fmt.Errorf("403 Forebidden")
+	return nil, fmt.Errorf("403 Forebidden - you are not a show admin")
 }

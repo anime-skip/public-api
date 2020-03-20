@@ -8,13 +8,11 @@ import (
 
 // EpisodeURL represents one of the the URLs that this episode can be found at
 type EpisodeURL struct {
-	URL             string     `gorm:"primary_key"`
-	CreatedAt       time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	CreatedByUserID uuid.UUID  `gorm:"not null;type:uuid"`
-	UpdatedAt       time.Time  `gorm:"not null"`
-	UpdatedByUserID uuid.UUID  `gorm:"not null;type:uuid"`
-	DeletedAt       *time.Time `gorm:""`
-	DeletedByUserID *uuid.UUID `gorm:"type:uuid"`
+	URL             string    `gorm:"primary_key"`
+	CreatedAt       time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
+	CreatedByUserID uuid.UUID `gorm:"not null;type:uuid"`
+	UpdatedAt       time.Time `gorm:"not null"`
+	UpdatedByUserID uuid.UUID `gorm:"not null;type:uuid"`
 
 	Source    int       `gorm:"not null"`
 	EpisodeID uuid.UUID `gorm:"not null;type:uuid"`

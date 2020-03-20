@@ -2,6 +2,7 @@ package tables
 
 // CreateUsersTable inserts the admin user
 var CreateUsersTable = migrateTable(
+	"CREATE_USERS_TABLE",
 	"users",
 	[]string{
 		"CREATE TABLE public.users",

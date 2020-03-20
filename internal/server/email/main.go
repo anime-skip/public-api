@@ -40,6 +40,10 @@ func (email Email) Send() error {
 		body,
 	}
 
+	if utils.EnvBool("DISABLE_EMAILS") {
+		return nil
+	}
+
 	return smtp.SendMail(
 		"smtp.gmail.com:587",
 		auth,
