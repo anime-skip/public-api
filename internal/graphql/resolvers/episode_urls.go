@@ -55,13 +55,12 @@ func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID strin
 }
 
 func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error) {
-	db := r.DB(ctx)
-	err := repos.DeleteEpisodeURL(r.DB(ctx), false, episodeURL)
+	episodeURLData, err := repos.DeleteEpisodeURL(r.DB(ctx), false, episodeURL)
 	if err != nil {
 		return nil, err
 	}
 
-	return episodeURLByURL(db.Unscoped(), episodeURL)
+	return mappers.EpisodeURLEntityToModel(episodeURLData), nil
 }
 
 // Field Resolvers
@@ -72,10 +71,6 @@ func (r *episodeUrlResolver) CreatedBy(ctx context.Context, obj *models.EpisodeU
 
 func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error) {
 	return userByID(r.DB(ctx), obj.UpdatedByUserID)
-}
-
-func (r *episodeUrlResolver) DeletedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error) {
-	return deletedUserByID(r.DB(ctx), obj.DeletedByUserID)
 }
 
 func (r *episodeUrlResolver) Episode(ctx context.Context, obj *models.EpisodeURL) (*models.Episode, error) {

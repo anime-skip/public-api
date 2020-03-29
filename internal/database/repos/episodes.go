@@ -26,7 +26,7 @@ func CreateEpisode(db *gorm.DB, showID string, episodeInput models.InputEpisode)
 
 func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode *entities.Episode) (*entities.Episode, error) {
 	data := mappers.EpisodeInputModelToEntity(newEpisode, existingEpisode)
-	err := db.Model(data).Update(*data).Error
+	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update episode for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update episode with id='%s'", data.ID)
@@ -71,7 +71,7 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error
 		return err
 	}
 	for _, url := range urls {
-		if err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
+		if _, err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
 			tx.Rollback()
 			return err
 		}

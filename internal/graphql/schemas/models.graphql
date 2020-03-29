@@ -49,9 +49,6 @@ type EpisodeUrl {
   updatedAt: Time!
   updatedByUserId: ID!
   updatedBy: User!
-  deletedAt: Time
-  deletedByUserId: ID
-  deletedBy: User
 
   episodeId: ID!
   episode: Episode!

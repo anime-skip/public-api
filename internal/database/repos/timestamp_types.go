@@ -23,7 +23,7 @@ func CreateTimestampType(db *gorm.DB, timestampTypeInput models.InputTimestampTy
 
 func UpdateTimestampType(db *gorm.DB, newTimestampType models.InputTimestampType, existingTimestampType *entities.TimestampType) (*entities.TimestampType, error) {
 	data := mappers.TimestampTypeInputModelToEntity(newTimestampType, existingTimestampType)
-	err := db.Model(data).Update(*data).Error
+	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update timestamp type for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update timestamp type with id='%s'", data.ID)

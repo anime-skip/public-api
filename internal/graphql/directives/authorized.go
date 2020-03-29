@@ -9,11 +9,18 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 )
 
-func Authorized(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+func isAuthorized(ctx context.Context) error {
 	if context, err := utils.GinContext(ctx); err == nil {
 		if jwtError, hasJWTError := context.Get(constants.CTX_JWT_ERROR); hasJWTError {
-			return nil, fmt.Errorf("%v", jwtError)
+			return fmt.Errorf("%v", jwtError)
 		}
+	}
+	return nil
+}
+
+func Authorized(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+	if err := isAuthorized(ctx); err != nil {
+		return nil, err
 	}
 	return next(ctx)
 }

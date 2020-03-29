@@ -97,9 +97,6 @@ type ComplexityRoot struct {
 		CreatedAt       func(childComplexity int) int
 		CreatedBy       func(childComplexity int) int
 		CreatedByUserID func(childComplexity int) int
-		DeletedAt       func(childComplexity int) int
-		DeletedBy       func(childComplexity int) int
-		DeletedByUserID func(childComplexity int) int
 		Episode         func(childComplexity int) int
 		EpisodeID       func(childComplexity int) int
 		Source          func(childComplexity int) int
@@ -287,8 +284,6 @@ type EpisodeUrlResolver interface {
 	CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
 
 	UpdatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
-
-	DeletedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
 
 	Episode(ctx context.Context, obj *models.EpisodeURL) (*models.Episode, error)
 }
@@ -614,27 +609,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EpisodeURL.CreatedByUserID(childComplexity), true
-
-	case "EpisodeUrl.deletedAt":
-		if e.complexity.EpisodeURL.DeletedAt == nil {
-			break
-		}
-
-		return e.complexity.EpisodeURL.DeletedAt(childComplexity), true
-
-	case "EpisodeUrl.deletedBy":
-		if e.complexity.EpisodeURL.DeletedBy == nil {
-			break
-		}
-
-		return e.complexity.EpisodeURL.DeletedBy(childComplexity), true
-
-	case "EpisodeUrl.deletedByUserId":
-		if e.complexity.EpisodeURL.DeletedByUserID == nil {
-			break
-		}
-
-		return e.complexity.EpisodeURL.DeletedByUserID(childComplexity), true
 
 	case "EpisodeUrl.episode":
 		if e.complexity.EpisodeURL.Episode == nil {
@@ -1845,8 +1819,15 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var parsedSchema = gqlparser.MustLoadSchema(
-	&ast.Source{Name: "internal/graphql/schemas/directives.graphql", Input: `directive @authorized on FIELD_DEFINITION
+	&ast.Source{Name: "internal/graphql/schemas/directives.graphql", Input: `"""
+Check if the user is signed in
+"""
+directive @authorized on FIELD_DEFINITION
+
+# Checks if the user is signed in and has a given role
 directive @hasRole(role: Role!) on FIELD_DEFINITION
+
+# Checks if the user is signed in and is an admin
 directive @isShowAdmin on ARGUMENT_DEFINITION
 `},
 	&ast.Source{Name: "internal/graphql/schemas/enums.graphql", Input: `enum Role {
@@ -1912,9 +1893,6 @@ type EpisodeUrl {
   updatedAt: Time!
   updatedByUserId: ID!
   updatedBy: User!
-  deletedAt: Time
-  deletedByUserId: ID
-  deletedBy: User
 
   episodeId: ID!
   episode: Episode!
@@ -2092,8 +2070,11 @@ type User {
 `},
 	&ast.Source{Name: "internal/graphql/schemas/mutations.graphql", Input: `type Mutation {
   # Account
+  """
+  Create a user account
+  """
   createAccount(username: String!, email: String!, passwordHash: String!): Account
-  sendEmailAddressVerificationEmail(userId: ID!): Boolean
+  sendEmailAddressVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account
@@ -2103,31 +2084,31 @@ type User {
 
   # Shows
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show @authorized
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show @authorized
-  deleteShow(showId: ID!): Show @authorized @hasRole(role: ADMIN)
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show
+  deleteShow(showId: ID!): Show @hasRole(role: ADMIN)
 
   # Show Admins
-  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
-  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
+  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin
 
   # Episodes
-  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode @authorized 
-  updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode @authorized 
-  deleteEpisode(episodeId: ID! @isShowAdmin): Episode @authorized
+  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode
+  updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode
 
   # Episode Urls
-  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl @authorized
-  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl @authorized
+  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
 
   # Timestamps
-  createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp @authorized 
-  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp @authorized 
-  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp @authorized
+  createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp
+  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp 
+  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
 
   # Timestamp Types
-  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
-  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
-  deleteTimestampType(timestampTypeId: ID!): TimestampType @authorized @hasRole(role: ADMIN)
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
 }
 `},
 	&ast.Source{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
@@ -4351,108 +4332,6 @@ func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field gra
 	return ec.marshalNUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _EpisodeUrl_deletedAt(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EpisodeUrl",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedAt, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*time.Time)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EpisodeUrl_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EpisodeUrl",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedByUserID, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _EpisodeUrl_deletedBy(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-		ec.Tracer.EndFieldExecution(ctx)
-	}()
-	rctx := &graphql.ResolverContext{
-		Object:   "EpisodeUrl",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.EpisodeUrl().DeletedBy(rctx, obj)
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOUser2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _EpisodeUrl_episodeId(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
@@ -5027,28 +4906,8 @@ func (ec *executionContext) _Mutation_updateShow(ctx context.Context, field grap
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(string), args["newShow"].(models.InputShow))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Show); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Show`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(string), args["newShow"].(models.InputShow))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5093,12 +4952,6 @@ func (ec *executionContext) _Mutation_deleteShow(ctx context.Context, field grap
 			return ec.resolvers.Mutation().DeleteShow(rctx, args["showId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
 			if err != nil {
 				return nil, err
@@ -5106,10 +4959,10 @@ func (ec *executionContext) _Mutation_deleteShow(ctx context.Context, field grap
 			if ec.directives.HasRole == nil {
 				return nil, errors.New("directive hasRole is not implemented")
 			}
-			return ec.directives.HasRole(ctx, nil, directive1, role)
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -5159,28 +5012,8 @@ func (ec *executionContext) _Mutation_createShowAdmin(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateShowAdmin(rctx, args["showAdminInput"].(models.InputShowAdmin))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.ShowAdmin); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.ShowAdmin`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateShowAdmin(rctx, args["showAdminInput"].(models.InputShowAdmin))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5220,28 +5053,8 @@ func (ec *executionContext) _Mutation_deleteShowAdmin(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteShowAdmin(rctx, args["showAdminId"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.ShowAdmin); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.ShowAdmin`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteShowAdmin(rctx, args["showAdminId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5281,28 +5094,8 @@ func (ec *executionContext) _Mutation_createEpisode(ctx context.Context, field g
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(string), args["episodeInput"].(models.InputEpisode))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Episode); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(string), args["episodeInput"].(models.InputEpisode))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5342,28 +5135,8 @@ func (ec *executionContext) _Mutation_updateEpisode(ctx context.Context, field g
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(string), args["newEpisode"].(models.InputEpisode))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Episode); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(string), args["newEpisode"].(models.InputEpisode))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5403,28 +5176,8 @@ func (ec *executionContext) _Mutation_deleteEpisode(ctx context.Context, field g
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Episode); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Episode`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5464,28 +5217,8 @@ func (ec *executionContext) _Mutation_createEpisodeUrl(ctx context.Context, fiel
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(string), args["episodeUrlInput"].(models.InputEpisodeURL))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.EpisodeURL); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.EpisodeURL`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(string), args["episodeUrlInput"].(models.InputEpisodeURL))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5525,28 +5258,8 @@ func (ec *executionContext) _Mutation_deleteEpisodeUrl(ctx context.Context, fiel
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.EpisodeURL); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.EpisodeURL`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5586,28 +5299,8 @@ func (ec *executionContext) _Mutation_createTimestamp(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(string), args["timestampInput"].(models.InputTimestamp))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Timestamp); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Timestamp`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(string), args["timestampInput"].(models.InputTimestamp))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5647,28 +5340,8 @@ func (ec *executionContext) _Mutation_updateTimestamp(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(string), args["newTimestamp"].(models.InputTimestamp))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Timestamp); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Timestamp`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(string), args["newTimestamp"].(models.InputTimestamp))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5708,28 +5381,8 @@ func (ec *executionContext) _Mutation_deleteTimestamp(ctx context.Context, field
 	rctx.Args = args
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Timestamp); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Timestamp`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5774,12 +5427,6 @@ func (ec *executionContext) _Mutation_createTimestampType(ctx context.Context, f
 			return ec.resolvers.Mutation().CreateTimestampType(rctx, args["timestampTypeInput"].(models.InputTimestampType))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
 			if err != nil {
 				return nil, err
@@ -5787,10 +5434,10 @@ func (ec *executionContext) _Mutation_createTimestampType(ctx context.Context, f
 			if ec.directives.HasRole == nil {
 				return nil, errors.New("directive hasRole is not implemented")
 			}
-			return ec.directives.HasRole(ctx, nil, directive1, role)
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -5845,12 +5492,6 @@ func (ec *executionContext) _Mutation_updateTimestampType(ctx context.Context, f
 			return ec.resolvers.Mutation().UpdateTimestampType(rctx, args["timestampTypeId"].(string), args["newTimestampType"].(models.InputTimestampType))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
 			if err != nil {
 				return nil, err
@@ -5858,10 +5499,10 @@ func (ec *executionContext) _Mutation_updateTimestampType(ctx context.Context, f
 			if ec.directives.HasRole == nil {
 				return nil, errors.New("directive hasRole is not implemented")
 			}
-			return ec.directives.HasRole(ctx, nil, directive1, role)
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -5916,12 +5557,6 @@ func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, f
 			return ec.resolvers.Mutation().DeleteTimestampType(rctx, args["timestampTypeId"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authorized == nil {
-				return nil, errors.New("directive authorized is not implemented")
-			}
-			return ec.directives.Authorized(ctx, nil, directive0)
-		}
-		directive2 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2githubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐRole(ctx, "ADMIN")
 			if err != nil {
 				return nil, err
@@ -5929,10 +5564,10 @@ func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, f
 			if ec.directives.HasRole == nil {
 				return nil, errors.New("directive hasRole is not implemented")
 			}
-			return ec.directives.HasRole(ctx, nil, directive1, role)
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
-		tmp, err := directive2(rctx)
+		tmp, err := directive1(rctx)
 		if err != nil {
 			return nil, err
 		}
@@ -11672,21 +11307,6 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
-				return res
-			})
-		case "deletedAt":
-			out.Values[i] = ec._EpisodeUrl_deletedAt(ctx, field, obj)
-		case "deletedByUserId":
-			out.Values[i] = ec._EpisodeUrl_deletedByUserId(ctx, field, obj)
-		case "deletedBy":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._EpisodeUrl_deletedBy(ctx, field, obj)
 				return res
 			})
 		case "episodeId":

@@ -14,6 +14,10 @@ import (
 )
 
 func HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (interface{}, error) {
+	if err := isAuthorized(ctx); err != nil {
+		return nil, err
+	}
+
 	roleInt := mappers.RoleEnumToInt(role)
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {

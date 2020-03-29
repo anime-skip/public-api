@@ -1,7 +1,10 @@
 type Mutation {
   # Account
+  """
+  Create a user account
+  """
   createAccount(username: String!, email: String!, passwordHash: String!): Account
-  sendEmailAddressVerificationEmail(userId: ID!): Boolean
+  sendEmailAddressVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account
@@ -11,29 +14,29 @@ type Mutation {
 
   # Shows
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show @authorized
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show @authorized
-  deleteShow(showId: ID!): Show @authorized @hasRole(role: ADMIN)
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show
+  deleteShow(showId: ID!): Show @hasRole(role: ADMIN)
 
   # Show Admins
-  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin @authorized 
-  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin @authorized
+  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin
 
   # Episodes
-  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode @authorized 
-  updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode @authorized 
-  deleteEpisode(episodeId: ID! @isShowAdmin): Episode @authorized
+  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode
+  updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode
 
   # Episode Urls
-  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl @authorized
-  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl @authorized
+  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
 
   # Timestamps
-  createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp @authorized 
-  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp @authorized 
-  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp @authorized
+  createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp
+  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp 
+  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
 
   # Timestamp Types
-  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
-  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @authorized @hasRole(role: ADMIN)
-  deleteTimestampType(timestampTypeId: ID!): TimestampType @authorized @hasRole(role: ADMIN)
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
 }

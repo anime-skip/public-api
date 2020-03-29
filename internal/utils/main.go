@@ -31,7 +31,6 @@ func UserIDFromContext(ctx context.Context) (string, error) {
 		if userID, hasUserID := context.Get(constants.CTX_USER_ID); hasUserID {
 			return userID.(string), nil
 		}
-		log.E("Failed getting userID from context")
 	}
 	return "", fmt.Errorf("500 Internal Error [003]")
 }
