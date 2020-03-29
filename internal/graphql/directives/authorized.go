@@ -10,7 +10,6 @@ import (
 )
 
 func isAuthorized(ctx context.Context) error {
-	fmt.Println("Is authorized?")
 	if context, err := utils.GinContext(ctx); err == nil {
 		if jwtError, hasJWTError := context.Get(constants.CTX_JWT_ERROR); hasJWTError {
 			return fmt.Errorf("%v", jwtError)

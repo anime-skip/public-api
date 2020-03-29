@@ -5,6 +5,7 @@ import (
 
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,6 +18,7 @@ func headerMiddleware(c *gin.Context) {
 	}
 	if jwt != nil {
 		c.Set(constants.CTX_USER_ID, jwt["userId"])
+		log.V("Set %s to %v", constants.CTX_USER_ID, jwt["userId"])
 		c.Set(constants.CTX_ROLE, jwt["role"])
 	}
 

@@ -59,8 +59,9 @@ func Factory() (*ORM, error) {
 	err = migrations.Run(ORMInstance.DB)
 
 	// Adding plugins
-	db.Callback().Create().Register("anime_skip:update_created_by", updateColumn("created_by_user_id"))
-	db.Callback().Update().Register("anime_skip:update_updated_by", updateColumn("updated_by_user_id"))
+	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_updated_by", updateColumn("UpdatedByUserId"))
+	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_created_by", updateColumn("CreatedByUserId"))
+	db.Callback().Update().Before("gorm:update").Register("anime_skip_update:update_updated_by", updateColumn("UpdatedByUserId"))
 	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
 
 	fmt.Println()
