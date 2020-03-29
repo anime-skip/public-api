@@ -13,13 +13,15 @@ func updateColumn(columnName string) func(scope *gorm.Scope) {
 	return func(scope *gorm.Scope) {
 
 		if !scope.HasError() {
-			if scope.HasColumn(columnName) {
+			updateColumnField, hasUpdateColumnField := scope.FieldByName(columnName)
+			if hasUpdateColumnField {
 				userID, ok := scope.DB().Get(constants.CTX_USER_ID)
+				log.V("Update %s to %v", columnName, userID)
 				if !ok {
 					log.V("CTX_USER_ID does not exist on database values, skipping update")
 					return
 				}
-				scope.SetColumn(columnName, userID)
+				scope.SetColumn(updateColumnField.DBName, userID)
 			}
 		}
 	}

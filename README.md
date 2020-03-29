@@ -34,6 +34,13 @@ This is the backend for the Anime Skip web extension.
     make run
     ```
 
+10. Install Modd to auto-restart
+
+    ```bash
+    env GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
+    make watch
+    ```
+
 ## TODO
 
 ### MVP

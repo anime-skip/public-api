@@ -23,7 +23,7 @@ func CreateShow(db *gorm.DB, showInput models.InputShow) (*entities.Show, error)
 
 func UpdateShow(db *gorm.DB, newShow models.InputShow, existingShow *entities.Show) (*entities.Show, error) {
 	data := mappers.ShowInputModelToEntity(newShow, existingShow)
-	err := db.Model(data).Update(*data).Error
+	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update show for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update show with id='%s'", data.ID)

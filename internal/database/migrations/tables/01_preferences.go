@@ -2,6 +2,7 @@ package tables
 
 // CreatePreferencesTable inserts the admin user
 var CreatePreferencesTable = migrateTable(
+	"CREATE_PREFERENCES_TABLE",
 	"preferences",
 	[]string{
 		"CREATE TABLE public.preferences",

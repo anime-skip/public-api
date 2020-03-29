@@ -26,7 +26,7 @@ func CreateTimestamp(db *gorm.DB, episodeID string, timestampInput models.InputT
 
 func UpdateTimestamp(db *gorm.DB, newTimestamp models.InputTimestamp, existingTimestamp *entities.Timestamp) (*entities.Timestamp, error) {
 	data := mappers.TimestampInputModelToEntity(newTimestamp, existingTimestamp)
-	err := db.Model(data).Update(*data).Error
+	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update timestamp for [%+v]: %v", data, err)
 		return nil, fmt.Errorf("Failed to update timestamp with id='%s'", data.ID)

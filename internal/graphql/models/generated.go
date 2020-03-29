@@ -57,9 +57,6 @@ type EpisodeURL struct {
 	UpdatedAt       time.Time     `json:"updatedAt"`
 	UpdatedByUserID string        `json:"updatedByUserId"`
 	UpdatedBy       *User         `json:"updatedBy"`
-	DeletedAt       *time.Time    `json:"deletedAt"`
-	DeletedByUserID *string       `json:"deletedByUserId"`
-	DeletedBy       *User         `json:"deletedBy"`
 	EpisodeID       string        `json:"episodeId"`
 	Episode         *Episode      `json:"episode"`
 	Source          EpisodeSource `json:"source"`
