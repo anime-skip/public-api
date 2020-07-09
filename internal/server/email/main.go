@@ -9,8 +9,6 @@ import (
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 )
 
-var password string
-
 type Email struct {
 	To           []string
 	Subject      string
@@ -18,13 +16,8 @@ type Email struct {
 	TemplateData map[string]string
 }
 
-func init() {
-	password = utils.EnvString("EMAIL_PASSWORD")
-}
-
 func (email Email) Send() error {
-	from := "aaronklinker1@gmail.com"
-	auth := smtp.PlainAuth("", from, password, "smtp.gmail.com")
+	from := "noreply@anime-skip.com"
 
 	body, err := parseTemplate(email.Template, email.TemplateData)
 	if err != nil {
@@ -45,8 +38,8 @@ func (email Email) Send() error {
 	}
 
 	return smtp.SendMail(
-		"smtp.gmail.com:587",
-		auth,
+		"smtp-relay.gmail.com:587",
+		nil,
 		from,
 		email.To,
 		[]byte(strings.Join(content, "\n")),
