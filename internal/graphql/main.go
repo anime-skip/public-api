@@ -113,28 +113,28 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount                     func(childComplexity int, username string, email string, passwordHash string) int
-		CreateEpisode                     func(childComplexity int, showID string, episodeInput models.InputEpisode) int
-		CreateEpisodeURL                  func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
-		CreateShow                        func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
-		CreateShowAdmin                   func(childComplexity int, showAdminInput models.InputShowAdmin) int
-		CreateTimestamp                   func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
-		CreateTimestampType               func(childComplexity int, timestampTypeInput models.InputTimestampType) int
-		DeleteAccount                     func(childComplexity int, deleteToken string) int
-		DeleteAccountRequest              func(childComplexity int, accoutnID string, passwordHash string) int
-		DeleteEpisode                     func(childComplexity int, episodeID string) int
-		DeleteEpisodeURL                  func(childComplexity int, episodeURL string) int
-		DeleteShow                        func(childComplexity int, showID string) int
-		DeleteShowAdmin                   func(childComplexity int, showAdminID string) int
-		DeleteTimestamp                   func(childComplexity int, timestampID string) int
-		DeleteTimestampType               func(childComplexity int, timestampTypeID string) int
-		SavePreferences                   func(childComplexity int, preferences models.InputPreferences) int
-		SendEmailAddressVerificationEmail func(childComplexity int, userID string) int
-		UpdateEpisode                     func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
-		UpdateShow                        func(childComplexity int, showID string, newShow models.InputShow) int
-		UpdateTimestamp                   func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
-		UpdateTimestampType               func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
-		VerifyEmailAddress                func(childComplexity int, validationToken string) int
+		CreateAccount           func(childComplexity int, username string, email string, passwordHash string) int
+		CreateEpisode           func(childComplexity int, showID string, episodeInput models.InputEpisode) int
+		CreateEpisodeURL        func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
+		CreateShow              func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
+		CreateShowAdmin         func(childComplexity int, showAdminInput models.InputShowAdmin) int
+		CreateTimestamp         func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
+		CreateTimestampType     func(childComplexity int, timestampTypeInput models.InputTimestampType) int
+		DeleteAccount           func(childComplexity int, deleteToken string) int
+		DeleteAccountRequest    func(childComplexity int, accoutnID string, passwordHash string) int
+		DeleteEpisode           func(childComplexity int, episodeID string) int
+		DeleteEpisodeURL        func(childComplexity int, episodeURL string) int
+		DeleteShow              func(childComplexity int, showID string) int
+		DeleteShowAdmin         func(childComplexity int, showAdminID string) int
+		DeleteTimestamp         func(childComplexity int, timestampID string) int
+		DeleteTimestampType     func(childComplexity int, timestampTypeID string) int
+		ResendVerificationEmail func(childComplexity int, userID string) int
+		SavePreferences         func(childComplexity int, preferences models.InputPreferences) int
+		UpdateEpisode           func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
+		UpdateShow              func(childComplexity int, showID string, newShow models.InputShow) int
+		UpdateTimestamp         func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
+		UpdateTimestampType     func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
+		VerifyEmailAddress      func(childComplexity int, validationToken string) int
 	}
 
 	Preferences struct {
@@ -179,7 +179,7 @@ type ComplexityRoot struct {
 		FindUserByUsername         func(childComplexity int, username string) int
 		Login                      func(childComplexity int, usernameEmail string, passwordHash string) int
 		LoginRefresh               func(childComplexity int, refreshToken string) int
-		SearchEpisodes             func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
+		SearchEpisodes             func(childComplexity int, search *string, showID *string, offset *int, limit *int, sort *string) int
 		SearchShows                func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
 
@@ -289,7 +289,7 @@ type EpisodeUrlResolver interface {
 }
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error)
-	SendEmailAddressVerificationEmail(ctx context.Context, userID string) (*bool, error)
+	ResendVerificationEmail(ctx context.Context, userID string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error)
 	DeleteAccount(ctx context.Context, deleteToken string) (*models.Account, error)
@@ -327,7 +327,7 @@ type QueryResolver interface {
 	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error)
 	FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
 	FindEpisodesByShowID(ctx context.Context, showID string) ([]*models.Episode, error)
-	SearchEpisodes(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
+	SearchEpisodes(ctx context.Context, search *string, showID *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
 	FindEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error)
 	FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID string) ([]*models.EpisodeURL, error)
 	FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
@@ -860,6 +860,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.DeleteTimestampType(childComplexity, args["timestampTypeId"].(string)), true
 
+	case "Mutation.resendVerificationEmail":
+		if e.complexity.Mutation.ResendVerificationEmail == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resendVerificationEmail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResendVerificationEmail(childComplexity, args["userId"].(string)), true
+
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
 			break
@@ -871,18 +883,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(models.InputPreferences)), true
-
-	case "Mutation.sendEmailAddressVerificationEmail":
-		if e.complexity.Mutation.SendEmailAddressVerificationEmail == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_sendEmailAddressVerificationEmail_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.SendEmailAddressVerificationEmail(childComplexity, args["userId"].(string)), true
 
 	case "Mutation.updateEpisode":
 		if e.complexity.Mutation.UpdateEpisode == nil {
@@ -1295,7 +1295,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchEpisodes(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
+		return e.complexity.Query.SearchEpisodes(childComplexity, args["search"].(*string), args["showId"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.searchShows":
 		if e.complexity.Query.SearchShows == nil {
@@ -1824,10 +1824,14 @@ Check if the user is signed in
 """
 directive @authorized on FIELD_DEFINITION
 
-# Checks if the user is signed in and has a given role
+"""
+Checks if the user is signed in and has a given role
+"""
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
-# Checks if the user is signed in and is an admin
+"""
+Checks if the user is signed in and is an admin of the show being operated on
+"""
 directive @isShowAdmin on ARGUMENT_DEFINITION
 `},
 	&ast.Source{Name: "internal/graphql/schemas/enums.graphql", Input: `enum Role {
@@ -2074,7 +2078,7 @@ type User {
   Create a user account
   """
   createAccount(username: String!, email: String!, passwordHash: String!): Account
-  sendEmailAddressVerificationEmail(userId: ID!): Boolean # TODO - authorized?
+  resendVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account
@@ -2133,7 +2137,7 @@ type User {
   # Episodes
   findEpisode(episodeId: ID!): Episode
   findEpisodesByShowId(showId: ID!): [Episode!]
-  searchEpisodes(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+  searchEpisodes(search: String = "", showId: ID, offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
 
   # Episode Urls
   findEpisodeUrl(episodeUrl: String!): EpisodeUrl
@@ -2548,6 +2552,20 @@ func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_resendVerificationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["userId"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["userId"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2559,20 +2577,6 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 		}
 	}
 	args["preferences"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Mutation_sendEmailAddressVerificationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["userId"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["userId"] = arg0
 	return args, nil
 }
 
@@ -2960,30 +2964,38 @@ func (ec *executionContext) field_Query_searchEpisodes_args(ctx context.Context,
 		}
 	}
 	args["search"] = arg0
-	var arg1 *int
-	if tmp, ok := rawArgs["offset"]; ok {
-		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg1 *string
+	if tmp, ok := rawArgs["showId"]; ok {
+		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["offset"] = arg1
+	args["showId"] = arg1
 	var arg2 *int
-	if tmp, ok := rawArgs["limit"]; ok {
+	if tmp, ok := rawArgs["offset"]; ok {
 		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["limit"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["sort"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["offset"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["sort"] = arg3
+	args["limit"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["sort"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg4
 	return args, nil
 }
 
@@ -4595,7 +4607,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	return ec.marshalOAccount2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_sendEmailAddressVerificationEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_resendVerificationEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() {
 		if r := recover(); r != nil {
@@ -4612,7 +4624,7 @@ func (ec *executionContext) _Mutation_sendEmailAddressVerificationEmail(ctx cont
 	}
 	ctx = graphql.WithResolverContext(ctx, rctx)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_sendEmailAddressVerificationEmail_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_resendVerificationEmail_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -4621,7 +4633,7 @@ func (ec *executionContext) _Mutation_sendEmailAddressVerificationEmail(ctx cont
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SendEmailAddressVerificationEmail(rctx, args["userId"].(string))
+		return ec.resolvers.Mutation().ResendVerificationEmail(rctx, args["userId"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6897,7 +6909,7 @@ func (ec *executionContext) _Query_searchEpisodes(ctx context.Context, field gra
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchEpisodes(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+		return ec.resolvers.Query().SearchEpisodes(rctx, args["search"].(*string), args["showId"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11398,8 +11410,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createAccount":
 			out.Values[i] = ec._Mutation_createAccount(ctx, field)
-		case "sendEmailAddressVerificationEmail":
-			out.Values[i] = ec._Mutation_sendEmailAddressVerificationEmail(ctx, field)
+		case "resendVerificationEmail":
+			out.Values[i] = ec._Mutation_resendVerificationEmail(ctx, field)
 		case "verifyEmailAddress":
 			out.Values[i] = ec._Mutation_verifyEmailAddress(ctx, field)
 		case "deleteAccountRequest":
