@@ -38,11 +38,10 @@ func sendEmail(endpoint string, body map[string]interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	_, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}
-	fmt.Println(respBody)
 
 	return nil
 }
