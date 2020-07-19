@@ -138,7 +138,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	if err != nil {
 		log.E("Failed to send token validation email: %v", err)
 	} else {
-		err = emailService.SendEmailAddressVerification(user, verifyEmailToken)
+		err = emailService.SendVerification(user, verifyEmailToken)
 		if err != nil {
 			log.E("Failed to send email address verification email: %v", err)
 		}
@@ -147,7 +147,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	return mappers.UserEntityToAccountModel(user), nil
 }
 
-func (r *mutationResolver) SendEmailAddressVerificationEmail(ctx context.Context, userID string) (*bool, error) {
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, userID string) (*bool, error) {
 	user, err := repos.FindUserByID(r.DB(ctx), userID)
 	if err != nil {
 		return nil, err
@@ -158,9 +158,9 @@ func (r *mutationResolver) SendEmailAddressVerificationEmail(ctx context.Context
 		return nil, err
 	}
 
-	err = emailService.SendEmailAddressVerification(user, token)
+	err = emailService.SendVerification(user, token)
 	isSent := err == nil
-	return &isSent, nil
+	return &isSent, err
 }
 
 func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {

@@ -4,7 +4,7 @@ type Mutation {
   Create a user account
   """
   createAccount(username: String!, email: String!, passwordHash: String!): Account
-  sendEmailAddressVerificationEmail(userId: ID!): Boolean # TODO - authorized?
+  resendVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
   deleteAccount(deleteToken: String!): Account
