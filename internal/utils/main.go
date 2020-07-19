@@ -55,3 +55,17 @@ func CommitTransaction(tx *gorm.DB, wasInTransaction bool) *gorm.DB {
 func RandomProfileURL() string {
 	return "https://avatars3.githubusercontent.com/u/1400247?s=460&v=4"
 }
+
+func StringOr(str *string, backup string) string {
+	if str == nil {
+		return backup
+	}
+	return *str
+}
+
+func IntOr(num *int, backup int) int {
+	if num == nil {
+		return backup
+	}
+	return *num
+}

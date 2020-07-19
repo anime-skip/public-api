@@ -101,10 +101,15 @@ func FindEpisodesByShowID(db *gorm.DB, showID string) ([]*entities.Episode, erro
 	return episodes, nil
 }
 
-func SearchEpisodes(db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Episode, error) {
+func SearchEpisodes(db *gorm.DB, search string, showID *string, offset int, limit int, sort string) ([]*entities.Episode, error) {
 	episodes := []*entities.Episode{}
-	searchVar := "%" + search + "%"
-	err := db.Where("LOWER(name) LIKE LOWER(?)", searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&episodes).Error
+	searchVars := []interface{}{"%" + search + "%"}
+	queryString := "LOWER(name) LIKE LOWER(?)"
+	if showID != nil {
+		searchVars = append(searchVars, *showID)
+		queryString += " AND show_id = ?"
+	}
+	err := db.Where(queryString, searchVars...).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&episodes).Error
 	if err != nil {
 		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episodes found with name LIKE '%s'", search)

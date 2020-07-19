@@ -44,8 +44,8 @@ func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID string)
 	return episodesByShowID(r.DB(ctx), showID)
 }
 
-func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Episode, error) {
-	episodes, err := repos.SearchEpisodes(r.DB(ctx), *search, *offset, *limit, *sort)
+func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *string, offset *int, limit *int, sort *string) ([]*models.Episode, error) {
+	episodes, err := repos.SearchEpisodes(r.DB(ctx), *search, showID, *offset, *limit, *sort)
 	if err != nil {
 		return nil, err
 	}
