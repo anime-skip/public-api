@@ -1,32 +1,21 @@
 {
-    "cSpell.words": [
-        "aklinker",
-        "bcrypt",
-        "bcyrpted",
-        "cors",
-        "dbname",
-        "funimation",
-        "gorm",
-        "gormigrate",
-        "graphql",
-        "jinzhu",
-        "postgres",
-        "repos",
-        "stmp",
-        "structs",
-        "unscoped",
-        "uuid"
-    ],
-    "editor.tabSize": 2,
-    "sqltools.connections": [
-        {
-            "database": "anime_skip_local",
-            "dialect": "PostgreSQL",
-            "name": "Anime Skip",
-            "password": "password",
-            "port": 5432,
-            "server": "localhost",
-            "username": "postgres"
-        }
-    ],
+  "cSpell.words": [
+    "aklinker",
+    "bcrypt",
+    "bcyrpted",
+    "cors",
+    "dbname",
+    "funimation",
+    "gorm",
+    "gormigrate",
+    "graphql",
+    "jinzhu",
+    "postgres",
+    "repos",
+    "stmp",
+    "structs",
+    "unscoped",
+    "uuid"
+  ],
+  "editor.tabSize": 2,
 }
