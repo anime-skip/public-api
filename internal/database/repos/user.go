@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
+	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
 	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
@@ -24,9 +25,7 @@ func CreateUser(db *gorm.DB, username, email, encryptedPasswordHash string) (*en
 		log.E("Failed to create user: %v", err)
 		return nil, fmt.Errorf("Failed to create user")
 	}
-	preferences := &entities.Preferences{
-		UserID: user.ID,
-	}
+	preferences := mappers.DefaultPreferences(user.ID)
 	err = db.Model(&preferences).Create(preferences).Error
 	if err != nil {
 		log.E("Failed to create preferences: %v", err)
