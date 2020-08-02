@@ -3,7 +3,29 @@ package mappers
 import (
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"github.com/gofrs/uuid"
 )
+
+func DefaultPreferences(userId uuid.UUID) *entities.Preferences {
+	return &entities.Preferences{
+		UserID:           userId,
+		EnableAutoSkip:   true,
+		EnableAutoPlay:   true,
+		SkipBranding:     true,
+		SkipIntros:       true,
+		SkipNewIntros:    false,
+		SkipMixedIntros:  false,
+		SkipRecaps:       true,
+		SkipFiller:       true,
+		SkipCanon:        false,
+		SkipTransitions:  true,
+		SkipCredits:      true,
+		SkipNewCredits:   false,
+		SkipMixedCredits: false,
+		SkipPreview:      true,
+		SkipTitleCard:    true,
+	}
+}
 
 // PreferencesEntityToModel -
 func PreferencesEntityToModel(entity *entities.Preferences) *models.Preferences {
