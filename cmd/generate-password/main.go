@@ -9,11 +9,11 @@ import (
 )
 
 func main() {
-	password := os.Args[1]
-	if password == "" {
+	if len(os.Args) < 2 || os.Args[1] == "" {
 		fmt.Println("Password must be passed in as an argument")
 		os.Exit(1)
 	}
+	password := os.Args[1]
 	fmt.Println("Password: " + password)
 
 	md5 := fmt.Sprintf("%x", md5.Sum([]byte(password)))
