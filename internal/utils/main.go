@@ -55,3 +55,15 @@ func CommitTransaction(tx *gorm.DB, wasInTransaction bool) *gorm.DB {
 func RandomProfileURL() string {
 	return "https://avatars3.githubusercontent.com/u/1400247?s=460&v=4"
 }
+
+func GetIP(ctx context.Context) (string, error) {
+	ginCtx, err := GinContext(ctx)
+	if err != nil {
+		return "", err
+	}
+	forwarded := ginCtx.Request.Header.Get("X-FORWARDED-FOR")
+	if forwarded != "" {
+		return forwarded, nil
+	}
+	return ginCtx.Request.RemoteAddr, nil
+}
