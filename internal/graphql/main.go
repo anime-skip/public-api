@@ -113,7 +113,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
-		CreateAccount           func(childComplexity int, username string, email string, passwordHash string) int
+		CreateAccount           func(childComplexity int, username string, email string, passwordHash string, recaptchaResponse string) int
 		CreateEpisode           func(childComplexity int, showID string, episodeInput models.InputEpisode) int
 		CreateEpisodeURL        func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
 		CreateShow              func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
@@ -288,7 +288,7 @@ type EpisodeUrlResolver interface {
 	Episode(ctx context.Context, obj *models.EpisodeURL) (*models.Episode, error)
 }
 type MutationResolver interface {
-	CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error)
+	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.Account, error)
 	ResendVerificationEmail(ctx context.Context, userID string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error)
@@ -690,7 +690,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateAccount(childComplexity, args["username"].(string), args["email"].(string), args["passwordHash"].(string)), true
+		return e.complexity.Mutation.CreateAccount(childComplexity, args["username"].(string), args["email"].(string), args["passwordHash"].(string), args["recaptchaResponse"].(string)), true
 
 	case "Mutation.createEpisode":
 		if e.complexity.Mutation.CreateEpisode == nil {
@@ -2077,7 +2077,7 @@ type User {
   """
   Create a user account
   """
-  createAccount(username: String!, email: String!, passwordHash: String!): Account
+  createAccount(username: String!, email: String!, passwordHash: String!, recaptchaResponse: String!): Account
   resendVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
@@ -2207,6 +2207,14 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 		}
 	}
 	args["passwordHash"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["recaptchaResponse"]; ok {
+		arg3, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["recaptchaResponse"] = arg3
 	return args, nil
 }
 
@@ -4592,7 +4600,7 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateAccount(rctx, args["username"].(string), args["email"].(string), args["passwordHash"].(string))
+		return ec.resolvers.Mutation().CreateAccount(rctx, args["username"].(string), args["email"].(string), args["passwordHash"].(string), args["recaptchaResponse"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

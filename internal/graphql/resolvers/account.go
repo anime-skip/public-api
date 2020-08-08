@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -98,7 +99,7 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 
 // Mutation Resolvers
 
-func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string) (*models.Account, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.Account, error) {
 	tx := utils.StartTransaction(r.DB(ctx), false)
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
@@ -114,6 +115,17 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	}
 
 	encryptedPasswordHash, err := utils.GenerateEncryptedPassword(passwordHash)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	ipAddress, err := utils.GetIP(ctx)
+	if err != nil {
+		tx.Rollback()
+		return nil, errors.New("Could not get ip address from request")
+	}
+	err = utils.VerifyRecaptcha(recaptchaResponse, ipAddress)
 	if err != nil {
 		tx.Rollback()
 		return nil, err
