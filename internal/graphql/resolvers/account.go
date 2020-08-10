@@ -1,9 +1,11 @@
 package resolvers
 
 import (
+	"bufio"
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
@@ -15,6 +17,24 @@ import (
 )
 
 // Helpers
+
+var emailAllowList []string
+
+func init() {
+	file, err := os.Open(utils.EnvString("EMAIL_ALLOWLIST"))
+	if err != nil {
+		fmt.Println("Failed to open email allowlist at email.allowlist")
+		return
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	emailAllowList = lines
+}
 
 // Query Resolvers
 
@@ -99,48 +119,79 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 
 // Mutation Resolvers
 
-func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.Account, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
 	tx := utils.StartTransaction(r.DB(ctx), false)
+
+	if utils.EnvBool("USE_EMAIL_ALLOWLIST") {
+		fmt.Println("Checking email allowlist for:", email, emailAllowList)
+		if !utils.StringArrayIncludes(emailAllowList, email) {
+			tx.Rollback()
+			time.Sleep(2 * time.Second)
+			return nil, errors.New("user is not apart of the early release")
+		}
+	}
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
 	if existingUser != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
 	}
 
 	existingUser, _ = repos.FindUserByEmail(tx, email)
 	if existingUser != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
 	}
 
 	encryptedPasswordHash, err := utils.GenerateEncryptedPassword(passwordHash)
 	if err != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
 	ipAddress, err := utils.GetIP(ctx)
 	if err != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, errors.New("Could not get ip address from request")
 	}
 	err = utils.VerifyRecaptcha(recaptchaResponse, ipAddress)
 	if err != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
 	user, err := repos.CreateUser(tx, username, email, encryptedPasswordHash)
 	if err != nil {
 		tx.Rollback()
+		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
 	err = emailService.SendWelcome(user)
 	if err != nil {
 		tx.Rollback()
-		log.E("Failed to send email: %v", err)
+		log.E("Failed to send welcome email: %v", err)
+		return nil, fmt.Errorf("Failed to create user")
+	}
+
+	account := mappers.UserEntityToAccountModel(user)
+
+	authToken, err := utils.GenerateAuthToken(user)
+	if err != nil {
+		tx.Rollback()
+		log.E("Failed to create auth token: %v", err)
+		return nil, fmt.Errorf("Failed to create user")
+	}
+
+	refreshToken, err := utils.GenerateRefreshToken(user)
+	if err != nil {
+		tx.Rollback()
+		log.E("Failed to create auth token: %v", err)
 		return nil, fmt.Errorf("Failed to create user")
 	}
 
@@ -152,11 +203,15 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	} else {
 		err = emailService.SendVerification(user, verifyEmailToken)
 		if err != nil {
-			log.E("Failed to send email address verification email: %v", err)
+			log.E("Failed to send email address verification email (but still created user): %v", err)
 		}
 	}
 
-	return mappers.UserEntityToAccountModel(user), nil
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: refreshToken,
+		Account:      account,
+	}, nil
 }
 
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, userID string) (*bool, error) {

@@ -288,7 +288,7 @@ type EpisodeUrlResolver interface {
 	Episode(ctx context.Context, obj *models.EpisodeURL) (*models.Episode, error)
 }
 type MutationResolver interface {
-	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.Account, error)
+	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error)
 	ResendVerificationEmail(ctx context.Context, userID string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error)
@@ -2077,7 +2077,7 @@ type User {
   """
   Create a user account
   """
-  createAccount(username: String!, email: String!, passwordHash: String!, recaptchaResponse: String!): Account
+  createAccount(username: String!, email: String!, passwordHash: String!, recaptchaResponse: String!): LoginData
   resendVerificationEmail(userId: ID!): Boolean # TODO - authorized?
   verifyEmailAddress(validationToken: String!): Account
   deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
@@ -4609,10 +4609,10 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*models.Account)
+	res := resTmp.(*models.LoginData)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOAccount2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
+	return ec.marshalOLoginData2ᚖgithubᚗcomᚋaklinker1ᚋanimeᚑskipᚑbackendᚋinternalᚋgraphqlᚋmodelsᚐLoginData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_resendVerificationEmail(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
