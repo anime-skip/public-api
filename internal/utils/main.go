@@ -67,3 +67,12 @@ func GetIP(ctx context.Context) (string, error) {
 	}
 	return ginCtx.Request.RemoteAddr, nil
 }
+
+func StringArrayIncludes(array []string, value string) bool {
+	for _, item := range array {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
