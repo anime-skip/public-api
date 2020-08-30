@@ -15,8 +15,8 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
 	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/vektah/gqlparser"
-	"github.com/vektah/gqlparser/ast"
+	"github.com/vektah/gqlparser/v2"
+	"github.com/vektah/gqlparser/v2/ast"
 )
 
 // region    ************************** generated!.gotpl **************************
