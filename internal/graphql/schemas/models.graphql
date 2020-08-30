@@ -3,45 +3,25 @@ The base model has all the fields you would expect a fully fleshed out item in t
 have. It is used to track who create, updated, and deleted items
 """
 interface BaseModel {
-  """
-  Unique, v4 UUID. When asked for an id of an object, use this field
-  """
+  "Unique, v4 UUID. When asked for an `id` of an object, use this field"
   id: ID!
-  """
-  Time that the item was created at
-  """
+  "Time that the item was created at"
   createdAt: Time!
-  """
-  Ths user's `id` that created the item
-  """
+  "The user's `id` that created the item"
   createdByUserId: ID!
-  """
-  Ths entire user that created the item
-  """
+  "The entire user that created the item"
   createdBy: User!
-  """
-  Time that the item was updated at
-  """
+  "Time that the item was updated at"
   updatedAt: Time!
-  """
-  Ths user's `id` that last updated the item
-  """
+  "The user's `id` that last updated the item"
   updatedByUserId: ID!
-  """
-  Ths entire user that last updated the item
-  """
+  "The entire user that last updated the item"
   updatedBy: User!
-  """
-  Time that the item was updated at. If this value is present, the item is considered deleted
-  """
+  "Time that the item was updated at. If this value is present, the item is considered deleted"
   deletedAt: Time
-  """
-  Ths user's `id` that deleted the item
-  """
+  "The user's `id` that deleted the item"
   deletedByUserId: ID
-  """
-  Ths entire user that deleted the item
-  """
+  "The entire user that deleted the item"
   deletedBy: User
 }
 
@@ -88,17 +68,11 @@ type Episode implements BaseModel {
   should have this field
   """
   absoluteNumber: Int
-  """
-  The episode's name
-  """
+  "The episode's name"
   name: String
-  """
-  The show that the episode belongs to
-  """
+  "The show that the episode belongs to"
   show: Show!
-  """
-  The id of the show that the episode blongs to
-  """
+  "The id of the show that the episode blongs to"
   showId: ID!
   """
   The list of current timestamps. 
@@ -107,35 +81,25 @@ type Episode implements BaseModel {
   between urls and not need duplicate data
   """
   timestamps: [Timestamp!]!
-  """
-  The list of urls and services that the episode can be accessed from
-  """
+  "The list of urls and services that the episode can be accessed from"
   urls: [EpisodeUrl!]!
 }
-"""
-Data required to create a new episode
-"""
+
+"Data required to create a new `Episode`. See `Episode` for a description of each field"
 input InputEpisode {
-  """
-  See `Episode.season`
-  """
+  "See `Episode.season`"
   season: Int
-  """
-  See `Episode.number`
-  """
+  "See `Episode.number`"
   number: Int
-  """
-  See `Episode.absoluteNumber`
-  """
+  "See `Episode.absoluteNumber`"
   absoluteNumber: Int
-  """
-  See `Episode.name`
-  """
+  "See `Episode.name`"
   name: String
 }
 
-# EpisodeUrl
+"Stores intormation about what where an episode can be watched from"
 type EpisodeUrl {
+  "The url that would take a user to watch the `episode`"
   url: String!
   createdAt: Time!
   createdByUserId: ID!
@@ -144,55 +108,93 @@ type EpisodeUrl {
   updatedByUserId: ID!
   updatedBy: User!
 
+  "The `Episode.id` that this url belongs to"
   episodeId: ID!
+  "The `Episode` that this url belongs to"
   episode: Episode!
+  "What service this url points to"
   source: EpisodeSource!
 }
+
+"Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field"
 input InputEpisodeUrl {
   url: String!
 }
 
-# Account
+
+"Account info that should only be accessible by the authorised user"
 type Account {
   id: ID!
   createdAt: Time!
   deletedAt: Time
 
+  "Unique string slug that is the easy to remember identifier"
   username: String!
   email: String!
+  "Url to an image that is the user's profile picture"
   profileUrl: String!
+  """
+  The linking object that associates a user to the shows they are admins of.
+  
+  > This data is also accessible on the `User` model. It has been added here for convienience
+  """
   adminOfShows: [ShowAdmin!]!
 
+  "If the user's email is verified. Emails must be verified before the user can call a mutation"
   emailVerified: Boolean!
+  "The user's administrative role. Most users are `Role.USER`"
   role: Role!
+  "The user's preferences"
   preferences: Preferences!
 }
 
-# Preferences
+"""
+Where all the user preferences are stored. This includes what timestamps the user doesn't want to
+watch
+"""
 type Preferences {
   id: ID!
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time
 
+  "The `User.id` that this preferences object belongs to"
   userId: ID!
+  "The `User` that the preferences belong to"
   user: User!
+  "Whether or not the user wants to automatically skip section. Default: `true`"
   enableAutoSkip: Boolean!
+  "Whether or not the user wants to auto-play the videos. Default: `true`"
   enableAutoPlay: Boolean!
+  "Whether or not the user whats to skip branding timestamps. Default: `true`"
   skipBranding: Boolean!
+  "Whether or not the user whats to skip regular intros. Default: `true`"
   skipIntros: Boolean!
+  "Whether or not the user whats to skip the first of an intro. Default: `false`"
   skipNewIntros: Boolean!
+  "Whether or not the user whats to kip intros that have plot progression rather than the standard animation. Default: `false`"
   skipMixedIntros: Boolean!
+  "Whether or not the user whats to skip recaps at the beginning of episodes. Default: `true`"
   skipRecaps: Boolean!
+  "Whether or not the user whats to skip filler content. Default: `true`"
   skipFiller: Boolean!
+  "Whether or not the user whats to skip canon content. Default: `false`"
   skipCanon: Boolean!
+  "Whether or not the user whats to skip commertial transitions. Default: `true`"
   skipTransitions: Boolean!
+  "Whether or not the user whats to skip credits/outros. Default: `true`"
   skipCredits: Boolean!
+  "Whether or not the user whats to skip the first of a credits/outro. Default: `false`"
   skipNewCredits: Boolean!
+  "Whether or not the user whats to skip credits/outros that have plot progression rather than the standard animation. Default: `false`"
   skipMixedCredits: Boolean!
+  "Whether or not to skip the next episode's preview. Default: `true`"
   skipPreview: Boolean!
+  "Whether or not to skip an episode's static title card. Default: `true`"
   skipTitleCard: Boolean!
 }
+
+"Data required to update a user's `Preferences`. See `Preferences` for a description of each field"
 input InputPreferences {
   enableAutoSkip: Boolean!
   enableAutoPlay: Boolean!
@@ -211,7 +213,8 @@ input InputPreferences {
   skipTitleCard: Boolean!
 }
 
-# Show
+
+"A show containing a list of episodes and relevate links"
 type Show implements BaseModel {
   id: ID!
   createdAt: Time!
@@ -224,13 +227,35 @@ type Show implements BaseModel {
   deletedByUserId: ID
   deletedBy: User
 
+  """
+  The show name
+
+  ### Examples
+
+  - "Death Note"
+  - "My Hero Academia"
+  """
   name: String!
+  """
+  The show's original Japanese name
+
+  ### Examples
+
+  - "Desu Nōto"
+  - "Boku no Hīrō Akademia"
+  """
   originalName: String
+  "A link to the anime's official website"
   website: String
+  "A link to a show poster"
   image: String
+  "The list of admins for the show"
   admins: [ShowAdmin!]!
+  "All the episodes that belong to the show"
   episodes: [Episode!]!
 }
+
+"Data required to create a new `Show`. See `Show` for a description of each field"
 input InputShow {
   name: String!
   originalName: String
@@ -238,7 +263,17 @@ input InputShow {
   image: String
 }
 
-# ShowAdmin 
+
+"""
+A list of users that have elevated permissions when making changes to a show, it's episodes, and
+timestamps. Show admins are responsible for approving any changes that users might submit.
+
+If a user has the `ADMIN` or `DEV` roles, they do not need to be show admins to approve changes or
+make changes directly. Likewise, if a show doesn't have an admin, the user that create the
+show/episode will have temporary access to editing the data until someone becomes that shows admin.
+
+Admins can be created using the API and will soon come to the Anime Skip player/website.
+"""
 type ShowAdmin implements BaseModel {
   id: ID!
   createdAt: Time!
@@ -251,17 +286,23 @@ type ShowAdmin implements BaseModel {
   deletedByUserId: ID
   deletedBy: User
 
+  "The `Show.id` that the admin has elevated privileges for"
   showId: ID!
+  "The `Show` that the admin has elevated privileges for"
   show: Show!
+  "The `User.id` that the admin privileges belong to"
   userId: ID!
+  "The `User` that the admin privileges belong to"
   user: User!
 }
+
+"Data required to create a new `ShowAdmin`. See `ShowAdmin` for a description of each field"
 input InputShowAdmin {
   showId: ID!
   userId: ID!
 }
 
-# Timestamp
+
 type Timestamp implements BaseModel {
   id: ID!
   createdAt: Time!
@@ -274,18 +315,34 @@ type Timestamp implements BaseModel {
   deletedByUserId: ID
   deletedBy: User
 
+  "The actual time the timestamp is at"
   at: Float!
+  "The id specifying the type the timestamp is"
   typeId: ID!
+  """
+  The type the timestamp is. Thid field is a constant string so including it has no effect on
+  performance or query complexity.
+  """
   type: TimestampType!
+  "The `Episode.id` that the timestamp belongs to"
   episodeId: ID!
+  "The `Episode` that the timestamp belongs to"
   episode: Episode!
 }
+
+"Data required to create a new `Timestamp`. See `Timestamp` for a description of each field"
 input InputTimestamp {
   at: Float!
   typeId: ID!
 }
 
-# TimestampType
+
+"""
+The type a timestamp can be. This table rarely changes so the values fetched can either be hard
+coded or fetch occasionaly. Anime Skip website and web extension use hardcoded maps to store this
+data, but a third party might want to fetch and cache this instead since you won't know when Anime
+Skip adds timestamps
+"""
 type TimestampType implements BaseModel {
   id: ID!
   createdAt: Time!
@@ -298,22 +355,26 @@ type TimestampType implements BaseModel {
   deletedByUserId: ID
   deletedBy: User
 
+  "The name of the timestamp type"
   name: String!
+  "The description for what this type represents"
   description: String!
 }
+
+"Data required to create a new `TimestampType`. See `TimestampType` for a description of each field"
 input InputTimestampType {
   name: String!
   description: String!
 }
 
-# User
+
+"Information about a user that is public. See `Account` for a description of each field"
 type User {
   id: ID!
   createdAt: Time!
   deletedAt: Time
 
   username: String!
-  email: String!
   profileUrl: String!
   adminOfShows: [ShowAdmin!]!
 }

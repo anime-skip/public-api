@@ -1,5 +1,11 @@
+"""
+When logging in with a password or refresh token, you can get new tokens and account info
+"""
 type LoginData {
+  "A JWT that should be used in the header of all requests: `Authorization: Bearer <authToken>`"
   authToken: String!
+  "A JWT used for the `loginRefresh` query to get new `LoginData`"
   refreshToken: String!
+  "The personal account information of the user that got authenticated"
   account: Account!
 }

@@ -20,7 +20,6 @@ func UserEntityToModel(entity *entities.User) *models.User {
 		CreatedAt:    entity.CreatedAt,
 		DeletedAt:    entity.DeletedAt,
 		Username:     entity.Username,
-		Email:        entity.Email,
 		ProfileURL:   entity.ProfileURL,
 		AdminOfShows: nil,
 	}

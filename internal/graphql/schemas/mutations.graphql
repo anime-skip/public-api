@@ -1,42 +1,126 @@
 type Mutation {
   # Account
   """
-  Create a user account
+  Create a user account. 3rd party applciations will not have access to this function because of
+  `recaptchaResponse`. Redirect new users to create an account on <anime-skip.com>
   """
   createAccount(username: String!, email: String!, passwordHash: String!, recaptchaResponse: String!): LoginData
-  resendVerificationEmail(userId: ID!): Boolean # TODO - authorized?
+  "Resend the verification email for the account of the authenticated user"
+  resendVerificationEmail: Boolean @authorized
+  """
+  Callback to handle the verfification token included in the email sent using
+  `resendVerificationEmail`
+  """
   verifyEmailAddress(validationToken: String!): Account
-  deleteAccountRequest(accoutnId: String!, passwordHash: String!): Account
+  """
+  Request your account be deleted. The user will recieve an email with a link to confirm deleting
+  their account
+  """
+  deleteAccountRequest(passwordHash: String!): Account @authorized
+  "Handle a deleteToken from `deleteAccountRequest` and actually delete the user's account"
   deleteAccount(deleteToken: String!): Account
 
   # Prefernces
+  "Update user preferences"
   savePreferences(preferences: InputPreferences!): Preferences @authorized
 
   # Shows
+  "Create a show and optionally become an admin"
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show @authorized
+  "Update show data"
   updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show
+  """
+  Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
+  
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
   deleteShow(showId: ID!): Show @hasRole(role: ADMIN)
 
   # Show Admins
+  """
+  Give admin privilege to a user for a show.
+  
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin
+  """
+  Remove admin privileges from a user for a show.
+  
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin
 
   # Episodes
+  """
+  Create an episode under a `Show`
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode
+  """
+  Update episode info
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode
+  """
+  Delete an episode and all it's child data
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   deleteEpisode(episodeId: ID! @isShowAdmin): Episode
 
   # Episode Urls
+  """
+  Link an `Episode` to a service URL
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl
+  """
+  Unlink an `Episode` to from service URL
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
 
   # Timestamps
+  """
+  Add a timestamp to an `Episode`
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp
-  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp 
+  """
+  Update timestamp data
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp
+  """
+  Delete a timestamp
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
 
   # Timestamp Types
+  """
+  Create a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
   createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  """
+  Update a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
   updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  """
+  Delete a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
   deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
 }
