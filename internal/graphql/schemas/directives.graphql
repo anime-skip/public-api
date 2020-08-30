@@ -1,14 +1,8 @@
-"""
-Check if the user is signed in
-"""
+"Check if the user is signed in"
 directive @authorized on FIELD_DEFINITION
 
-"""
-Checks if the user is signed in and has a given role
-"""
+"Checks if the user is signed in and has a given role"
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
-"""
-Checks if the user is signed in and is an admin of the show being operated on
-"""
+"Checks if the user is signed in and is an admin of the show being operated on"
 directive @isShowAdmin on ARGUMENT_DEFINITION

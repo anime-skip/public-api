@@ -9,70 +9,121 @@ import (
 	"time"
 )
 
+// The base model has all the fields you would expect a fully fleshed out item in the database would
+// have. It is used to track who create, updated, and deleted items
 type BaseModel interface {
 	IsBaseModel()
 }
 
+// Account info that should only be accessible by the authorised user
 type Account struct {
-	ID            string       `json:"id"`
-	CreatedAt     time.Time    `json:"createdAt"`
-	DeletedAt     *time.Time   `json:"deletedAt"`
-	Username      string       `json:"username"`
-	Email         string       `json:"email"`
-	ProfileURL    string       `json:"profileUrl"`
-	AdminOfShows  []*ShowAdmin `json:"adminOfShows"`
-	EmailVerified bool         `json:"emailVerified"`
-	Role          Role         `json:"role"`
-	Preferences   *Preferences `json:"preferences"`
+	ID        string     `json:"id"`
+	CreatedAt time.Time  `json:"createdAt"`
+	DeletedAt *time.Time `json:"deletedAt"`
+	// Unique string slug that is the easy to remember identifier
+	Username string `json:"username"`
+	Email    string `json:"email"`
+	// Url to an image that is the user's profile picture
+	ProfileURL string `json:"profileUrl"`
+	// The linking object that associates a user to the shows they are admins of.
+	//
+	// > This data is also accessible on the `User` model. It has been added here for convienience
+	AdminOfShows []*ShowAdmin `json:"adminOfShows"`
+	// If the user's email is verified. Emails must be verified before the user can call a mutation
+	EmailVerified bool `json:"emailVerified"`
+	// The user's administrative role. Most users are `Role.USER`
+	Role Role `json:"role"`
+	// The user's preferences
+	Preferences *Preferences `json:"preferences"`
 }
 
+// Basic information about an episode, including season, numbers, a list of timestamps, and urls that
+// it can be watched at
 type Episode struct {
-	ID              string        `json:"id"`
-	CreatedAt       time.Time     `json:"createdAt"`
-	CreatedByUserID string        `json:"createdByUserId"`
-	CreatedBy       *User         `json:"createdBy"`
-	UpdatedAt       time.Time     `json:"updatedAt"`
-	UpdatedByUserID string        `json:"updatedByUserId"`
-	UpdatedBy       *User         `json:"updatedBy"`
-	DeletedAt       *time.Time    `json:"deletedAt"`
-	DeletedByUserID *string       `json:"deletedByUserId"`
-	DeletedBy       *User         `json:"deletedBy"`
-	Season          *int          `json:"season"`
-	Number          *int          `json:"number"`
-	AbsoluteNumber  *int          `json:"absoluteNumber"`
-	Name            *string       `json:"name"`
-	Show            *Show         `json:"show"`
-	ShowID          string        `json:"showId"`
-	Timestamps      []*Timestamp  `json:"timestamps"`
-	Urls            []*EpisodeURL `json:"urls"`
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	// The season number that this episode belongs to
+	//
+	// ### Examples:
+	//
+	// - "1"
+	// - "1 Directors Cut"
+	// - "2"
+	// - "Movies"
+	Season *int `json:"season"`
+	// The episode number in the current season
+	//
+	// ### Examples:
+	//
+	// - "1"
+	// - "2"
+	// - "5.5"
+	// - "OVA 1"
+	Number *int `json:"number"`
+	// The absolute episode number out of all the episodes of the show. Generally only regular episodes
+	// should have this field
+	AbsoluteNumber *int `json:"absoluteNumber"`
+	// The episode's name
+	Name *string `json:"name"`
+	// The show that the episode belongs to
+	Show *Show `json:"show"`
+	// The id of the show that the episode blongs to
+	ShowID string `json:"showId"`
+	// The list of current timestamps.
+	//
+	// Timestamps are apart apart of the `Episode` instead of the `EpisodeUrl` so that they can be shared
+	// between urls and not need duplicate data
+	Timestamps []*Timestamp `json:"timestamps"`
+	// The list of urls and services that the episode can be accessed from
+	Urls []*EpisodeURL `json:"urls"`
 }
 
 func (Episode) IsBaseModel() {}
 
+// Stores intormation about what where an episode can be watched from
 type EpisodeURL struct {
-	URL             string        `json:"url"`
-	CreatedAt       time.Time     `json:"createdAt"`
-	CreatedByUserID string        `json:"createdByUserId"`
-	CreatedBy       *User         `json:"createdBy"`
-	UpdatedAt       time.Time     `json:"updatedAt"`
-	UpdatedByUserID string        `json:"updatedByUserId"`
-	UpdatedBy       *User         `json:"updatedBy"`
-	EpisodeID       string        `json:"episodeId"`
-	Episode         *Episode      `json:"episode"`
-	Source          EpisodeSource `json:"source"`
+	// The url that would take a user to watch the `episode`
+	URL             string    `json:"url"`
+	CreatedAt       time.Time `json:"createdAt"`
+	CreatedByUserID string    `json:"createdByUserId"`
+	CreatedBy       *User     `json:"createdBy"`
+	UpdatedAt       time.Time `json:"updatedAt"`
+	UpdatedByUserID string    `json:"updatedByUserId"`
+	UpdatedBy       *User     `json:"updatedBy"`
+	// The `Episode.id` that this url belongs to
+	EpisodeID string `json:"episodeId"`
+	// The `Episode` that this url belongs to
+	Episode *Episode `json:"episode"`
+	// What service this url points to
+	Source EpisodeSource `json:"source"`
 }
 
+// Data required to create a new `Episode`. See `Episode` for a description of each field
 type InputEpisode struct {
-	Season         *int    `json:"season"`
-	Number         *int    `json:"number"`
-	AbsoluteNumber *int    `json:"absoluteNumber"`
-	Name           *string `json:"name"`
+	// See `Episode.season`
+	Season *int `json:"season"`
+	// See `Episode.number`
+	Number *int `json:"number"`
+	// See `Episode.absoluteNumber`
+	AbsoluteNumber *int `json:"absoluteNumber"`
+	// See `Episode.name`
+	Name *string `json:"name"`
 }
 
+// Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field
 type InputEpisodeURL struct {
 	URL string `json:"url"`
 }
 
+// Data required to update a user's `Preferences`. See `Preferences` for a description of each field
 type InputPreferences struct {
 	EnableAutoSkip   bool `json:"enableAutoSkip"`
 	EnableAutoPlay   bool `json:"enableAutoPlay"`
@@ -91,6 +142,7 @@ type InputPreferences struct {
 	SkipTitleCard    bool `json:"skipTitleCard"`
 }
 
+// Data required to create a new `Show`. See `Show` for a description of each field
 type InputShow struct {
 	Name         string  `json:"name"`
 	OriginalName *string `json:"originalName"`
@@ -98,72 +150,123 @@ type InputShow struct {
 	Image        *string `json:"image"`
 }
 
+// Data required to create a new `ShowAdmin`. See `ShowAdmin` for a description of each field
 type InputShowAdmin struct {
 	ShowID string `json:"showId"`
 	UserID string `json:"userId"`
 }
 
+// Data required to create a new `Timestamp`. See `Timestamp` for a description of each field
 type InputTimestamp struct {
 	At     float64 `json:"at"`
 	TypeID string  `json:"typeId"`
 }
 
+// Data required to create a new `TimestampType`. See `TimestampType` for a description of each field
 type InputTimestampType struct {
 	Name        string `json:"name"`
 	Description string `json:"description"`
 }
 
+// When logging in with a password or refresh token, you can get new tokens and account info
 type LoginData struct {
-	AuthToken    string   `json:"authToken"`
-	RefreshToken string   `json:"refreshToken"`
-	Account      *Account `json:"account"`
+	// A JWT that should be used in the header of all requests: `Authorization: Bearer <authToken>`
+	AuthToken string `json:"authToken"`
+	// A JWT used for the `loginRefresh` query to get new `LoginData`
+	RefreshToken string `json:"refreshToken"`
+	// The personal account information of the user that got authenticated
+	Account *Account `json:"account"`
 }
 
+// Where all the user preferences are stored. This includes what timestamps the user doesn't want to
+// watch
 type Preferences struct {
-	ID               string     `json:"id"`
-	CreatedAt        time.Time  `json:"createdAt"`
-	UpdatedAt        time.Time  `json:"updatedAt"`
-	DeletedAt        *time.Time `json:"deletedAt"`
-	UserID           string     `json:"userId"`
-	User             *User      `json:"user"`
-	EnableAutoSkip   bool       `json:"enableAutoSkip"`
-	EnableAutoPlay   bool       `json:"enableAutoPlay"`
-	SkipBranding     bool       `json:"skipBranding"`
-	SkipIntros       bool       `json:"skipIntros"`
-	SkipNewIntros    bool       `json:"skipNewIntros"`
-	SkipMixedIntros  bool       `json:"skipMixedIntros"`
-	SkipRecaps       bool       `json:"skipRecaps"`
-	SkipFiller       bool       `json:"skipFiller"`
-	SkipCanon        bool       `json:"skipCanon"`
-	SkipTransitions  bool       `json:"skipTransitions"`
-	SkipCredits      bool       `json:"skipCredits"`
-	SkipNewCredits   bool       `json:"skipNewCredits"`
-	SkipMixedCredits bool       `json:"skipMixedCredits"`
-	SkipPreview      bool       `json:"skipPreview"`
-	SkipTitleCard    bool       `json:"skipTitleCard"`
+	ID        string     `json:"id"`
+	CreatedAt time.Time  `json:"createdAt"`
+	UpdatedAt time.Time  `json:"updatedAt"`
+	DeletedAt *time.Time `json:"deletedAt"`
+	// The `User.id` that this preferences object belongs to
+	UserID string `json:"userId"`
+	// The `User` that the preferences belong to
+	User *User `json:"user"`
+	// Whether or not the user wants to automatically skip section. Default: `true`
+	EnableAutoSkip bool `json:"enableAutoSkip"`
+	// Whether or not the user wants to auto-play the videos. Default: `true`
+	EnableAutoPlay bool `json:"enableAutoPlay"`
+	// Whether or not the user whats to skip branding timestamps. Default: `true`
+	SkipBranding bool `json:"skipBranding"`
+	// Whether or not the user whats to skip regular intros. Default: `true`
+	SkipIntros bool `json:"skipIntros"`
+	// Whether or not the user whats to skip the first of an intro. Default: `false`
+	SkipNewIntros bool `json:"skipNewIntros"`
+	// Whether or not the user whats to kip intros that have plot progression rather than the standard animation. Default: `false`
+	SkipMixedIntros bool `json:"skipMixedIntros"`
+	// Whether or not the user whats to skip recaps at the beginning of episodes. Default: `true`
+	SkipRecaps bool `json:"skipRecaps"`
+	// Whether or not the user whats to skip filler content. Default: `true`
+	SkipFiller bool `json:"skipFiller"`
+	// Whether or not the user whats to skip canon content. Default: `false`
+	SkipCanon bool `json:"skipCanon"`
+	// Whether or not the user whats to skip commertial transitions. Default: `true`
+	SkipTransitions bool `json:"skipTransitions"`
+	// Whether or not the user whats to skip credits/outros. Default: `true`
+	SkipCredits bool `json:"skipCredits"`
+	// Whether or not the user whats to skip the first of a credits/outro. Default: `false`
+	SkipNewCredits bool `json:"skipNewCredits"`
+	// Whether or not the user whats to skip credits/outros that have plot progression rather than the standard animation. Default: `false`
+	SkipMixedCredits bool `json:"skipMixedCredits"`
+	// Whether or not to skip the next episode's preview. Default: `true`
+	SkipPreview bool `json:"skipPreview"`
+	// Whether or not to skip an episode's static title card. Default: `true`
+	SkipTitleCard bool `json:"skipTitleCard"`
 }
 
+// A show containing a list of episodes and relevate links
 type Show struct {
-	ID              string       `json:"id"`
-	CreatedAt       time.Time    `json:"createdAt"`
-	CreatedByUserID string       `json:"createdByUserId"`
-	CreatedBy       *User        `json:"createdBy"`
-	UpdatedAt       time.Time    `json:"updatedAt"`
-	UpdatedByUserID string       `json:"updatedByUserId"`
-	UpdatedBy       *User        `json:"updatedBy"`
-	DeletedAt       *time.Time   `json:"deletedAt"`
-	DeletedByUserID *string      `json:"deletedByUserId"`
-	DeletedBy       *User        `json:"deletedBy"`
-	Name            string       `json:"name"`
-	OriginalName    *string      `json:"originalName"`
-	Website         *string      `json:"website"`
-	Image           *string      `json:"image"`
-	Admins          []*ShowAdmin `json:"admins"`
-	Episodes        []*Episode   `json:"episodes"`
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	// The show name
+	//
+	// ### Examples
+	//
+	// - "Death Note"
+	// - "My Hero Academia"
+	Name string `json:"name"`
+	// The show's original Japanese name
+	//
+	// ### Examples
+	//
+	// - "Desu Nōto"
+	// - "Boku no Hīrō Akademia"
+	OriginalName *string `json:"originalName"`
+	// A link to the anime's official website
+	Website *string `json:"website"`
+	// A link to a show poster
+	Image *string `json:"image"`
+	// The list of admins for the show
+	Admins []*ShowAdmin `json:"admins"`
+	// All the episodes that belong to the show
+	Episodes []*Episode `json:"episodes"`
 }
 
 func (Show) IsBaseModel() {}
 
+// A list of users that have elevated permissions when making changes to a show, it's episodes, and
+// timestamps. Show admins are responsible for approving any changes that users might submit.
+//
+// If a user has the `ADMIN` or `DEV` roles, they do not need to be show admins to approve changes or
+// make changes directly. Likewise, if a show doesn't have an admin, the user that create the
+// show/episode will have temporary access to editing the data until someone becomes that shows admin.
+//
+// Admins can be created using the API and will soon come to the Anime Skip player/website.
 type ShowAdmin struct {
 	ID              string     `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
@@ -175,34 +278,48 @@ type ShowAdmin struct {
 	DeletedAt       *time.Time `json:"deletedAt"`
 	DeletedByUserID *string    `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
-	ShowID          string     `json:"showId"`
-	Show            *Show      `json:"show"`
-	UserID          string     `json:"userId"`
-	User            *User      `json:"user"`
+	// The `Show.id` that the admin has elevated privileges for
+	ShowID string `json:"showId"`
+	// The `Show` that the admin has elevated privileges for
+	Show *Show `json:"show"`
+	// The `User.id` that the admin privileges belong to
+	UserID string `json:"userId"`
+	// The `User` that the admin privileges belong to
+	User *User `json:"user"`
 }
 
 func (ShowAdmin) IsBaseModel() {}
 
 type Timestamp struct {
-	ID              string         `json:"id"`
-	CreatedAt       time.Time      `json:"createdAt"`
-	CreatedByUserID string         `json:"createdByUserId"`
-	CreatedBy       *User          `json:"createdBy"`
-	UpdatedAt       time.Time      `json:"updatedAt"`
-	UpdatedByUserID string         `json:"updatedByUserId"`
-	UpdatedBy       *User          `json:"updatedBy"`
-	DeletedAt       *time.Time     `json:"deletedAt"`
-	DeletedByUserID *string        `json:"deletedByUserId"`
-	DeletedBy       *User          `json:"deletedBy"`
-	At              float64        `json:"at"`
-	TypeID          string         `json:"typeId"`
-	Type            *TimestampType `json:"type"`
-	EpisodeID       string         `json:"episodeId"`
-	Episode         *Episode       `json:"episode"`
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	// The actual time the timestamp is at
+	At float64 `json:"at"`
+	// The id specifying the type the timestamp is
+	TypeID string `json:"typeId"`
+	// The type the timestamp is. Thid field is a constant string so including it has no effect on
+	// performance or query complexity.
+	Type *TimestampType `json:"type"`
+	// The `Episode.id` that the timestamp belongs to
+	EpisodeID string `json:"episodeId"`
+	// The `Episode` that the timestamp belongs to
+	Episode *Episode `json:"episode"`
 }
 
 func (Timestamp) IsBaseModel() {}
 
+// The type a timestamp can be. This table rarely changes so the values fetched can either be hard
+// coded or fetch occasionaly. Anime Skip website and web extension use hardcoded maps to store this
+// data, but a third party might want to fetch and cache this instead since you won't know when Anime
+// Skip adds timestamps
 type TimestampType struct {
 	ID              string     `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
@@ -214,27 +331,34 @@ type TimestampType struct {
 	DeletedAt       *time.Time `json:"deletedAt"`
 	DeletedByUserID *string    `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
-	Name            string     `json:"name"`
-	Description     string     `json:"description"`
+	// The name of the timestamp type
+	Name string `json:"name"`
+	// The description for what this type represents
+	Description string `json:"description"`
 }
 
 func (TimestampType) IsBaseModel() {}
 
+// Information about a user that is public. See `Account` for a description of each field
 type User struct {
 	ID           string       `json:"id"`
 	CreatedAt    time.Time    `json:"createdAt"`
 	DeletedAt    *time.Time   `json:"deletedAt"`
 	Username     string       `json:"username"`
-	Email        string       `json:"email"`
 	ProfileURL   string       `json:"profileUrl"`
 	AdminOfShows []*ShowAdmin `json:"adminOfShows"`
 }
 
+// Which of the supported services the `EpisodeUrl` was created for. This is a simple enum that allows
+// for simple checks, but this data can also be pulled from the url in the case of UNKNOWN
 type EpisodeSource string
 
 const (
-	EpisodeSourceUnknown    EpisodeSource = "UNKNOWN"
-	EpisodeSourceVrv        EpisodeSource = "VRV"
+	// Data came from an external source
+	EpisodeSourceUnknown EpisodeSource = "UNKNOWN"
+	// Data is from <vrv.co>
+	EpisodeSourceVrv EpisodeSource = "VRV"
+	// Data is from <funimation.com>
 	EpisodeSourceFunimation EpisodeSource = "FUNIMATION"
 )
 
@@ -273,12 +397,17 @@ func (e EpisodeSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// A user's role in the system. Higher roles allow a user write access to certain data that a normal
+// user would not. Some queries and mutations are only alloed by certain roles
 type Role string
 
 const (
-	RoleDev   Role = "DEV"
+	// Highest role. Has super user access to all queries and mutations
+	RoleDev Role = "DEV"
+	// Administrator role. Has some elevated permissions
 	RoleAdmin Role = "ADMIN"
-	RoleUser  Role = "USER"
+	// Basic role. Has no elevated permissions
+	RoleUser Role = "USER"
 )
 
 var AllRole = []Role{

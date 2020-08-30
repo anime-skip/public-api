@@ -214,7 +214,12 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	}, nil
 }
 
-func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, userID string) (*bool, error) {
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context) (*bool, error) {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	user, err := repos.FindUserByID(r.DB(ctx), userID)
 	if err != nil {
 		return nil, err
@@ -247,7 +252,13 @@ func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationTok
 	return mappers.UserEntityToAccountModel(updatedUser), nil
 }
 
-func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, accoutnID string, passwordHash string) (*models.Account, error) {
+func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error) {
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(userID)
+
 	return nil, fmt.Errorf("not implemented")
 }
 
