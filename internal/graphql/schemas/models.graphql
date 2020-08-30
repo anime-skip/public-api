@@ -1,17 +1,54 @@
+"""
+The base model has all the fields you would expect a fully fleshed out item in the database would
+have. It is used to track who create, updated, and deleted items
+"""
 interface BaseModel {
+  """
+  Unique, v4 UUID. When asked for an id of an object, use this field
+  """
   id: ID!
+  """
+  Time that the item was created at
+  """
   createdAt: Time!
+  """
+  Ths user's `id` that created the item
+  """
   createdByUserId: ID!
+  """
+  Ths entire user that created the item
+  """
   createdBy: User!
+  """
+  Time that the item was updated at
+  """
   updatedAt: Time!
+  """
+  Ths user's `id` that last updated the item
+  """
   updatedByUserId: ID!
+  """
+  Ths entire user that last updated the item
+  """
   updatedBy: User!
+  """
+  Time that the item was updated at. If this value is present, the item is considered deleted
+  """
   deletedAt: Time
+  """
+  Ths user's `id` that deleted the item
+  """
   deletedByUserId: ID
+  """
+  Ths entire user that deleted the item
+  """
   deletedBy: User
 }
 
-# Episode
+"""
+Basic information about an episode, including season, numbers, a list of timestamps, and urls that
+it can be watched at
+"""
 type Episode implements BaseModel {
   id: ID!
   createdAt: Time!
@@ -24,19 +61,76 @@ type Episode implements BaseModel {
   deletedByUserId: ID
   deletedBy: User
 
+  """
+  The season number that this episode belongs to
+
+  ### Examples:
+
+  - "1"
+  - "1 Directors Cut"
+  - "2"
+  - "Movies"
+  """
   season: Int
+  """
+  The episode number in the current season
+
+  ### Examples:
+
+  - "1"
+  - "2"
+  - "5.5"
+  - "OVA 1"
+  """
   number: Int
+  """
+  The absolute episode number out of all the episodes of the show. Generally only regular episodes
+  should have this field
+  """
   absoluteNumber: Int
+  """
+  The episode's name
+  """
   name: String
+  """
+  The show that the episode belongs to
+  """
   show: Show!
+  """
+  The id of the show that the episode blongs to
+  """
   showId: ID!
+  """
+  The list of current timestamps. 
+
+  Timestamps are apart apart of the `Episode` instead of the `EpisodeUrl` so that they can be shared
+  between urls and not need duplicate data
+  """
   timestamps: [Timestamp!]!
+  """
+  The list of urls and services that the episode can be accessed from
+  """
   urls: [EpisodeUrl!]!
 }
+"""
+Data required to create a new episode
+"""
 input InputEpisode {
+  """
+  See `Episode.season`
+  """
   season: Int
+  """
+  See `Episode.number`
+  """
   number: Int
+  """
+  See `Episode.absoluteNumber`
+  """
   absoluteNumber: Int
+  """
+  See `Episode.name`
+  """
   name: String
 }
 

@@ -1,25 +1,67 @@
 type Query {
   # Account
+  """
+  Get the logged in user's account information
+  """
   account: Account @authorized
+  """
+  Use either the username or email and an md5 hash of the user's password to get an access and
+  refresh token
+  """
   login(usernameEmail: String!, passwordHash: String!): LoginData
+  """
+  Use a refresh token get a new access and refresh token
+  """
   loginRefresh(refreshToken: String!): LoginData
   
   # Users
+  """
+  Find user with a matching `User.id`
+  """
   findUser(userId: ID!): User
+  "Find user with a matching `User.username`"
   findUserByUsername(username: String!): User
 
   # Shows
+  """
+  Find show with a matching `Show.id`
+  """
   findShow(showId: ID!): Show
+  """
+  Search for shows that include the `search` in the `Show.name`. Results are sorted by `Show.name`
+  as `ASC` or `DESC`
+  """
   searchShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
 
   # Show Admins
+  """
+  Find show admin with a matching `ShowAdmin.id`
+  """
   findShowAdmin(showAdminId: ID!): ShowAdmin
+  """
+  Get a list of admins for a given `Show.id`
+  """
   findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
+  """
+  Get a list of show admins for a given `User.id`
+  """
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 
   # Episodes
+  """
+  Find episode with a matching `Episode.id`
+  """
   findEpisode(episodeId: ID!): Episode
+  """
+  Get a list of episodes for a given `Show.id`
+  """
   findEpisodesByShowId(showId: ID!): [Episode!]
+  """
+  Search for episodes that include the `search` in the `Episode.name`. Results are sorted by `Show.name`
+  as `ASC` or `DESC`
+
+  Results can be limited to a single show by passing `showId`
+  """
   searchEpisodes(search: String = "", showId: ID, offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
 
   # Episode Urls
