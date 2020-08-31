@@ -2429,7 +2429,13 @@ type LoginData {
 }
 `, BuiltIn: false},
 	{Name: "internal/graphql/schemas/scalars.graphql", Input: `"""
-Something
+Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
+
+### Example 
+
+` + "`" + `` + "`" + `` + "`" + `
+2020-08-04T23:43:27Z
+` + "`" + `` + "`" + `` + "`" + `
 """
 scalar Time
 `, BuiltIn: false},
