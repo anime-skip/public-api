@@ -8,6 +8,6 @@ var LowercaseAllEmails = migrateTableChange(
 	},
 	[]string{
 		// Cannot undo this migration
-		"SELECT count(*) FROM USERS",
+		"SELECT count(*) FROM public.users;",
 	},
 )
