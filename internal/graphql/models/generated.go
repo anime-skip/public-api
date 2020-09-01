@@ -58,7 +58,7 @@ type Episode struct {
 	// - "1 Directors Cut"
 	// - "2"
 	// - "Movies"
-	Season *int `json:"season"`
+	Season *string `json:"season"`
 	// The episode number in the current season
 	//
 	// ### Examples:
@@ -67,10 +67,10 @@ type Episode struct {
 	// - "2"
 	// - "5.5"
 	// - "OVA 1"
-	Number *int `json:"number"`
+	Number *string `json:"number"`
 	// The absolute episode number out of all the episodes of the show. Generally only regular episodes
 	// should have this field
-	AbsoluteNumber *int `json:"absoluteNumber"`
+	AbsoluteNumber *string `json:"absoluteNumber"`
 	// The episode's name
 	Name *string `json:"name"`
 	// The show that the episode belongs to
@@ -109,11 +109,11 @@ type EpisodeURL struct {
 // Data required to create a new `Episode`. See `Episode` for a description of each field
 type InputEpisode struct {
 	// See `Episode.season`
-	Season *int `json:"season"`
+	Season *string `json:"season"`
 	// See `Episode.number`
-	Number *int `json:"number"`
+	Number *string `json:"number"`
 	// See `Episode.absoluteNumber`
-	AbsoluteNumber *int `json:"absoluteNumber"`
+	AbsoluteNumber *string `json:"absoluteNumber"`
 	// See `Episode.name`
 	Name *string `json:"name"`
 }

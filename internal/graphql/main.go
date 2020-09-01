@@ -1894,7 +1894,7 @@ type Episode implements BaseModel {
   - "2"
   - "Movies"
   """
-  season: Int
+  season: String
   """
   The episode number in the current season
 
@@ -1905,12 +1905,12 @@ type Episode implements BaseModel {
   - "5.5"
   - "OVA 1"
   """
-  number: Int
+  number: String
   """
   The absolute episode number out of all the episodes of the show. Generally only regular episodes
   should have this field
   """
-  absoluteNumber: Int
+  absoluteNumber: String
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -1931,11 +1931,11 @@ type Episode implements BaseModel {
 "Data required to create a new ` + "`" + `Episode` + "`" + `. See ` + "`" + `Episode` + "`" + ` for a description of each field"
 input InputEpisode {
   "See ` + "`" + `Episode.season` + "`" + `"
-  season: Int
+  season: String
   "See ` + "`" + `Episode.number` + "`" + `"
-  number: Int
+  number: String
   "See ` + "`" + `Episode.absoluteNumber` + "`" + `"
-  absoluteNumber: Int
+  absoluteNumber: String
   "See ` + "`" + `Episode.name` + "`" + `"
   name: String
 }
@@ -4094,9 +4094,9 @@ func (ec *executionContext) _Episode_season(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_number(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
@@ -4125,9 +4125,9 @@ func (ec *executionContext) _Episode_number(ctx context.Context, field graphql.C
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_absoluteNumber(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
@@ -4156,9 +4156,9 @@ func (ec *executionContext) _Episode_absoluteNumber(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(*string)
 	fc.Result = res
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_name(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
@@ -10442,7 +10442,7 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("season"))
-			it.Season, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Season, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10450,7 +10450,7 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("number"))
-			it.Number, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.Number, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -10458,7 +10458,7 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("absoluteNumber"))
-			it.AbsoluteNumber, err = ec.unmarshalOInt2ᚖint(ctx, v)
+			it.AbsoluteNumber, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

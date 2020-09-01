@@ -51,7 +51,7 @@ type Episode implements BaseModel {
   - "2"
   - "Movies"
   """
-  season: Int
+  season: String
   """
   The episode number in the current season
 
@@ -62,12 +62,12 @@ type Episode implements BaseModel {
   - "5.5"
   - "OVA 1"
   """
-  number: Int
+  number: String
   """
   The absolute episode number out of all the episodes of the show. Generally only regular episodes
   should have this field
   """
-  absoluteNumber: Int
+  absoluteNumber: String
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -88,11 +88,11 @@ type Episode implements BaseModel {
 "Data required to create a new `Episode`. See `Episode` for a description of each field"
 input InputEpisode {
   "See `Episode.season`"
-  season: Int
+  season: String
   "See `Episode.number`"
-  number: Int
+  number: String
   "See `Episode.absoluteNumber`"
-  absoluteNumber: Int
+  absoluteNumber: String
   "See `Episode.name`"
   name: String
 }
