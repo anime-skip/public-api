@@ -2,6 +2,7 @@ package repos
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
 	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
@@ -14,7 +15,7 @@ import (
 func CreateUser(db *gorm.DB, username, email, encryptedPasswordHash string) (*entities.User, error) {
 	user := &entities.User{
 		Username:      username,
-		Email:         email,
+		Email:         strings.ToLower(email),
 		PasswordHash:  encryptedPasswordHash,
 		Role:          constants.ROLE_USER,
 		ProfileURL:    utils.RandomProfileURL(),
@@ -66,7 +67,7 @@ func FindUserByUsername(db *gorm.DB, username string) (*entities.User, error) {
 
 func FindUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 	user := &entities.User{}
-	err := db.Where("email = ?", email).Find(user).Error
+	err := db.Where("email = ?", strings.ToLower(email)).Find(user).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with email='%s'", email)
@@ -76,7 +77,7 @@ func FindUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 
 func FindUserByUsernameOrEmail(db *gorm.DB, usernameOrEmail string) (*entities.User, error) {
 	user := &entities.User{}
-	err := db.Where("email = ? OR username = ?", usernameOrEmail, usernameOrEmail).Find(user).Error
+	err := db.Where("email = ? OR username = ?", strings.ToLower(usernameOrEmail), usernameOrEmail).Find(user).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with email or username = '%s'", usernameOrEmail)

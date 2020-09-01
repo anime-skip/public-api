@@ -34,6 +34,7 @@ func Run(db *gorm.DB) error {
 		tables.CreateTimestampTypesTable,
 		tables.CreateTimestampsTable,
 		tables.ModifyEpisodeUrlsTableHardDelete,
+		tables.LowercaseAllEmails,
 	})
 	err = m.Migrate()
 	if err != nil {
