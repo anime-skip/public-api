@@ -23,3 +23,9 @@ enum EpisodeSource {
   "Data is from <funimation.com>"
   FUNIMATION
 }
+
+"Where a timestamp originated from"
+enum TimestampSource {
+  ANIME_SKIP
+  BETTER_VRV
+}

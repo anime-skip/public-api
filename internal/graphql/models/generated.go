@@ -290,6 +290,26 @@ type ShowAdmin struct {
 
 func (ShowAdmin) IsBaseModel() {}
 
+// Episode info provided by a third party. See `Episode` for a description of each field
+type ThirdPartyEpisode struct {
+	Season         *string                `json:"season"`
+	Number         *string                `json:"number"`
+	AbsoluteNumber *string                `json:"absoluteNumber"`
+	Name           *string                `json:"name"`
+	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`
+}
+
+type ThirdPartyTimestamp struct {
+	// The actual time the timestamp is at
+	At     float64          `json:"at"`
+	Source *TimestampSource `json:"source"`
+	// The id specifying the type the timestamp is
+	TypeID string `json:"typeId"`
+	// The type the timestamp is. Thid field is a constant string so including it has no effect on
+	// performance or query complexity.
+	Type *TimestampType `json:"type"`
+}
+
 type Timestamp struct {
 	ID              string     `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
@@ -302,7 +322,8 @@ type Timestamp struct {
 	DeletedByUserID *string    `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The actual time the timestamp is at
-	At float64 `json:"at"`
+	At     float64          `json:"at"`
+	Source *TimestampSource `json:"source"`
 	// The id specifying the type the timestamp is
 	TypeID string `json:"typeId"`
 	// The type the timestamp is. Thid field is a constant string so including it has no effect on
@@ -442,5 +463,47 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// Where a timestamp originated from
+type TimestampSource string
+
+const (
+	TimestampSourceAnimeSkip TimestampSource = "ANIME_SKIP"
+	TimestampSourceBetterVrv TimestampSource = "BETTER_VRV"
+)
+
+var AllTimestampSource = []TimestampSource{
+	TimestampSourceAnimeSkip,
+	TimestampSourceBetterVrv,
+}
+
+func (e TimestampSource) IsValid() bool {
+	switch e {
+	case TimestampSourceAnimeSkip, TimestampSourceBetterVrv:
+		return true
+	}
+	return false
+}
+
+func (e TimestampSource) String() string {
+	return string(e)
+}
+
+func (e *TimestampSource) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TimestampSource(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TimestampSource", str)
+	}
+	return nil
+}
+
+func (e TimestampSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
