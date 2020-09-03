@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	log "anime-skip.com/backend/internal/utils/log"
 )
 
 // EnvString will return the env as a string or default to ""

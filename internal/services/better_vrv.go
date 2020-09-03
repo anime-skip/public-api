@@ -6,8 +6,8 @@ import (
 	"math"
 	"net/http"
 
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils/constants"
 )
 
 // Types

@@ -3,7 +3,7 @@ package seeders
 import (
 	"time"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
+	"anime-skip.com/backend/internal/database/entities"
 	"github.com/gofrs/uuid"
 )
 

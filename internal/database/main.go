@@ -3,9 +3,9 @@ package database
 import (
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/migrations"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database/migrations"
+	"anime-skip.com/backend/internal/utils"
+	log "anime-skip.com/backend/internal/utils/log"
 
 	// PostgreSQL dialect
 	"github.com/jinzhu/gorm"

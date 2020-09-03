@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 )
 
 func isAuthorized(ctx context.Context) error {

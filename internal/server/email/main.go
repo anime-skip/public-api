@@ -8,8 +8,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/utils"
 )
 
 var EMAIL_HOST string = utils.EnvString("EMAIL_SERVICE_HOST")

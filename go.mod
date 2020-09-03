@@ -1,4 +1,4 @@
-module github.com/aklinker1/anime-skip-backend
+module anime-skip.com/backend
 
 go 1.13
 
