@@ -10,6 +10,11 @@ run:
 watch:
 	@modd
 
+.PHONY: test
+test:
+	go build ./...
+	go test ./...
+
 .PHONY: gen
 gen:
 	@./scripts/gqlgen.sh
