@@ -68,13 +68,13 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 
 	authToken, err := utils.GenerateAuthToken(user)
 	if err != nil {
-		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
 	refreshToken, err := utils.GenerateRefreshToken(user)
 	if err != nil {
-		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 

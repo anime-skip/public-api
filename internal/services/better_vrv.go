@@ -97,7 +97,7 @@ func (betterVRV betterVRVInterface) fetchEpisodeByName() (*models.ThirdPartyEpis
 		return nil, err
 	}
 
-	return mapBetterVRVEpisodeToThirdPartyEpisode(bvrvEpisode), nil
+	return MapBetterVRVEpisodeToThirdPartyEpisode(bvrvEpisode), nil
 }
 
 // Mappers
