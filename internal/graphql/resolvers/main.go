@@ -3,10 +3,10 @@ package resolvers
 import (
 	"context"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database"
-	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/database"
+	gql "anime-skip.com/backend/internal/graphql"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/jinzhu/gorm"
 )
 

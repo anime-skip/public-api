@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
-	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/utils/constants"
+	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 

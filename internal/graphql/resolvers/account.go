@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	emailService "github.com/aklinker1/anime-skip-backend/internal/server/email"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/database/repos"
+	"anime-skip.com/backend/internal/graphql/models"
+	emailService "anime-skip.com/backend/internal/server/email"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/log"
 )
 
 // Helpers

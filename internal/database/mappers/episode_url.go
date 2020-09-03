@@ -3,9 +3,9 @@ package mappers
 import (
 	"strings"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils/constants"
 )
 
 func _urlToSource(url string) int {

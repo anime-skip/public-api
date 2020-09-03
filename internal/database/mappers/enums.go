@@ -1,9 +1,9 @@
 package mappers
 
 import (
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/log"
 )
 
 func RoleEnumToInt(role models.Role) int {

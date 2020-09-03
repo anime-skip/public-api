@@ -5,7 +5,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/davecgh/go-spew/spew"
 )
 

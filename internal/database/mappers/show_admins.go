@@ -1,8 +1,8 @@
 package mappers
 
 import (
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/graphql/models"
 	"github.com/gofrs/uuid"
 )
 
@@ -32,7 +32,7 @@ func ShowAdminEntityToModel(entity *entities.ShowAdmin) *models.ShowAdmin {
 		DeletedAt:       entity.DeletedAt,
 		DeletedByUserID: deletedByUserID,
 
-		ShowID:          entity.ShowID.String(),
-		UserID:          entity.UserID.String(),
+		ShowID: entity.ShowID.String(),
+		UserID: entity.UserID.String(),
 	}
 }

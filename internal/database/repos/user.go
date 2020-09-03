@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 

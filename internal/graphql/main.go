@@ -12,9 +12,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"anime-skip.com/backend/internal/graphql/models"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -2715,7 +2715,7 @@ func (ec *executionContext) field_Mutation_createShowAdmin_args(ctx context.Cont
 		if data, ok := tmp.(models.InputShowAdmin); ok {
 			arg0 = data
 		} else {
-			return nil, fmt.Errorf(`unexpected type %T from directive, should be github.com/aklinker1/anime-skip-backend/internal/graphql/models.InputShowAdmin`, tmp)
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be anime-skip.com/backend/internal/graphql/models.InputShowAdmin`, tmp)
 		}
 	}
 	args["showAdminInput"] = arg0
@@ -5056,7 +5056,7 @@ func (ec *executionContext) _Mutation_deleteAccountRequest(ctx context.Context, 
 		if data, ok := tmp.(*models.Account); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Account`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Account`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5152,7 +5152,7 @@ func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field
 		if data, ok := tmp.(*models.Preferences); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Preferences`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Preferences`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5210,7 +5210,7 @@ func (ec *executionContext) _Mutation_createShow(ctx context.Context, field grap
 		if data, ok := tmp.(*models.Show); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Show`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Show`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5310,7 +5310,7 @@ func (ec *executionContext) _Mutation_deleteShow(ctx context.Context, field grap
 		if data, ok := tmp.(*models.Show); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Show`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Show`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5752,7 +5752,7 @@ func (ec *executionContext) _Mutation_createTimestampType(ctx context.Context, f
 		if data, ok := tmp.(*models.TimestampType); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.TimestampType`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5814,7 +5814,7 @@ func (ec *executionContext) _Mutation_updateTimestampType(ctx context.Context, f
 		if data, ok := tmp.(*models.TimestampType); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.TimestampType`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5876,7 +5876,7 @@ func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, f
 		if data, ok := tmp.(*models.TimestampType); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.TimestampType`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.TimestampType`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6638,7 +6638,7 @@ func (ec *executionContext) _Query_account(ctx context.Context, field graphql.Co
 		if data, ok := tmp.(*models.Account); ok {
 			return data, nil
 		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *github.com/aklinker1/anime-skip-backend/internal/graphql/models.Account`, tmp)
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Account`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

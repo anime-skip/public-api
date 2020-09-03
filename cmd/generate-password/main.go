@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
+	"anime-skip.com/backend/internal/utils"
 )
 
 func main() {

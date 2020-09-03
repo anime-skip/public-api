@@ -3,10 +3,10 @@ package repos
 import (
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
