@@ -7,10 +7,12 @@ import (
 	"math"
 	"net/http"
 	"strings"
+	"time"
 
 	"anime-skip.com/backend/internal/graphql/models"
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/log"
 )
 
 // Types
@@ -46,6 +48,11 @@ type BetterVRVResponse struct {
 	Results []BetterVRVEpisode `json:"results"`
 }
 
+type CachedResponse struct {
+	Episodes []*models.ThirdPartyEpisode
+	CachedAt time.Time
+}
+
 type Section struct {
 	Start *models.ThirdPartyTimestamp
 	End   *models.ThirdPartyTimestamp
@@ -63,8 +70,9 @@ const API_KEY_KEY = "X-Parse-REST-API-Key"
 var APP_ID_VALUE = utils.EnvString("BETTER_VRV_APP_ID")
 var API_KEY_VALUE = utils.EnvString("BETTER_VRV_API_KEY")
 
-var localCache map[string]([]*models.ThirdPartyEpisode) = map[string]([]*models.ThirdPartyEpisode){}
+var localCache map[string]*CachedResponse = map[string]*CachedResponse{}
 var UNKOWN_EPISODE = &models.ThirdPartyEpisode{}
+var CACHE_DURATION = 30 * time.Minute
 
 func createRequest(endpoint string, query map[string]string, headers map[string]string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", baseURL+endpoint, nil)
@@ -90,15 +98,21 @@ func createRequest(endpoint string, query map[string]string, headers map[string]
 }
 
 func (betterVRVService betterVRVServiceInterface) FetchEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
-	if cachedResult, ok := localCache[episodeName]; ok {
-		return cachedResult, nil
+	cachedResult, ok := localCache[episodeName]
+	isCached := ok && cachedResult.CachedAt.Add(CACHE_DURATION).After(time.Now())
+	if isCached {
+		return cachedResult.Episodes, nil
 	}
 
+	log.V("Fetching new episode from BetterVRV")
 	remoteResult, err := fetchRemoteEpisodesByName(episodeName)
 	if err != nil || remoteResult == nil {
 		return nil, err
 	}
-	localCache[episodeName] = remoteResult
+	localCache[episodeName] = &CachedResponse{
+		Episodes: remoteResult,
+		CachedAt: time.Now(),
+	}
 	return remoteResult, nil
 }
 
