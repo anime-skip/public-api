@@ -33,6 +33,7 @@ func TimestampEntityToModel(entity *entities.Timestamp) *models.Timestamp {
 		DeletedByUserID: deletedByUserID,
 
 		At:        entity.At,
+		Source:    TimestampSouceIntToEnum(entity.Source),
 		TypeID:    entity.TypeID.String(),
 		EpisodeID: entity.EpisodeID.String(),
 	}

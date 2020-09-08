@@ -339,7 +339,7 @@ type Timestamp implements BaseModel {
 
   "The actual time the timestamp is at"
   at: Float!
-  source: TimestampSource
+  source: TimestampSource!
   "The id specifying the type the timestamp is"
   typeId: ID!
   """

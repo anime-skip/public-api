@@ -2312,7 +2312,7 @@ type Timestamp implements BaseModel {
 
   "The actual time the timestamp is at"
   at: Float!
-  source: TimestampSource
+  source: TimestampSource!
   "The id specifying the type the timestamp is"
   typeId: ID!
   """
@@ -9247,11 +9247,14 @@ func (ec *executionContext) _Timestamp_source(ctx context.Context, field graphql
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*models.TimestampSource)
+	res := resTmp.(models.TimestampSource)
 	fc.Result = res
-	return ec.marshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx, field.Selections, res)
+	return ec.marshalNTimestampSource2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_typeId(ctx context.Context, field graphql.CollectedField, obj *models.Timestamp) (ret graphql.Marshaler) {
@@ -12681,6 +12684,9 @@ func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet
 			}
 		case "source":
 			out.Values[i] = ec._Timestamp_source(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "typeId":
 			out.Values[i] = ec._Timestamp_typeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -13538,6 +13544,16 @@ func (ec *executionContext) marshalNTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋ
 		return graphql.Null
 	}
 	return ec._Timestamp(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNTimestampSource2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx context.Context, v interface{}) (models.TimestampSource, error) {
+	var res models.TimestampSource
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNTimestampSource2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx context.Context, sel ast.SelectionSet, v models.TimestampSource) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) marshalNTimestampType2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx context.Context, sel ast.SelectionSet, v models.TimestampType) graphql.Marshaler {
