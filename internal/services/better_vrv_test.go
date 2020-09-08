@@ -91,8 +91,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -123,8 +123,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -155,8 +155,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -187,8 +187,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -217,8 +217,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -249,8 +249,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -281,8 +281,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -315,8 +315,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -347,8 +347,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -375,8 +375,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -405,8 +405,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -437,8 +437,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -465,8 +465,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -500,8 +500,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -535,8 +535,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -570,8 +570,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -615,8 +615,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
@@ -658,8 +658,8 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 				expected := &models.ThirdPartyEpisode{
 					Name:           &input.EpisodeTitle,
 					Number:         nil,
-					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
-					Season:         newStringPointer(string(*input.Season)),
+					AbsoluteNumber: newStringPointer("123"),
+					Season:         newStringPointer("21"),
 					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{

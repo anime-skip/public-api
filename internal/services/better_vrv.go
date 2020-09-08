@@ -2,6 +2,7 @@ package services
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -41,6 +42,10 @@ type BetterVRVEpisode struct {
 	PreviewEnd   *float64 `json:"previewEnd"`
 }
 
+type BetterVRVResponse struct {
+	Results []BetterVRVEpisode `json:"results"`
+}
+
 type Section struct {
 	Start *models.ThirdPartyTimestamp
 	End   *models.ThirdPartyTimestamp
@@ -58,7 +63,7 @@ const API_KEY_KEY = "X-Parse-REST-API-Key"
 var APP_ID_VALUE = utils.EnvString("BETTER_VRV_APP_ID")
 var API_KEY_VALUE = utils.EnvString("BETTER_VRV_API_KEY")
 
-var localCache map[string]*models.ThirdPartyEpisode
+var localCache map[string]([]*models.ThirdPartyEpisode) = map[string]([]*models.ThirdPartyEpisode){}
 var UNKOWN_EPISODE = &models.ThirdPartyEpisode{}
 
 func createRequest(endpoint string, query map[string]string, headers map[string]string) (*http.Request, error) {
@@ -77,21 +82,19 @@ func createRequest(endpoint string, query map[string]string, headers map[string]
 
 	req.Header.Add(APP_ID_KEY, APP_ID_VALUE)
 	req.Header.Add(API_KEY_KEY, API_KEY_VALUE)
-	if headers != nil {
-		for key, value := range headers {
-			req.Header.Add(key, value)
-		}
+	for key, value := range headers {
+		req.Header.Add(key, value)
 	}
 
 	return req, nil
 }
 
-func (betterVRVService betterVRVServiceInterface) FetchEpisodeByName(episodeName string) (*models.ThirdPartyEpisode, error) {
+func (betterVRVService betterVRVServiceInterface) FetchEpisodeByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
 	if cachedResult, ok := localCache[episodeName]; ok {
 		return cachedResult, nil
 	}
 
-	remoteResult, err := betterVRVService.fetchRemoteEpisodeByName(episodeName)
+	remoteResult, err := fetchRemoteEpisodesByName(episodeName)
 	if err != nil || remoteResult == nil {
 		return nil, err
 	}
@@ -99,8 +102,13 @@ func (betterVRVService betterVRVServiceInterface) FetchEpisodeByName(episodeName
 	return remoteResult, nil
 }
 
-func (_ betterVRVServiceInterface) fetchRemoteEpisodeByName(episodeName string) (*models.ThirdPartyEpisode, error) {
-	req, err := createRequest("/classes/Timestamps", nil, nil)
+func fetchRemoteEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
+	inputEpisodeName := strings.ReplaceAll(episodeName, "\"", "\\\"")
+	inputEpisodeName = strings.ReplaceAll(inputEpisodeName, "\\", "\\\\")
+	queryParams := map[string]string{
+		"where": fmt.Sprintf("{ \"episodeTitle\": \"%s\" }", inputEpisodeName),
+	}
+	req, err := createRequest("/classes/Timestamps", queryParams, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,17 +116,28 @@ func (_ betterVRVServiceInterface) fetchRemoteEpisodeByName(episodeName string) 
 	if err != nil {
 		return nil, err
 	}
-
 	defer res.Body.Close()
 	body, _ := ioutil.ReadAll(res.Body)
 
-	bvrvEpisode := &BetterVRVEpisode{}
-	err = json.Unmarshal(body, bvrvEpisode)
+	// Parse response
+	response := &BetterVRVResponse{}
+	err = json.Unmarshal(body, response)
 	if err != nil {
 		return nil, err
 	}
 
-	return MapBetterVRVEpisodeToThirdPartyEpisode(bvrvEpisode), nil
+	// Map list
+	episodes := []*models.ThirdPartyEpisode{}
+	if response.Results != nil {
+		for _, item := range response.Results {
+			mappedItem := MapBetterVRVEpisodeToThirdPartyEpisode(&item)
+			if mappedItem != nil {
+				episodes = append(episodes, mappedItem)
+			}
+		}
+	}
+
+	return episodes, nil
 }
 
 // Mappers
@@ -187,7 +206,7 @@ func createSection(hasSection *bool, sectionStart *float64, sectionEnd *float64,
 }
 
 // This should only be used when returning data, better vrv searches should NOT be standardized since it stores the data non-standard
-func standardizeEpisodeTitle(title string) (standardized string) {
+func (betterVRVService betterVRVServiceInterface) StandardizeEpisodeName(title string) (standardized string) {
 	standardized = strings.ReplaceAll(title, "’", "'")
 	standardized = strings.ReplaceAll(standardized, "‘", "'")
 	standardized = strings.ReplaceAll(standardized, "–", "-")
@@ -206,12 +225,12 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 
 	var number *string
 	if input.AmbiguosNumber != nil {
-		str := string(*input.AmbiguosNumber)
+		str := fmt.Sprintf("%v", *input.AmbiguosNumber)
 		number = &str
 	}
 	var season *string
 	if input.Season != nil {
-		str := string(*input.Season)
+		str := fmt.Sprintf("%v", *input.Season)
 		season = &str
 	}
 
@@ -303,7 +322,7 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 	if len(timestamps) == 0 {
 		return nil
 	}
-	epsiodeTitle := standardizeEpisodeTitle(input.EpisodeTitle)
+	epsiodeTitle := BetterVRV.StandardizeEpisodeName(input.EpisodeTitle)
 	return &models.ThirdPartyEpisode{
 		AbsoluteNumber: number,
 		Name:           &epsiodeTitle,
