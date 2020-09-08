@@ -13,6 +13,7 @@ func TimestampInputModelToEntity(inputModel models.InputTimestamp, entity *entit
 
 	entity.At = inputModel.At
 	entity.TypeID = uuid.FromStringOrNil(inputModel.TypeID)
+	entity.Source = TimestampSouceEnumToInt(inputModel.Source)
 
 	return entity
 }

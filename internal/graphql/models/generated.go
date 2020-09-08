@@ -158,8 +158,9 @@ type InputShowAdmin struct {
 
 // Data required to create a new `Timestamp`. See `Timestamp` for a description of each field
 type InputTimestamp struct {
-	At     float64 `json:"at"`
-	TypeID string  `json:"typeId"`
+	At     float64          `json:"at"`
+	TypeID string           `json:"typeId"`
+	Source *TimestampSource `json:"source"`
 }
 
 // Data required to create a new `TimestampType`. See `TimestampType` for a description of each field
