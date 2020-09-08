@@ -2340,6 +2340,7 @@ type ThirdPartyTimestamp {
 input InputTimestamp {
   at: Float!
   typeId: ID!
+  source: TimestampSource
 }
 
 
@@ -11335,6 +11336,14 @@ func (ec *executionContext) unmarshalInputInputTimestamp(ctx context.Context, ob
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("typeId"))
 			it.TypeID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "source":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("source"))
+			it.Source, err = ec.unmarshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx, v)
 			if err != nil {
 				return it, err
 			}

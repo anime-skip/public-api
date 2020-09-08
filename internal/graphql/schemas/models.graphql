@@ -367,6 +367,7 @@ type ThirdPartyTimestamp {
 input InputTimestamp {
   at: Float!
   typeId: ID!
+  source: TimestampSource
 }
 
 
