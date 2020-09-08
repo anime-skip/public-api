@@ -147,25 +147,21 @@ func createSection(hasSection *bool, sectionStart *float64, sectionEnd *float64,
 			// Have both
 			start = &models.ThirdPartyTimestamp{
 				At:     *sectionStart,
-				Source: timestampTypeBetterVRVPtr,
 				TypeID: typeID,
 			}
 			end = &models.ThirdPartyTimestamp{
 				At:     *sectionEnd,
-				Source: timestampTypeBetterVRVPtr,
 				TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 			}
 		} else if sectionStart != nil {
 			// Only have start
 			start = &models.ThirdPartyTimestamp{
 				At:     *sectionStart,
-				Source: timestampTypeBetterVRVPtr,
 				TypeID: typeID,
 			}
 			if sectionDuration > 0 {
 				end = &models.ThirdPartyTimestamp{
 					At:     *sectionStart + sectionDuration,
-					Source: timestampTypeBetterVRVPtr,
 					TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 				}
 			}
@@ -173,14 +169,12 @@ func createSection(hasSection *bool, sectionStart *float64, sectionEnd *float64,
 			// Only have end
 			end = &models.ThirdPartyTimestamp{
 				At:     *sectionEnd,
-				Source: timestampTypeBetterVRVPtr,
 				TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 			}
 
 			if sectionDuration > 0 {
 				start = &models.ThirdPartyTimestamp{
 					At:     *sectionEnd - sectionDuration,
-					Source: timestampTypeBetterVRVPtr,
 					TypeID: typeID,
 				}
 			}
@@ -224,7 +218,7 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 	// Parse sections
 	intro := createSection(input.HasIntro, input.IntroStart, input.IntroEnd, 90, constants.TIMESTAMP_ID_INTRO)
 	outro := createSection(input.HasOutro, input.OutroStart, input.OutroEnd, 90, constants.TIMESTAMP_ID_CREDITS)
-	postCredits := createSection(input.HasPostCredit, input.PostCreditStart, in2put.PostCreditEnd, 0, constants.TIMESTAMP_ID_CANON)
+	postCredits := createSection(input.HasPostCredit, input.PostCreditStart, input.PostCreditEnd, 0, constants.TIMESTAMP_ID_CANON)
 	preview := createSection(input.HasPreview, input.PreviewStart, input.PreviewEnd, 0, constants.TIMESTAMP_ID_PREVIEW)
 
 	// Combine Sections
@@ -287,7 +281,6 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 				}
 				combinedTimestamp := &models.ThirdPartyTimestamp{
 					At:     math.Min(first.At, second.At),
-					Source: timestampTypeBetterVRVPtr,
 					TypeID: typeID,
 				}
 				// Replace two timestamps with one
@@ -302,7 +295,6 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 	if len(timestamps) > 0 && timestamps[0].At != 0 {
 		zeroTimestamp := &models.ThirdPartyTimestamp{
 			At:     0,
-			Source: timestampTypeBetterVRVPtr,
 			TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 		}
 		timestamps = append([]*models.ThirdPartyTimestamp{zeroTimestamp}, timestamps...)
@@ -317,6 +309,7 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 		Name:           &epsiodeTitle,
 		Number:         nil,
 		Season:         season,
+		Source:         timestampTypeBetterVRVPtr,
 		Timestamps:     timestamps,
 	}
 }
