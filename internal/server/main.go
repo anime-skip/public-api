@@ -4,10 +4,10 @@ import (
 	"os"
 	"time"
 
-	database "github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/server/handlers"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	database "anime-skip.com/backend/internal/database"
+	"anime-skip.com/backend/internal/server/handlers"
+	"anime-skip.com/backend/internal/utils"
+	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 )
 

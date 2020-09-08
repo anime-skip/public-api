@@ -3,8 +3,8 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/gin-gonic/gin"
 )
 

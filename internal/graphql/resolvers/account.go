@@ -8,12 +8,12 @@ import (
 	"os"
 	"time"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	emailService "github.com/aklinker1/anime-skip-backend/internal/server/email"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/database/repos"
+	"anime-skip.com/backend/internal/graphql/models"
+	emailService "anime-skip.com/backend/internal/server/email"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/log"
 )
 
 // Helpers
@@ -68,13 +68,13 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 
 	authToken, err := utils.GenerateAuthToken(user)
 	if err != nil {
-		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 
 	refreshToken, err := utils.GenerateRefreshToken(user)
 	if err != nil {
-		log.V("Failed to generate auth token: %v", usernameEmail, err)
+		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
 		return nil, fmt.Errorf("Failed to login")
 	}
 

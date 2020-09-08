@@ -3,9 +3,9 @@ package main
 import (
 	"time"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/server"
-	log "github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/database"
+	"anime-skip.com/backend/internal/server"
+	log "anime-skip.com/backend/internal/utils/log"
 )
 
 func main() {

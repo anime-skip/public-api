@@ -1,12 +1,12 @@
 package handlers
 
 import (
+	"anime-skip.com/backend/internal/database"
+	gql "anime-skip.com/backend/internal/graphql"
+	"anime-skip.com/backend/internal/graphql/directives"
+	"anime-skip.com/backend/internal/graphql/resolvers"
+	"anime-skip.com/backend/internal/utils"
 	"github.com/99designs/gqlgen/handler"
-	"github.com/aklinker1/anime-skip-backend/internal/database"
-	gql "github.com/aklinker1/anime-skip-backend/internal/graphql"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/directives"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/resolvers"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

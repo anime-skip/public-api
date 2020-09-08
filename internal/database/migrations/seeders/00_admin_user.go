@@ -3,7 +3,7 @@ package seeders
 import (
 	"fmt"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/entities"
+	"anime-skip.com/backend/internal/database/entities"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"

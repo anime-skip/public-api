@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/log"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 )
 

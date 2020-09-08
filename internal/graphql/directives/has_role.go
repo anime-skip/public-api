@@ -4,13 +4,13 @@ import (
 	"context"
 	"fmt"
 
+	"anime-skip.com/backend/internal/database"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/database/repos"
+	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/99designs/gqlgen/graphql"
-	"github.com/aklinker1/anime-skip-backend/internal/database"
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
-	"github.com/aklinker1/anime-skip-backend/internal/utils"
-	"github.com/aklinker1/anime-skip-backend/internal/utils/constants"
 )
 
 func HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (interface{}, error) {

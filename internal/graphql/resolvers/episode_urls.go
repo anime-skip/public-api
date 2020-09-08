@@ -3,9 +3,9 @@ package resolvers
 import (
 	"context"
 
-	"github.com/aklinker1/anime-skip-backend/internal/database/mappers"
-	"github.com/aklinker1/anime-skip-backend/internal/database/repos"
-	"github.com/aklinker1/anime-skip-backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/database/repos"
+	"anime-skip.com/backend/internal/graphql/models"
 	"github.com/jinzhu/gorm"
 )
 
