@@ -290,8 +290,18 @@ type ShowAdmin struct {
 
 func (ShowAdmin) IsBaseModel() {}
 
-// Episode info provided by a third party. See `Episode` for a description of each field
+// Episode info provided by a third party. See `Episode` for a description of each field.
+//
+// When creating data based on this type, fill out and post an episode, then timestamps based on the
+// data here. All fields will map 1 to 1 with the exception of `source`. Since a source belongs to a
+// episode for third party data, but belongs to timestamps in Anime Skip, the source should be
+// propogated down to each of the timestamps. This way when more timestamps are added, a episode can
+// have muliple timestamp sources.
+//
+// > Make sure to fill out the `source` field so that original owner of the timestamp is maintained
 type ThirdPartyEpisode struct {
+	// The Anime Skip `Episode.id` when the `source` is `ANIME_SKIP`, otherwise this is null
+	ID             *string                `json:"id"`
 	Season         *string                `json:"season"`
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
@@ -301,10 +311,13 @@ type ThirdPartyEpisode struct {
 }
 
 type ThirdPartyTimestamp struct {
+	// The Anime Skip `Timestamp.id` when the `Episode.source` is `ANIME_SKIP`, otherwise this is null
+	ID *string `json:"id"`
 	// The actual time the timestamp is at
 	At float64 `json:"at"`
 	// The id specifying the type the timestamp is
-	TypeID string `json:"typeId"`
+	TypeID string         `json:"typeId"`
+	Type   *TimestampType `json:"type"`
 }
 
 type Timestamp struct {
