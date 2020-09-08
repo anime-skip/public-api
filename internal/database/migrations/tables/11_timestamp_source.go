@@ -1,6 +1,6 @@
 package tables
 
-// AddTimestampSource inserts the admin user
+// AddTimestampSource inserts new source column with a default value
 var AddTimestampSource = migrateTable(
 	"MODIFY_TIMESTAMPS_TABLE__add_source",
 	"timestamps",
