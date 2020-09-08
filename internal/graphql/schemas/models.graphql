@@ -91,6 +91,7 @@ type ThirdPartyEpisode {
   number: String
   absoluteNumber: String
   name: String
+  source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
 }
 
@@ -343,7 +344,6 @@ type Timestamp implements BaseModel {
 type ThirdPartyTimestamp {
   "The actual time the timestamp is at"
   at: Float!
-  source: TimestampSource
   "The id specifying the type the timestamp is"
   typeId: ID!
 }
