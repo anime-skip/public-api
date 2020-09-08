@@ -93,20 +93,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -127,20 +125,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     100,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -161,20 +157,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     30,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     120,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -195,15 +189,14 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     80,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -226,20 +219,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CREDITS,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -260,20 +251,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CREDITS,
 						},
 						{
 							At:     100,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -294,20 +283,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     -10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CREDITS,
 						},
 						{
 							At:     80,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -330,20 +317,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CANON,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -364,15 +349,14 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CANON,
 						},
 					},
@@ -393,15 +377,14 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -424,20 +407,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_PREVIEW,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -458,15 +439,14 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     10,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_PREVIEW,
 						},
 					},
@@ -487,15 +467,14 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     20,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -523,20 +502,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_RECAP,
 						},
 						{
 							At:     29,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     110,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -560,20 +537,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_RECAP,
 						},
 						{
 							At:     90,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     180,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -597,25 +572,22 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_RECAP,
 						},
 						{
 							At:     30,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     90,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     180,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -645,30 +617,26 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_INTRO,
 						},
 						{
 							At:     90,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CREDITS,
 						},
 						{
 							At:     179,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CANON,
 						},
 						{
 							At:     190,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_PREVIEW,
 						},
 						{
 							At:     200,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
@@ -692,20 +660,18 @@ var _ = Describe("MapBetterVRVEpisodeToThirdPartyEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer(string(*input.AmbiguosNumber)),
 					Season:         newStringPointer(string(*input.Season)),
+					Source:         newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 					Timestamps: []*models.ThirdPartyTimestamp{
 						{
 							At:     0,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 						{
 							At:     1000,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_CANON,
 						},
 						{
 							At:     1020,
-							Source: newTimestampSourcePointer(models.TimestampSourceBetterVrv),
 							TypeID: constants.TIMESTAMP_ID_UNKNOWN,
 						},
 					},
