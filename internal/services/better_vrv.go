@@ -5,6 +5,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"strings"
 
 	"anime-skip.com/backend/internal/graphql/models"
 	"anime-skip.com/backend/internal/utils"
@@ -13,7 +14,7 @@ import (
 
 // Types
 
-type betterVRVInterface struct{}
+type betterVRVServiceInterface struct{}
 type BetterVRVEpisode struct {
 	ID             string `json:"objectId"`
 	CreatedAt      string `json:"createdAt"`
@@ -47,7 +48,7 @@ type Section struct {
 
 // API
 
-var BetterVRV = betterVRVInterface{}
+var BetterVRV = betterVRVServiceInterface{}
 
 const baseURL = "https://parseapi.back4app.com"
 
@@ -57,8 +58,8 @@ const API_KEY_KEY = "X-Parse-REST-API-Key"
 var APP_ID_VALUE = utils.EnvString("BETTER_VRV_APP_ID")
 var API_KEY_VALUE = utils.EnvString("BETTER_VRV_API_KEY")
 
-var timestampTypeBetterVRV = models.TimestampSourceBetterVrv
-var timestampTypeBetterVRVPtr = &timestampTypeBetterVRV
+var localCache map[string]*models.ThirdPartyEpisode
+var UNKOWN_EPISODE = &models.ThirdPartyEpisode{}
 
 func createRequest(endpoint string, query map[string]string, headers map[string]string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", baseURL+endpoint, nil)
@@ -85,7 +86,20 @@ func createRequest(endpoint string, query map[string]string, headers map[string]
 	return req, nil
 }
 
-func (betterVRV betterVRVInterface) fetchEpisodeByName() (*models.ThirdPartyEpisode, error) {
+func (betterVRVService betterVRVServiceInterface) FetchEpisodeByName(episodeName string) (*models.ThirdPartyEpisode, error) {
+	if cachedResult, ok := localCache[episodeName]; ok {
+		return cachedResult, nil
+	}
+
+	remoteResult, err := betterVRVService.fetchRemoteEpisodeByName(episodeName)
+	if err != nil || remoteResult == nil {
+		return nil, err
+	}
+	localCache[episodeName] = remoteResult
+	return remoteResult, nil
+}
+
+func (_ betterVRVServiceInterface) fetchRemoteEpisodeByName(episodeName string) (*models.ThirdPartyEpisode, error) {
 	req, err := createRequest("/classes/Timestamps", nil, nil)
 	if err != nil {
 		return nil, err
@@ -109,32 +123,16 @@ func (betterVRV betterVRVInterface) fetchEpisodeByName() (*models.ThirdPartyEpis
 
 // Mappers
 
-func (firstSection Section) endsWith(secondSection Section) bool {
-	if firstSection.End != nil && secondSection.End != nil {
-		return math.Abs(firstSection.Start.At-secondSection.End.At) < 2
-	}
-	return false
-}
+var timestampTypeBetterVRV = models.TimestampSourceBetterVrv
+var timestampTypeBetterVRVPtr = &timestampTypeBetterVRV
 
-func (firstSection Section) isBefore(secondSection Section) bool {
-	if firstSection.End != nil && secondSection.Start != nil {
-		return firstSection.End.At < secondSection.Start.At+2
-	}
-	return false
-}
-
-func (firstSection Section) isAfter(secondSection Section) bool {
-	if firstSection.Start != nil && secondSection.End != nil {
-		return firstSection.Start.At+2 > secondSection.End.At
-	}
-	return false
-}
+const SAME_DIFF_THRESHOLD_SECONDS = 2
 
 func (firstSection Section) isSame(secondSection Section) bool {
-	if firstSection.Start != nil && secondSection.Start != nil && math.Abs(firstSection.Start.At-secondSection.Start.At) < 2 {
+	if firstSection.Start != nil && secondSection.Start != nil && math.Abs(firstSection.Start.At-secondSection.Start.At) < SAME_DIFF_THRESHOLD_SECONDS {
 		return true
 	}
-	if firstSection.End != nil && secondSection.End != nil && math.Abs(firstSection.End.At-secondSection.End.At) < 2 {
+	if firstSection.End != nil && secondSection.End != nil && math.Abs(firstSection.End.At-secondSection.End.At) < SAME_DIFF_THRESHOLD_SECONDS {
 		return true
 	}
 	return false
@@ -194,6 +192,19 @@ func createSection(hasSection *bool, sectionStart *float64, sectionEnd *float64,
 	}
 }
 
+// This should only be used when returning data, better vrv searches should NOT be standardized since it stores the data non-standard
+func standardizeEpisodeTitle(title string) (standardized string) {
+	standardized = strings.ReplaceAll(title, "’", "'")
+	standardized = strings.ReplaceAll(standardized, "‘", "'")
+	standardized = strings.ReplaceAll(standardized, "–", "-")
+	standardized = strings.ReplaceAll(standardized, "　", " ")
+	standardized = strings.ReplaceAll(standardized, "“", "\"")
+	standardized = strings.ReplaceAll(standardized, "”", "\"")
+	standardized = strings.ReplaceAll(standardized, "…", "...")
+	standardized = strings.ReplaceAll(standardized, "‼", "!!")
+	return strings.TrimSpace(standardized)
+}
+
 func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.ThirdPartyEpisode {
 	if input == nil {
 		return nil
@@ -213,7 +224,7 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 	// Parse sections
 	intro := createSection(input.HasIntro, input.IntroStart, input.IntroEnd, 90, constants.TIMESTAMP_ID_INTRO)
 	outro := createSection(input.HasOutro, input.OutroStart, input.OutroEnd, 90, constants.TIMESTAMP_ID_CREDITS)
-	postCredits := createSection(input.HasPostCredit, input.PostCreditStart, input.PostCreditEnd, 0, constants.TIMESTAMP_ID_CANON)
+	postCredits := createSection(input.HasPostCredit, input.PostCreditStart, in2put.PostCreditEnd, 0, constants.TIMESTAMP_ID_CANON)
 	preview := createSection(input.HasPreview, input.PreviewStart, input.PreviewEnd, 0, constants.TIMESTAMP_ID_PREVIEW)
 
 	// Combine Sections
@@ -269,7 +280,7 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 			first := timestamps[firstIndex]
 			secondIndex := i
 			second := timestamps[secondIndex]
-			if math.Abs(first.At-second.At) < 2 {
+			if math.Abs(first.At-second.At) < SAME_DIFF_THRESHOLD_SECONDS {
 				var typeID = first.TypeID
 				if second.TypeID != constants.TIMESTAMP_ID_UNKNOWN {
 					typeID = second.TypeID
@@ -300,9 +311,10 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 	if len(timestamps) == 0 {
 		return nil
 	}
+	epsiodeTitle := standardizeEpisodeTitle(input.EpisodeTitle)
 	return &models.ThirdPartyEpisode{
 		AbsoluteNumber: number,
-		Name:           &input.EpisodeTitle,
+		Name:           &epsiodeTitle,
 		Number:         nil,
 		Season:         season,
 		Timestamps:     timestamps,
