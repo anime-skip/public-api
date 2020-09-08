@@ -37,3 +37,12 @@ func TimestampEntityToModel(entity *entities.Timestamp) *models.Timestamp {
 		EpisodeID: entity.EpisodeID.String(),
 	}
 }
+
+func TimestampModelToThirdPartyTimestamp(entity *models.Timestamp) *models.ThirdPartyTimestamp {
+	id := entity.ID
+	return &models.ThirdPartyTimestamp{
+		ID:     &id,
+		At:     entity.At,
+		TypeID: entity.TypeID,
+	}
+}
