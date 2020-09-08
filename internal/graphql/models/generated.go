@@ -296,18 +296,15 @@ type ThirdPartyEpisode struct {
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
 	Name           *string                `json:"name"`
+	Source         *TimestampSource       `json:"source"`
 	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`
 }
 
 type ThirdPartyTimestamp struct {
 	// The actual time the timestamp is at
-	At     float64          `json:"at"`
-	Source *TimestampSource `json:"source"`
+	At float64 `json:"at"`
 	// The id specifying the type the timestamp is
 	TypeID string `json:"typeId"`
-	// The type the timestamp is. Thid field is a constant string so including it has no effect on
-	// performance or query complexity.
-	Type *TimestampType `json:"type"`
 }
 
 type Timestamp struct {
