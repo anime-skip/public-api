@@ -11,7 +11,6 @@ import (
 var unknownTimestampTypeID = uuid.FromStringOrNil(constants.TIMESTAMP_ID_UNKNOWN)
 
 var unknownTimestampType = &entities.TimestampType{
-
 	Name:        "Unknown",
 	Description: "A timestamp that was imported from a different system that didn't have enough information to decide what type it was. These are treated as unskippable",
 	BaseEntity:  basicEntity(unknownTimestampTypeID),
