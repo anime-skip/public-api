@@ -85,8 +85,20 @@ type Episode implements BaseModel {
   urls: [EpisodeUrl!]!
 }
 
-"Episode info provided by a third party. See `Episode` for a description of each field"
+"""
+Episode info provided by a third party. See `Episode` for a description of each field.
+
+When creating data based on this type, fill out and post an episode, then timestamps based on the
+data here. All fields will map 1 to 1 with the exception of `source`. Since a source belongs to a
+episode for third party data, but belongs to timestamps in Anime Skip, the source should be
+propogated down to each of the timestamps. This way when more timestamps are added, a episode can
+have muliple timestamp sources.
+
+> Make sure to fill out the `source` field so that original owner of the timestamp is maintained
+"""
 type ThirdPartyEpisode {
+  "The Anime Skip `Episode.id` when the `source` is `ANIME_SKIP`, otherwise this is null"
+  id: ID
   season: String
   number: String
   absoluteNumber: String
@@ -342,10 +354,13 @@ type Timestamp implements BaseModel {
 }
 
 type ThirdPartyTimestamp {
+  "The Anime Skip `Timestamp.id` when the `Episode.source` is `ANIME_SKIP`, otherwise this is null"
+  id: ID
   "The actual time the timestamp is at"
   at: Float!
   "The id specifying the type the timestamp is"
   typeId: ID!
+  type: TimestampType!
 }
 
 "Data required to create a new `Timestamp`. See `Timestamp` for a description of each field"

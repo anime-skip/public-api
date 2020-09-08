@@ -39,15 +39,28 @@ type Query {
   "Get a list of episodes for a given `Show.id`"
   findEpisodesByShowId(showId: ID!): [Episode!]
   """
-  Search for episodes that include the `search` in the `Episode.name`. Results are sorted by `Show.name`
-  as `ASC` or `DESC`
+  Search for episodes that include the `search` in the `Episode.name`. Results are sorted by
+  `Show.name`as `ASC` or `DESC`
 
   Results can be limited to a single show by passing `showId`
   """
   searchEpisodes(search: String = "", showId: ID, offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+  """
+  Get a list of third party episodes for a given `Episode.name`. Since this can return an array of
+  multiple items, always use `findEpisodeUrl` first, then fallback to this query.
+  
+  Current 3rd party timestamp providers include:
+  - [BetterVRV](http://tuckerchap.in/BetterVRV/)
+
+  > See `ThirdPartyEpisode` for more information about how to create data based on this type
+  """
+  findEpisodeByName(name: String!): [ThirdPartyEpisode]
 
   # Episode Urls
-  "Find an episode based on a URL"
+  """
+  Find an episode based on a URL. This is the primary method used to lookup data for a known service
+  URL. See `findEpisodeByName` for looking up fallback data.
+  """
   findEpisodeUrl(episodeUrl: String!): EpisodeUrl
   "List all the `EpisodeUrl`s for a given `Episode.id`"
   findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]
