@@ -91,6 +91,16 @@ func FindEpisodeByID(db *gorm.DB, episodeID string) (*entities.Episode, error) {
 	return episode, nil
 }
 
+func FindEpisodesByExactName(db *gorm.DB, name string) ([]*entities.Episode, error) {
+	episodes := []*entities.Episode{}
+	err := db.Unscoped().Where("name = ?", name).Find(&episodes).Error
+	if err != nil {
+		log.V("Failed query: %v", err)
+		return nil, fmt.Errorf("No episode found with name='%s'", name)
+	}
+	return episodes, nil
+}
+
 func FindEpisodesByShowID(db *gorm.DB, showID string) ([]*entities.Episode, error) {
 	episodes := []*entities.Episode{}
 	err := db.Where("show_id = ?", showID).Order("season ASC, number ASC, absolute_number ASC").Find(&episodes).Error

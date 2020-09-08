@@ -6,6 +6,8 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
+	. "anime-skip.com/backend/internal/services"
+	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -35,6 +37,7 @@ func episodesByShowID(db *gorm.DB, showID string) ([]*models.Episode, error) {
 // Query Resolvers
 
 type episodeResolver struct{ *Resolver }
+type thirdPartyEpisodeResolver struct{ *Resolver }
 
 func (r *queryResolver) FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error) {
 	return episodeByID(r.DB(ctx), episodeID)
@@ -54,6 +57,29 @@ func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, show
 		episodeModels[index] = mappers.EpisodeEntityToModel(entity)
 	}
 	return episodeModels, nil
+}
+
+func (r *queryResolver) FindEpisodeByName(ctx context.Context, episodeName string) ([]*models.ThirdPartyEpisode, error) {
+	standardizedName := BetterVRV.StandardizeEpisodeName(episodeName)
+	animeSkipEpisodes, err := repos.FindEpisodesByExactName(r.DB(ctx), standardizedName)
+	if err != nil {
+		log.E("Failed to lookup episodes from database: %v", err)
+	}
+	mappedAnimeSkipEpisodes := []*models.ThirdPartyEpisode{}
+	for _, episode := range animeSkipEpisodes {
+		mappedAnimeSkipEpisodes = append(
+			mappedAnimeSkipEpisodes,
+			mappers.EpisodeEntityToThirdPartyEpisodeModel(episode),
+		)
+	}
+
+	thirdPartyEpisodes, err := BetterVRV.FetchEpisodeByName(episodeName)
+	if err != nil {
+		log.E("Failed to fetch episodes from BetterVRV: %v", err)
+		return nil, err
+	}
+
+	return append(mappedAnimeSkipEpisodes, thirdPartyEpisodes...), nil
 }
 
 // Mutation Resolvers
@@ -110,4 +136,19 @@ func (r *episodeResolver) Timestamps(ctx context.Context, obj *models.Episode) (
 
 func (r *episodeResolver) Urls(ctx context.Context, obj *models.Episode) ([]*models.EpisodeURL, error) {
 	return episodeURLsByEpisodeID(r.DB(ctx), obj.ID)
+}
+
+func (r *thirdPartyEpisodeResolver) Timestamps(ctx context.Context, obj *models.ThirdPartyEpisode) ([]*models.ThirdPartyTimestamp, error) {
+	if obj.ID == nil {
+		return obj.Timestamps, nil
+	}
+	timestamps, err := timestampsByEpisodeID(r.DB(ctx), *obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	mappedTimestamps := []*models.ThirdPartyTimestamp{}
+	for _, timestamp := range timestamps {
+		mappedTimestamps = append(mappedTimestamps, mappers.TimestampModelToThirdPartyTimestamp(timestamp))
+	}
+	return mappedTimestamps, nil
 }

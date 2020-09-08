@@ -35,6 +35,7 @@ func timestampsByEpisodeID(db *gorm.DB, episodeID string) ([]*models.Timestamp, 
 // Query Resolvers
 
 type timestampResolver struct{ *Resolver }
+type thirdPartyTimestampResolver struct{ *Resolver }
 
 func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error) {
 	return timestampByID(r.DB(ctx), timestampID)
@@ -94,4 +95,8 @@ func (r *timestampResolver) Type(ctx context.Context, obj *models.Timestamp) (*m
 
 func (r *timestampResolver) Episode(ctx context.Context, obj *models.Timestamp) (*models.Episode, error) {
 	return episodeByID(r.DB(ctx), obj.EpisodeID)
+}
+
+func (r *thirdPartyTimestampResolver) Type(ctx context.Context, obj *models.ThirdPartyTimestamp) (*models.TimestampType, error) {
+	return timestampTypeByID(r.DB(ctx), obj.TypeID)
 }
