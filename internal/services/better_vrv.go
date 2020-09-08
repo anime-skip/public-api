@@ -89,7 +89,7 @@ func createRequest(endpoint string, query map[string]string, headers map[string]
 	return req, nil
 }
 
-func (betterVRVService betterVRVServiceInterface) FetchEpisodeByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
+func (betterVRVService betterVRVServiceInterface) FetchEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
 	if cachedResult, ok := localCache[episodeName]; ok {
 		return cachedResult, nil
 	}

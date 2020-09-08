@@ -73,7 +73,7 @@ func (r *queryResolver) FindEpisodeByName(ctx context.Context, episodeName strin
 		)
 	}
 
-	thirdPartyEpisodes, err := BetterVRV.FetchEpisodeByName(episodeName)
+	thirdPartyEpisodes, err := BetterVRV.FetchEpisodesByName(episodeName)
 	if err != nil {
 		log.E("Failed to fetch episodes from BetterVRV: %v", err)
 		return nil, err
