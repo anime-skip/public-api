@@ -12,8 +12,7 @@ watch:
 
 .PHONY: test
 test:
-	go build ./...
-	go test ./...
+	@./scripts/test.sh
 
 .PHONY: gen
 gen:
