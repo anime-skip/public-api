@@ -6,43 +6,51 @@ on:
 
 jobs:
 
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+      - uses: actions/checkout@v1
+      - name: Create .env
+        run: ./.github/create-env.sh
   build:
     name: Build
     runs-on: ubuntu-latest
+    needs: [setup]
     steps:
-    - uses: actions/setup-go@v1
-      with:
-        go-version: 1.13
-    - uses: actions/checkout@v1
-    - name: Build
-      run: ./.github/build.sh
+      - uses: actions/checkout@v1
+      - run: |
+          pwd
+          echo ""
+          ls
+          echo ""
+          cat Makefile
+      - name: Build
+        run: make build
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    needs: [setup]
     steps:
-    - uses: actions/setup-go@v1
-      with:
-        go-version: 1.13
-    - uses: actions/checkout@v1
-    - name: Lint
-      run: ./.github/lint.sh
+      - uses: actions/checkout@v1
+      - name: Lint
+        run: echo "TODO" # make lint
   test:
     name: Test
     runs-on: ubuntu-latest
+    needs: [setup, build]
     steps:
-    - uses: actions/setup-go@v1
-      with:
-        go-version: 1.13
-    - uses: actions/checkout@v1
-    - name: Run Tests
-      run: ./.github/test.sh
+      - uses: actions/checkout@v1
+      - name: Run Tests
+        run: make test
   e2e:
     name: E2E Tests
     runs-on: ubuntu-latest
+    needs: [setup, build, test]
     steps:
-    - uses: actions/setup-go@v1
-      with:
-        go-version: 1.13
-    - uses: actions/checkout@v1
-    - name: Run Tests
-      run: ./.github/e2e-test.sh
+      - uses: actions/checkout@v1
+      - name: Run E2E Tests
+        run: echo "TODO" # make e2e-test

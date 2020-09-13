@@ -33,6 +33,10 @@ models:
         resolver: true
       urls:
         resolver: true
+  ThirdPartyEpisode:
+    fields:
+      timestamps:
+        resolver: true
   EpisodeUrl:
     fields:
       createdBy:
@@ -94,6 +98,10 @@ models:
       type:
         resolver: true
       episode:
+        resolver: true
+  ThirdPartyTimestamp:
+    fields:
+      type:
         resolver: true
   TimestampType:
     fields:

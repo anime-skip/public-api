@@ -36,6 +36,7 @@ func Run(db *gorm.DB) error {
 		tables.ModifyEpisodeUrlsTableHardDelete,
 		tables.LowercaseAllEmails,
 		tables.EpisodeColumnsToStrings,
+		tables.AddTimestampSource,
 	})
 	err = m.Migrate()
 	if err != nil {
@@ -46,6 +47,7 @@ func Run(db *gorm.DB) error {
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		seeders.SeedAdminUser,
 		seeders.SeedTimestampTypes,
+		seeders.SeedUnknownTimestampType,
 	})
 	return m.Migrate()
 }

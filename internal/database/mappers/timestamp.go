@@ -13,6 +13,7 @@ func TimestampInputModelToEntity(inputModel models.InputTimestamp, entity *entit
 
 	entity.At = inputModel.At
 	entity.TypeID = uuid.FromStringOrNil(inputModel.TypeID)
+	entity.Source = TimestampSouceEnumToInt(inputModel.Source)
 
 	return entity
 }
@@ -33,7 +34,17 @@ func TimestampEntityToModel(entity *entities.Timestamp) *models.Timestamp {
 		DeletedByUserID: deletedByUserID,
 
 		At:        entity.At,
+		Source:    TimestampSouceIntToEnum(entity.Source),
 		TypeID:    entity.TypeID.String(),
 		EpisodeID: entity.EpisodeID.String(),
+	}
+}
+
+func TimestampModelToThirdPartyTimestamp(entity *models.Timestamp) *models.ThirdPartyTimestamp {
+	id := entity.ID
+	return &models.ThirdPartyTimestamp{
+		ID:     &id,
+		At:     entity.At,
+		TypeID: entity.TypeID,
 	}
 }

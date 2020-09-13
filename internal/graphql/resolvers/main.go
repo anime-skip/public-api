@@ -31,6 +31,9 @@ func (r *Resolver) DB(ctx context.Context) *gorm.DB {
 func (r *Resolver) Episode() gql.EpisodeResolver {
 	return &episodeResolver{r}
 }
+func (r *Resolver) ThirdPartyEpisode() gql.ThirdPartyEpisodeResolver {
+	return &thirdPartyEpisodeResolver{r}
+}
 func (r *Resolver) EpisodeUrl() gql.EpisodeUrlResolver {
 	return &episodeUrlResolver{r}
 }
@@ -48,6 +51,9 @@ func (r *Resolver) ShowAdmin() gql.ShowAdminResolver {
 }
 func (r *Resolver) Timestamp() gql.TimestampResolver {
 	return &timestampResolver{r}
+}
+func (r *Resolver) ThirdPartyTimestamp() gql.ThirdPartyTimestampResolver {
+	return &thirdPartyTimestampResolver{r}
 }
 func (r *Resolver) TimestampType() gql.TimestampTypeResolver {
 	return &timestampTypeResolver{r}

@@ -8,7 +8,7 @@ import (
 	log "anime-skip.com/backend/internal/utils/log"
 )
 
-// EnvString will return the env as a string or default to ""
+// EnvString will return the env as a string or crash if it doesn't exist
 func EnvString(k string) string {
 	v := os.Getenv(k)
 	if v == "" {

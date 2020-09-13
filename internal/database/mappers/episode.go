@@ -5,6 +5,8 @@ import (
 	"anime-skip.com/backend/internal/graphql/models"
 )
 
+var animeSkipSource = models.TimestampSourceAnimeSkip
+
 func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.Episode) *entities.Episode {
 	if entity == nil {
 		return nil
@@ -38,5 +40,19 @@ func EpisodeEntityToModel(entity *entities.Episode) *models.Episode {
 		Number:         entity.Number,
 		AbsoluteNumber: entity.AbsoluteNumber,
 		ShowID:         entity.ShowID.String(),
+	}
+}
+
+// This does not map the timestamps, it relies on a custom resolver to do that
+func EpisodeEntityToThirdPartyEpisodeModel(entity *entities.Episode) *models.ThirdPartyEpisode {
+	id := entity.ID.String()
+	return &models.ThirdPartyEpisode{
+		ID:             &id,
+		Name:           entity.Name,
+		AbsoluteNumber: entity.AbsoluteNumber,
+		Number:         entity.Number,
+		Season:         entity.Season,
+		Source:         &animeSkipSource,
+		Timestamps:     nil,
 	}
 }

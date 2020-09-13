@@ -6,6 +6,7 @@ import "github.com/gofrs/uuid"
 type Timestamp struct {
 	BaseEntity
 	At        float64
+	Source    int       `gorm:"not null"`
 	TypeID    uuid.UUID `gorm:"not null;type:uuid"`
 	EpisodeID uuid.UUID `gorm:"not null;type:uuid"`
 }

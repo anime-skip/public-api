@@ -51,3 +51,21 @@ func EpisodeSourceIntToEnum(value int) models.EpisodeSource {
 	}
 	return models.EpisodeSourceUnknown
 }
+
+func TimestampSouceEnumToInt(value *models.TimestampSource) int {
+	if value != nil {
+		switch *value {
+		case models.TimestampSourceBetterVrv:
+			return constants.TIMESTAMP_SOURCE_BETTER_VRV
+		}
+	}
+	return constants.TIMESTAMP_SOURCE_ANIME_SKIP
+}
+
+func TimestampSouceIntToEnum(value int) models.TimestampSource {
+	switch value {
+	case constants.TIMESTAMP_SOURCE_BETTER_VRV:
+		return models.TimestampSourceBetterVrv
+	}
+	return models.TimestampSourceAnimeSkip
+}
