@@ -91,7 +91,13 @@ func FindShowByID(db *gorm.DB, showID string) (*entities.Show, error) {
 func SearchShows(db *gorm.DB, search string, offset int, limit int, sort string) ([]*entities.Show, error) {
 	shows := []*entities.Show{}
 	searchVar := "%" + search + "%"
-	err := db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order("LOWER(name) " + sort).Find(&shows).Error
+	var sortOrder string
+	if sort == "ASC" {
+		sortOrder = "LOWER(name) ASC"
+	} else {
+		sortOrder = "LOWER(name) DESC"
+	}
+	err := db.Where("LOWER(name) LIKE LOWER(?) OR LOWER(original_name) LIKE LOWER(?)", searchVar, searchVar).Offset(offset).Limit(limit).Order(sortOrder).Find(&shows).Error
 	if err != nil {
 		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No shows found with name LIKE '%s'", search)
