@@ -41,6 +41,6 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	}
 	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 
-	log.D("Started web server in %s @ port 8082", time.Since(startedAt))
-	log.Panic(server.Run("localhost:8082"))
+	log.D("Started web server in %s @ :8081", time.Since(startedAt))
+	log.Panic(server.Run(":8081"))
 }
