@@ -1,34 +1,31 @@
 name: Prod Release
 on:
   push:
-    tags:
-      - v*
+    # tags:
+    #   - v*
 
 jobs:
   prod_deploy:
     name: Deploy Prod
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - uses: olegtarasov/get-tag@v2
         id: tagName
         with:
           tagRegex: "v(.*)"
-      - name: Build new images
-        run: docker build . --tag backend:latest
-      - name: Push latest to ECR
-        uses: jwalton/gh-ecr-push@v1
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
         with:
-          access-key-id: ${{ secrets.ECR_ACCESS_KEY_ID }}
-          secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          region: us-east-2
-          image: backend:latest
-      - name: Push ${{ steps.tagName.outputs.tag }} to ECR
-        uses: jwalton/gh-ecr-push@v1
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: anime-skip/backend/anime-skip-api
+          tags: prod
+      - name: Deploy on Heroku
+        uses: akhileshns/heroku-deploy@v3.5.7
         with:
-          access-key-id: ${{ secrets.ECR_ACCESS_KEY_ID }}
-          secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          region: us-east-2
-          local-image: backend:latest
-          image: backend:${{ steps.tagName.outputs.tag }}
-          is-semver: true
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: anime-skip-api
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
