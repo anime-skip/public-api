@@ -2,10 +2,9 @@ name: Verify PR
 on:
   push:
     branches-ignore:
-      - master
+      - main
 
 jobs:
-
   setup:
     name: Setup
     runs-on: ubuntu-latest
@@ -22,12 +21,6 @@ jobs:
     needs: [setup]
     steps:
       - uses: actions/checkout@v1
-      - run: |
-          pwd
-          echo ""
-          ls
-          echo ""
-          cat Makefile
       - name: Build
         run: make build
   lint:
