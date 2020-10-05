@@ -49,4 +49,4 @@ const (
 	TIMESTAMP_ID_UNKNOWN       = "ae57fcf9-27b0-49a7-9a99-a91aa7518a29"
 )
 
-const VERSION = "0.1.0-beta"
+const VERSION = "0.2.0-beta"
