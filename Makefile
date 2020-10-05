@@ -1,31 +1,18 @@
-.PHONY: build
 build:
-	@./scripts/build.sh
-
-.PHONY: run
-run:
-	@./scripts/run.sh
-
-.PHONY: watch
+	@docker build . -t backend:dev
+run: build
+	@docker run --network=host --env-file .env -p 8082:8082 backend:dev
 watch:
 	@modd
 
-.PHONY: test
 test:
 	@./scripts/test.sh
 
-.PHONY: gen
 gen:
 	@./scripts/gqlgen.sh
-
-.PHONY: clean
 clean:
 	@go clean --modcache
-
-.PHONY: init
 init:
 	@./scripts/init.sh
-
-.PHONY: help
 help:
 	@./scripts/help.sh
