@@ -1,15 +1,15 @@
 name: Dev Release
 on:
   push:
-    branch:
-      - main
+    # branches:
+    #  - main
 
 jobs:
   verify:
     name: Verify Build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v2
       - name: Create .env
         run: ./.github/create-env.sh
       - name: Build
@@ -23,19 +23,18 @@ jobs:
         run: make test
       - name: Run E2E Tests
         run: echo "TODO" # make e2e-test
-  
-  dev_deploy:
-    name: Deploy Dev
+
+  push_to_registry:
+    name: Push dev image
     runs-on: ubuntu-latest
     needs: verify
     steps:
-      - uses: actions/checkout@v1
-      - name: Build image
-        run: docker build . --tag backend:dev
-      - name: Push backend:dev
-        uses: jwalton/gh-ecr-push@v1
+      - uses: actions/checkout@v2
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
         with:
-          access-key-id: ${{ secrets.ECR_ACCESS_KEY_ID }}
-          secret-access-key: ${{ secrets.ECR_SECRET_ACCESS_KEY }}
-          region: us-east-2
-          image: backend:dev
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: anime-skip/backend/anime-skip-api
+          tags: dev
