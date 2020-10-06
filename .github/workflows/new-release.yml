@@ -22,10 +22,17 @@ jobs:
           registry: docker.pkg.github.com
           repository: anime-skip/backend/anime-skip-api
           tags: prod
-      - name: Deploy on Heroku
+      - name: Deploy api.anime-skip.com
         uses: akhileshns/heroku-deploy@v3.5.7
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: anime-skip-api
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          usedocker: true
+      - name: Deploy test-api.anime-skip.com
+        uses: akhileshns/heroku-deploy@v3.5.7
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: anime-skip-test-api
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           usedocker: true
