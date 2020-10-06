@@ -49,6 +49,8 @@ func Factory() (*ORM, error) {
 	ORMInstance = &ORM{
 		DB: db,
 	}
+	db.DB().SetMaxIdleConns(5)
+	db.DB().SetMaxOpenConns(10)
 
 	// Enable SQL logs
 	db.LogMode(utils.EnvBool("LOG_SQL"))
