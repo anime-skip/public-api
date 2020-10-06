@@ -20,7 +20,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: anime-skip/backend/anime-skip-api
+          repository: anime-skip/backend/api
           tags: prod, ${{ steps.tagName.outputs.tag }}
       - name: Deploy api.anime-skip.com
         uses: akhileshns/heroku-deploy@v3.5.7
