@@ -1,5 +1,6 @@
 #!/bin/bash
-echo "LOG_LEVEL=0
+echo "PORT=8081
+LOG_LEVEL=0
 LOG_SQL=false
 ENABLE_INTROSPECTION=true
 ENABLE_PLAYGROUND=true

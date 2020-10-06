@@ -11,7 +11,7 @@ This is the backend for the Anime Skip web extension.
 1. Clone the repo
 
     ```bash
-    git clone git@github.com:aklinker1/anime-skip-backend.git
+    git clone git@github.com:aklinker1/anime-skip-api.git
     ```
 
 1. Generate a `.env` file and see the available `make` commands

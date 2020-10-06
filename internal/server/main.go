@@ -10,10 +10,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var graphqlPath string
+var port, graphqlPath string
 var enablePlayground, isDev bool
 
 func init() {
+	port = utils.EnvString("PORT")
 	graphqlPath = "/graphql"
 	enablePlayground = utils.EnvBool("ENABLE_PLAYGROUND")
 	isDev = utils.EnvBool("IS_DEV")
@@ -41,6 +42,6 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	}
 	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 
-	log.D("Started web server in %s @ :8081", time.Since(startedAt))
-	log.Panic(server.Run(":8081"))
+	log.D("Started web server in %s @ :%s", time.Since(startedAt), port)
+	log.Panic(server.Run(":" + port))
 }
