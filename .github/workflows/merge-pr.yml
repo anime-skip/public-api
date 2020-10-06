@@ -1,8 +1,8 @@
 name: Dev Release
 on:
   push:
-    # branches:
-    #  - main
+    branches:
+     - main
 
 jobs:
   verify:
