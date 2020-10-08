@@ -2,7 +2,7 @@ name: Dev Release
 on:
   push:
     branches:
-     - main
+      - main
 
 jobs:
   verify:
