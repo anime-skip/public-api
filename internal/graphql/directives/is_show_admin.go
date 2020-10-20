@@ -105,6 +105,10 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 		return nil, err
 	}
 
+	if utils.EnvBool("DISABLE_SHOW_ADMIN_DIRECTIVE") {
+		return next(ctx)
+	}
+
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("500 Internal Error [004]")
