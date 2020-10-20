@@ -1,11 +1,9 @@
 package resolvers
 
 import (
-	"bufio"
 	"context"
 	"errors"
 	"fmt"
-	"os"
 	"time"
 
 	"anime-skip.com/backend/internal/database/mappers"
@@ -15,26 +13,6 @@ import (
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 )
-
-// Helpers
-
-var emailAllowList []string
-
-func init() {
-	file, err := os.Open(utils.EnvString("EMAIL_ALLOWLIST"))
-	if err != nil {
-		fmt.Println("Failed to open email allowlist at email.allowlist")
-		return
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	emailAllowList = lines
-}
 
 // Query Resolvers
 
@@ -121,15 +99,6 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
 	tx := utils.StartTransaction(r.DB(ctx), false)
-
-	if utils.EnvBool("USE_EMAIL_ALLOWLIST") {
-		fmt.Println("Checking email allowlist for:", email, emailAllowList)
-		if !utils.StringArrayIncludes(emailAllowList, email) {
-			tx.Rollback()
-			time.Sleep(2 * time.Second)
-			return nil, errors.New("user is not apart of the early release")
-		}
-	}
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
 	if existingUser != nil {
