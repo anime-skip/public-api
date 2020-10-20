@@ -10,8 +10,6 @@ FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
 COPY --from=builder /build/bin/anime-skip-api /app/
-COPY --from=builder /build/alpha.allowlist /app/alpha.allowlist
-COPY --from=builder /build/test-server.allowlist /app/test-server.allowlist
 WORKDIR /app
 EXPOSE 8081
 CMD ["./anime-skip-api"]
