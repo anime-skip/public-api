@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.2
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added the `recentlyAddedEpisodes` query for the website
+
+### Fixes
+
+- None
+
 ## v1.0.1
 
 Prep for public release
