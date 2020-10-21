@@ -1,5 +1,19 @@
 # Changelog
 
+## v1.0.3
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- none
+
+### Fixes
+
+- Recently added was returning an episode for each timestamp, now it just returns one
+
 ## v1.0.2
 
 ### Breaking Changes
