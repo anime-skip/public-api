@@ -39,6 +39,18 @@ func episodesByShowID(db *gorm.DB, showID string) ([]*models.Episode, error) {
 type episodeResolver struct{ *Resolver }
 type thirdPartyEpisodeResolver struct{ *Resolver }
 
+func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*models.Episode, error) {
+	episodes, err := repos.RecentlyAddedEpisodes(r.DB(ctx), *limit, *offset)
+	if err != nil {
+		return nil, err
+	}
+	episodeModels := make([]*models.Episode, len(episodes))
+	for index, episode := range episodes {
+		episodeModels[index] = mappers.EpisodeEntityToModel(episode)
+	}
+	return episodeModels, nil
+}
+
 func (r *queryResolver) FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error) {
 	return episodeByID(r.DB(ctx), episodeID)
 }
