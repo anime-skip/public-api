@@ -138,16 +138,17 @@ func RecentlyAddedEpisodes(db *gorm.DB, limit, offset int) ([]*entities.Episode,
 	err := db.Raw(`
 		SELECT * FROM (
 			SELECT 
-				*,
+				episodes.*,
 				(
 					SELECT COUNT(*) FROM timestamps WHERE episode_id = episodes.id
 				) AS "timestamp_count"
 			FROM "episodes"
 			LEFT JOIN timestamps ON timestamps.episode_id = episodes.id
 			WHERE "episodes"."deleted_at" IS NULL
+			GROUP BY timestamps.episode_id, episodes.id
 			ORDER BY episodes.created_at DESC NULLS LAST
-		) as episode
-		WHERE episode.timestamp_count > 0
+		) as episodes
+		WHERE episodes.timestamp_count > 0
 		LIMIT ?
 		OFFSET ?;
 	`, limit, offset).Scan(&episodes).Error
