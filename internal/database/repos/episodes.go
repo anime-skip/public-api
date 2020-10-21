@@ -132,3 +132,29 @@ func SearchEpisodes(db *gorm.DB, search string, showID *string, offset int, limi
 	}
 	return episodes, nil
 }
+
+func RecentlyAddedEpisodes(db *gorm.DB, limit, offset int) ([]*entities.Episode, error) {
+	episodes := []*entities.Episode{}
+	err := db.Raw(`
+		SELECT * FROM (
+			SELECT 
+				*,
+				(
+					SELECT COUNT(*) FROM timestamps WHERE episode_id = episodes.id
+				) AS "timestamp_count"
+			FROM "episodes"
+			LEFT JOIN timestamps ON timestamps.episode_id = episodes.id
+			WHERE "episodes"."deleted_at" IS NULL
+			ORDER BY episodes.created_at DESC NULLS LAST
+		) as episode
+		WHERE episode.timestamp_count > 0
+		LIMIT ?
+		OFFSET ?;
+	`, limit, offset).Scan(&episodes).Error
+
+	if err != nil {
+		log.V("Failed query: %v", err)
+		return nil, fmt.Errorf("Failed to select recent episodes")
+	}
+	return episodes, nil
+}

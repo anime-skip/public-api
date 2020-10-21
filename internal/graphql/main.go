@@ -180,6 +180,7 @@ type ComplexityRoot struct {
 		FindUserByUsername         func(childComplexity int, username string) int
 		Login                      func(childComplexity int, usernameEmail string, passwordHash string) int
 		LoginRefresh               func(childComplexity int, refreshToken string) int
+		RecentlyAddedEpisodes      func(childComplexity int, limit *int, offset *int) int
 		SearchEpisodes             func(childComplexity int, search *string, showID *string, offset *int, limit *int, sort *string) int
 		SearchShows                func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
@@ -343,6 +344,7 @@ type QueryResolver interface {
 	FindShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error)
 	FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error)
 	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*models.ShowAdmin, error)
+	RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*models.Episode, error)
 	FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
 	FindEpisodesByShowID(ctx context.Context, showID string) ([]*models.Episode, error)
 	SearchEpisodes(ctx context.Context, search *string, showID *string, offset *int, limit *int, sort *string) ([]*models.Episode, error)
@@ -1316,6 +1318,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LoginRefresh(childComplexity, args["refreshToken"].(string)), true
+
+	case "Query.recentlyAddedEpisodes":
+		if e.complexity.Query.RecentlyAddedEpisodes == nil {
+			break
+		}
+
+		args, err := ec.field_Query_recentlyAddedEpisodes_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.RecentlyAddedEpisodes(childComplexity, args["limit"].(*int), args["offset"].(*int)), true
 
 	case "Query.searchEpisodes":
 		if e.complexity.Query.SearchEpisodes == nil {
@@ -2415,7 +2429,11 @@ type User {
   # Shows
   "Create a show and optionally become an admin"
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show @authorized
-  "Update show data"
+  """
+  Update show data
+  
+  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
+  """
   updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
@@ -2549,6 +2567,8 @@ type User {
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 
   # Episodes
+  "Get a list of recently added episodes with timestamps"
+  recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]
   "Find episode with a matching ` + "`" + `Episode.id` + "`" + `"
   findEpisode(episodeId: ID!): Episode
   "Get a list of episodes for a given ` + "`" + `Show.id` + "`" + `"
@@ -3458,6 +3478,30 @@ func (ec *executionContext) field_Query_login_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["passwordHash"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_recentlyAddedEpisodes_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("limit"))
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("offset"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg1
 	return args, nil
 }
 
@@ -7069,6 +7113,44 @@ func (ec *executionContext) _Query_findShowAdminsByUserId(ctx context.Context, f
 	res := resTmp.([]*models.ShowAdmin)
 	fc.Result = res
 	return ec.marshalOShowAdmin2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐShowAdminᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_recentlyAddedEpisodes(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_recentlyAddedEpisodes_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RecentlyAddedEpisodes(rctx, args["limit"].(*int), args["offset"].(*int))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Episode)
+	fc.Result = res
+	return ec.marshalOEpisode2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findEpisode(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -12127,6 +12209,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findShowAdminsByUserId(ctx, field)
+				return res
+			})
+		case "recentlyAddedEpisodes":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_recentlyAddedEpisodes(ctx, field)
 				return res
 			})
 		case "findEpisode":
