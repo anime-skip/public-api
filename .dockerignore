@@ -1,0 +1,13 @@
+.git/
+.env
+.github/
+.gitignore
+.vscode/
+.CHANGELOG.md
+Makefile
+README.md
+bin/
+gqlgen.yml
+modd.conf
+scripts/
+tools/
