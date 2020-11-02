@@ -1,5 +1,20 @@
 # Changelog
 
+## v1.0.4
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added `showId` and `show` to `ThirdPartyEpisode`, providing resolution when multiple shows have
+episodes with the same name
+
+### Fixes
+
+- None
+
 ## v1.0.3
 
 ### Breaking Changes
