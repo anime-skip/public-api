@@ -1,160 +1,19 @@
-package services
+package bettervrv
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"math"
-	"net/http"
 	"strings"
-	"time"
 
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
+	. "anime-skip.com/backend/internal/services/bettervrv/models"
 	"anime-skip.com/backend/internal/utils/constants"
-	"anime-skip.com/backend/internal/utils/log"
 )
-
-// Types
-
-type betterVRVServiceInterface struct{}
-type BetterVRVEpisode struct {
-	ID             string `json:"objectId"`
-	CreatedAt      string `json:"createdAt"`
-	UpdatedAt      string `json:"updatedAt"`
-	VRVID          string `json:"episodeId"`
-	EpisodeTitle   string `json:"episodeTitle"`
-	Season         *int   `json:"seasonNumber"`
-	AmbiguosNumber *int   `json:"episodeNumber"`
-	// When HasIntro=true, IntroStart and IntroEnd may exist, but they don't have to
-	HasIntro   *bool    `json:"hasIntro"`
-	IntroStart *float64 `json:"introStart"`
-	IntroEnd   *float64 `json:"introEnd"`
-	// When HasOutro=true, OutroStart and OutroEnd may exist, but they don't have to
-	HasOutro   *bool    `json:"hasOutro"`
-	OutroStart *float64 `json:"outroStart"`
-	OutroEnd   *float64 `json:"outroEnd"`
-	// When HasPostCredit=true, PostCreditStart and PostCreditEnd may exist, but they don't have to
-	HasPostCredit   *bool    `json:"hasPostScene"`
-	PostCreditStart *float64 `json:"postSceneStart"`
-	PostCreditEnd   *float64 `json:"postSceneEnd"`
-	// When HasPreview=true, PreviewStart and PreviewEnd may exist, but they don't have to
-	HasPreview   *bool    `json:"hasPreview"`
-	PreviewStart *float64 `json:"previewStart"`
-	PreviewEnd   *float64 `json:"previewEnd"`
-}
-
-type BetterVRVResponse struct {
-	Results []BetterVRVEpisode `json:"results"`
-}
-
-type CachedResponse struct {
-	Episodes []*models.ThirdPartyEpisode
-	CachedAt time.Time
-}
 
 type Section struct {
 	Start *models.ThirdPartyTimestamp
 	End   *models.ThirdPartyTimestamp
 }
-
-// API
-
-var BetterVRV = betterVRVServiceInterface{}
-
-const baseURL = "https://parseapi.back4app.com"
-
-const APP_ID_KEY = "x-parse-application-id"
-const API_KEY_KEY = "X-Parse-REST-API-Key"
-
-var APP_ID_VALUE = utils.EnvString("BETTER_VRV_APP_ID")
-var API_KEY_VALUE = utils.EnvString("BETTER_VRV_API_KEY")
-
-var localCache map[string]*CachedResponse = map[string]*CachedResponse{}
-var UNKOWN_EPISODE = &models.ThirdPartyEpisode{}
-var CACHE_DURATION = 30 * time.Minute
-
-func createRequest(endpoint string, query map[string]string, headers map[string]string) (*http.Request, error) {
-	req, err := http.NewRequest("GET", baseURL+endpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	if query != nil {
-		q := req.URL.Query()
-		for key, value := range query {
-			q.Add(key, value)
-		}
-		req.URL.RawQuery = q.Encode()
-	}
-
-	req.Header.Add(APP_ID_KEY, APP_ID_VALUE)
-	req.Header.Add(API_KEY_KEY, API_KEY_VALUE)
-	for key, value := range headers {
-		req.Header.Add(key, value)
-	}
-
-	return req, nil
-}
-
-func (betterVRVService betterVRVServiceInterface) FetchEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
-	cachedResult, ok := localCache[episodeName]
-	isCached := ok && cachedResult.CachedAt.Add(CACHE_DURATION).After(time.Now())
-	if isCached {
-		return cachedResult.Episodes, nil
-	}
-
-	log.V("Fetching new episode from BetterVRV")
-	remoteResult, err := fetchRemoteEpisodesByName(episodeName)
-	if err != nil || remoteResult == nil {
-		return nil, err
-	}
-	localCache[episodeName] = &CachedResponse{
-		Episodes: remoteResult,
-		CachedAt: time.Now(),
-	}
-	return remoteResult, nil
-}
-
-func fetchRemoteEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode, error) {
-	inputEpisodeName := strings.ReplaceAll(episodeName, "\"", "\\\"")
-	inputEpisodeName = strings.ReplaceAll(inputEpisodeName, "\\", "\\\\")
-	queryParams := map[string]string{
-		"where": fmt.Sprintf("{ \"episodeTitle\": \"%s\" }", inputEpisodeName),
-	}
-	req, err := createRequest("/classes/Timestamps", queryParams, nil)
-	if err != nil {
-		return nil, err
-	}
-	res, _ := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer res.Body.Close()
-	body, _ := ioutil.ReadAll(res.Body)
-
-	// Parse response
-	response := &BetterVRVResponse{}
-	err = json.Unmarshal(body, response)
-	if err != nil {
-		return nil, err
-	}
-
-	// Map list
-	episodes := []*models.ThirdPartyEpisode{}
-	if response.Results != nil {
-		for _, item := range response.Results {
-			mappedItem := MapBetterVRVEpisodeToThirdPartyEpisode(&item)
-			if mappedItem != nil {
-				episodes = append(episodes, mappedItem)
-			}
-		}
-	}
-
-	return episodes, nil
-}
-
-// Mappers
 
 var timestampTypeBetterVRV = models.TimestampSourceBetterVrv
 var timestampTypeBetterVRVPtr = &timestampTypeBetterVRV
@@ -344,5 +203,14 @@ func MapBetterVRVEpisodeToThirdPartyEpisode(input *BetterVRVEpisode) *models.Thi
 		Season:         season,
 		Source:         timestampTypeBetterVRVPtr,
 		Timestamps:     timestamps,
+		ShowID:         input.Series.ObjectId,
+	}
+}
+
+func MapBetterVRVShowToThirdPartyShow(input *BetterVRVShow) *models.ThirdPartyShow {
+	return &models.ThirdPartyShow{
+		Name:      input.Title,
+		CreatedAt: &input.CreatedAt,
+		UpdatedAt: &input.UpdatedAt,
 	}
 }
