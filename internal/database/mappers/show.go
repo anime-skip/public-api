@@ -39,3 +39,11 @@ func ShowEntityToModel(entity *entities.Show) *models.Show {
 		Image:        entity.Image,
 	}
 }
+
+func ShowModelToThirdPartyShowModel(model *models.Show) *models.ThirdPartyShow {
+	return &models.ThirdPartyShow{
+		Name:      model.Name,
+		CreatedAt: &model.CreatedAt,
+		UpdatedAt: &model.UpdatedAt,
+	}
+}

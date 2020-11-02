@@ -105,6 +105,9 @@ type ThirdPartyEpisode {
   name: String
   source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
+  "The id of the show from the third party"
+  showId: String!
+  show: ThirdPartyShow!
 }
 
 "Data required to create a new `Episode`. See `Episode` for a description of each field"
@@ -275,6 +278,12 @@ type Show implements BaseModel {
   admins: [ShowAdmin!]!
   "All the episodes that belong to the show"
   episodes: [Episode!]!
+}
+
+type ThirdPartyShow {
+  name: String!
+  createdAt: Time
+  updatedAt: Time
 }
 
 "Data required to create a new `Show`. See `Show` for a description of each field"

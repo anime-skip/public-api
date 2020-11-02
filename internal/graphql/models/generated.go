@@ -309,6 +309,15 @@ type ThirdPartyEpisode struct {
 	Name           *string                `json:"name"`
 	Source         *TimestampSource       `json:"source"`
 	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`
+	// The id of the show from the third party
+	ShowID string          `json:"showId"`
+	Show   *ThirdPartyShow `json:"show"`
+}
+
+type ThirdPartyShow struct {
+	Name      string     `json:"name"`
+	CreatedAt *time.Time `json:"createdAt"`
+	UpdatedAt *time.Time `json:"updatedAt"`
 }
 
 type ThirdPartyTimestamp struct {

@@ -1,9 +1,10 @@
-package services
+package bettervrv
 
 import (
 	"testing"
 
 	"anime-skip.com/backend/internal/graphql/models"
+	. "anime-skip.com/backend/internal/services/bettervrv/models"
 	"anime-skip.com/backend/internal/utils/constants"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
