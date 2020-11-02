@@ -227,8 +227,16 @@ type ComplexityRoot struct {
 		Name           func(childComplexity int) int
 		Number         func(childComplexity int) int
 		Season         func(childComplexity int) int
+		Show           func(childComplexity int) int
+		ShowID         func(childComplexity int) int
 		Source         func(childComplexity int) int
 		Timestamps     func(childComplexity int) int
+	}
+
+	ThirdPartyShow struct {
+		CreatedAt func(childComplexity int) int
+		Name      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
 	}
 
 	ThirdPartyTimestamp struct {
@@ -379,6 +387,8 @@ type ShowAdminResolver interface {
 }
 type ThirdPartyEpisodeResolver interface {
 	Timestamps(ctx context.Context, obj *models.ThirdPartyEpisode) ([]*models.ThirdPartyTimestamp, error)
+
+	Show(ctx context.Context, obj *models.ThirdPartyEpisode) (*models.ThirdPartyShow, error)
 }
 type ThirdPartyTimestampResolver interface {
 	Type(ctx context.Context, obj *models.ThirdPartyTimestamp) (*models.TimestampType, error)
@@ -1600,6 +1610,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ThirdPartyEpisode.Season(childComplexity), true
 
+	case "ThirdPartyEpisode.show":
+		if e.complexity.ThirdPartyEpisode.Show == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyEpisode.Show(childComplexity), true
+
+	case "ThirdPartyEpisode.showId":
+		if e.complexity.ThirdPartyEpisode.ShowID == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyEpisode.ShowID(childComplexity), true
+
 	case "ThirdPartyEpisode.source":
 		if e.complexity.ThirdPartyEpisode.Source == nil {
 			break
@@ -1613,6 +1637,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.ThirdPartyEpisode.Timestamps(childComplexity), true
+
+	case "ThirdPartyShow.createdAt":
+		if e.complexity.ThirdPartyShow.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyShow.CreatedAt(childComplexity), true
+
+	case "ThirdPartyShow.name":
+		if e.complexity.ThirdPartyShow.Name == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyShow.Name(childComplexity), true
+
+	case "ThirdPartyShow.updatedAt":
+		if e.complexity.ThirdPartyShow.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyShow.UpdatedAt(childComplexity), true
 
 	case "ThirdPartyTimestamp.at":
 		if e.complexity.ThirdPartyTimestamp.At == nil {
@@ -2092,6 +2137,9 @@ type ThirdPartyEpisode {
   name: String
   source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
+  "The id of the show from the third party"
+  showId: String!
+  show: ThirdPartyShow!
 }
 
 "Data required to create a new ` + "`" + `Episode` + "`" + `. See ` + "`" + `Episode` + "`" + ` for a description of each field"
@@ -2262,6 +2310,12 @@ type Show implements BaseModel {
   admins: [ShowAdmin!]!
   "All the episodes that belong to the show"
   episodes: [Episode!]!
+}
+
+type ThirdPartyShow {
+  name: String!
+  createdAt: Time
+  updatedAt: Time
 }
 
 "Data required to create a new ` + "`" + `Show` + "`" + `. See ` + "`" + `Show` + "`" + ` for a description of each field"
@@ -8808,6 +8862,170 @@ func (ec *executionContext) _ThirdPartyEpisode_timestamps(ctx context.Context, f
 	return ec.marshalNThirdPartyTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐThirdPartyTimestampᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _ThirdPartyEpisode_showId(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyEpisode) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyEpisode",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShowID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThirdPartyEpisode_show(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyEpisode) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyEpisode",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.ThirdPartyEpisode().Show(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.ThirdPartyShow)
+	fc.Result = res
+	return ec.marshalNThirdPartyShow2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐThirdPartyShow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThirdPartyShow_name(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyShow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyShow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThirdPartyShow_createdAt(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyShow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyShow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThirdPartyShow_updatedAt(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyShow) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyShow",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ThirdPartyTimestamp_id(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyTimestamp) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -12641,6 +12859,56 @@ func (ec *executionContext) _ThirdPartyEpisode(ctx context.Context, sel ast.Sele
 				}
 				return res
 			})
+		case "showId":
+			out.Values[i] = ec._ThirdPartyEpisode_showId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "show":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ThirdPartyEpisode_show(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var thirdPartyShowImplementors = []string{"ThirdPartyShow"}
+
+func (ec *executionContext) _ThirdPartyShow(ctx context.Context, sel ast.SelectionSet, obj *models.ThirdPartyShow) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, thirdPartyShowImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ThirdPartyShow")
+		case "name":
+			out.Values[i] = ec._ThirdPartyShow_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._ThirdPartyShow_createdAt(ctx, field, obj)
+		case "updatedAt":
+			out.Values[i] = ec._ThirdPartyShow_updatedAt(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -13537,6 +13805,20 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNThirdPartyShow2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐThirdPartyShow(ctx context.Context, sel ast.SelectionSet, v models.ThirdPartyShow) graphql.Marshaler {
+	return ec._ThirdPartyShow(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNThirdPartyShow2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐThirdPartyShow(ctx context.Context, sel ast.SelectionSet, v *models.ThirdPartyShow) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ThirdPartyShow(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNThirdPartyTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐThirdPartyTimestampᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.ThirdPartyTimestamp) graphql.Marshaler {

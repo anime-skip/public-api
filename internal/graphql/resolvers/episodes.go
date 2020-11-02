@@ -6,7 +6,7 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
-	. "anime-skip.com/backend/internal/services"
+	. "anime-skip.com/backend/internal/services/bettervrv"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -163,4 +163,15 @@ func (r *thirdPartyEpisodeResolver) Timestamps(ctx context.Context, obj *models.
 		mappedTimestamps = append(mappedTimestamps, mappers.TimestampModelToThirdPartyTimestamp(timestamp))
 	}
 	return mappedTimestamps, nil
+}
+
+func (r *thirdPartyEpisodeResolver) Show(ctx context.Context, obj *models.ThirdPartyEpisode) (*models.ThirdPartyShow, error) {
+	if obj.ID == nil {
+		return BetterVRV.FetchShowById(obj.ShowID)
+	}
+	show, err := showByID(r.DB(ctx), obj.ShowID)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.ShowModelToThirdPartyShowModel(show), nil
 }

@@ -53,6 +53,7 @@ func EpisodeEntityToThirdPartyEpisodeModel(entity *entities.Episode) *models.Thi
 		Number:         entity.Number,
 		Season:         entity.Season,
 		Source:         &animeSkipSource,
+		ShowID:         entity.ShowID.String(),
 		Timestamps:     nil,
 	}
 }

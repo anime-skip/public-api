@@ -37,6 +37,8 @@ models:
     fields:
       timestamps:
         resolver: true
+      show:
+        resolver: true
   EpisodeUrl:
     fields:
       createdBy:
