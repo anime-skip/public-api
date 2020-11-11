@@ -15,5 +15,6 @@ type EpisodeURL struct {
 	UpdatedByUserID uuid.UUID `gorm:"not null;type:uuid"`
 
 	Source    int       `gorm:"not null"`
+	Duration  *float64  `gorm:"type:decimal"`
 	EpisodeID uuid.UUID `gorm:"not null;type:uuid"`
 }

@@ -9,5 +9,6 @@ type Episode struct {
 	Number         *string
 	AbsoluteNumber *string
 	Name           *string
+	BaseDuration   *float64  `gorm:"type:decimal"`
 	ShowID         uuid.UUID `gorm:"not null;type:uuid"`
 }

@@ -1,7 +1,7 @@
 build:
 	@docker build . -t backend:dev
 run: build
-	@docker run --network=host --env-file .env -p 8081:8081 backend:dev
+	@docker run --rm=false --network=host --env-file .env -p 8081:8081 backend:dev
 watch:
 	@modd
 

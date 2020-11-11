@@ -68,6 +68,14 @@ type Episode implements BaseModel {
   should have this field
   """
   absoluteNumber: String
+  """
+  The duration of the episode's first url, which can be used to calculate a suggested offset for new
+  episode urls. Episodes at different URLs have different branding intros, and that difference can
+  be computed using: `EpisodeUrl.duration - Episode.baseDuration`
+  Generally, this works because each service has it's own branding at the beginning of the show, not
+  at the end of it
+  """
+  baseDuration: Float
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -120,9 +128,11 @@ input InputEpisode {
   absoluteNumber: String
   "See `Episode.name`"
   name: String
+  "See `Episode.baseDuration`"
+  baseDuration: Float
 }
 
-"Stores intormation about what where an episode can be watched from"
+"Stores information about what where an episode can be watched from"
 type EpisodeUrl {
   "The url that would take a user to watch the `episode`"
   url: String!
@@ -133,17 +143,24 @@ type EpisodeUrl {
   updatedByUserId: ID!
   updatedBy: User!
 
+  """
+  The length of the episode at this url. For more information on why this field exists, check out
+  the `Episode.baseDuration`. If an `Episode` does not have a duration, that `Episode` and this
+  `EpisodeUrl` should be given the same value so that the difference is 0
+  """
+  duration: Float
   "The `Episode.id` that this url belongs to"
   episodeId: ID!
   "The `Episode` that this url belongs to"
   episode: Episode!
-  "What service this url points to"
+  "What service this url points to. This is computed when the `EpisodeUrl` is created"
   source: EpisodeSource!
 }
 
 "Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field"
 input InputEpisodeUrl {
   url: String!
+  duration: Float
 }
 
 

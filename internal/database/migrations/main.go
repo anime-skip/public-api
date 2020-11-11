@@ -37,6 +37,8 @@ func Run(db *gorm.DB) error {
 		tables.LowercaseAllEmails,
 		tables.EpisodeColumnsToStrings,
 		tables.AddTimestampSource,
+		tables.AddBaseDurationToEpisodes,
+		tables.AddDurationToEpisodeUrls,
 	})
 	err = m.Migrate()
 	if err != nil {
