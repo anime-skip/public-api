@@ -16,6 +16,7 @@ func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.
 	entity.Season = inputModel.Season
 	entity.Number = inputModel.Number
 	entity.AbsoluteNumber = inputModel.AbsoluteNumber
+	entity.BaseDuration = inputModel.BaseDuration
 
 	return entity
 }
@@ -39,6 +40,7 @@ func EpisodeEntityToModel(entity *entities.Episode) *models.Episode {
 		Season:         entity.Season,
 		Number:         entity.Number,
 		AbsoluteNumber: entity.AbsoluteNumber,
+		BaseDuration:   entity.BaseDuration,
 		ShowID:         entity.ShowID.String(),
 	}
 }

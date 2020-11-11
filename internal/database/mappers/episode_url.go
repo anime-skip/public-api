@@ -24,6 +24,7 @@ func EpisodeURLInputModelToEntity(inputModel models.InputEpisodeURL, entity *ent
 	}
 
 	entity.URL = inputModel.URL
+	entity.Duration = inputModel.Duration
 	entity.Source = _urlToSource(inputModel.URL)
 
 	return entity
@@ -39,5 +40,6 @@ func EpisodeURLEntityToModel(entity *entities.EpisodeURL) *models.EpisodeURL {
 
 		EpisodeID: entity.EpisodeID.String(),
 		Source:    EpisodeSourceIntToEnum(entity.Source),
+		Duration:  entity.Duration,
 	}
 }

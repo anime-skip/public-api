@@ -9,7 +9,6 @@ RUN go mod download
 
 # Cached layer for source code
 ADD . .
-RUN ls -a
 RUN go build -o bin/anime-skip-api cmd/anime-skip-api/main.go
 
 # Make the final image with just the built binary, excluding anything required to do the build
