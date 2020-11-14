@@ -2,6 +2,7 @@ package log
 
 import (
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -16,12 +17,6 @@ var parseLines = func(values ...interface{}) (messages []interface{}) {
 			duration string
 		)
 
-		messages = []interface{}{source}
-
-		if valuesCount == 2 {
-			messages = []interface{}{source}
-		}
-
 		if level == "sql" {
 			// duration
 			duration = fmt.Sprintf("%.2fms", float64(values[2].(time.Duration).Nanoseconds()/1e4)/100.0)
@@ -35,12 +30,7 @@ var parseLines = func(values ...interface{}) (messages []interface{}) {
 			messages = append(messages, values[4])
 		}
 	}
-
-	return
-}
-
-type logger interface {
-	Print(v ...interface{})
+	return messages
 }
 
 // LogWriter log writer interface
@@ -55,17 +45,18 @@ type Logger struct {
 
 // Print format & print log
 func (logger Logger) Print(values ...interface{}) {
-	str := ""
+	str := []string{}
 	for index, line := range parseLines(values...) {
+		l := ""
 		if index == 0 {
-			str += "[   sql   ] "
+			l += "[ sql     ] "
 		} else {
-			str += "            "
+			// l += "            "
 		}
-		str += fmt.Sprintf("%v", line)
-		str += "\n"
+		l += fmt.Sprintf("%v", line)
+		str = append(str, l)
 	}
-	fmt.Printf("%s%s%s", dim, str, reset)
+	fmt.Printf("%s%s%s", yellow, strings.Join(str, "\n"), reset)
 }
 
 var SQLLogger = Logger{}

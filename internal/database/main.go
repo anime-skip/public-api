@@ -45,7 +45,7 @@ func Factory() (*ORM, error) {
 	if err != nil {
 		log.Panic("Error: ", err)
 	}
-	log.D("Connected to PostgreSQL")
+	log.I("Connected to PostgreSQL")
 	ORMInstance = &ORM{
 		DB: db,
 	}
@@ -56,16 +56,15 @@ func Factory() (*ORM, error) {
 	db.LogMode(utils.EnvBool("LOG_SQL"))
 	db.SetLogger(log.SQLLogger)
 
-	// Automigrate tables
-	log.D("Running migrations if necessary")
+	// Migrations
 	err = migrations.Run(ORMInstance.DB)
 
 	// Adding plugins
+	log.D("Registering update callbacks...")
 	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_updated_by", updateColumn("UpdatedByUserId"))
 	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_created_by", updateColumn("CreatedByUserId"))
 	db.Callback().Update().Before("gorm:update").Register("anime_skip_update:update_updated_by", updateColumn("UpdatedByUserId"))
 	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
 
-	fmt.Println()
 	return ORMInstance, err
 }

@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	log "anime-skip.com/backend/internal/utils/log"
 )
 
 var recaptcha_secret string = EnvString("RECAPTCHA_SECRET")
@@ -22,22 +24,21 @@ func VerifyRecaptcha(response, ipAddress string) error {
 	}
 	resp, err := http.Post(fmt.Sprintf(recaptchaURL, recaptcha_secret, response, ipAddress), "application/json", nil)
 	if err != nil {
-		fmt.Println(err)
+		log.E("(VerifyRecaptcha) Failed to communicate: %v", err)
 		return errors.New(errorMessage)
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		fmt.Println(err)
+		log.E("(VerifyRecaptcha) Could not read response body: %v", err)
 		return errors.New(errorMessage)
 	}
-	fmt.Println(string(body))
 
 	var responseJson map[string]interface{}
 	err = json.Unmarshal(body, &responseJson)
 	if err != nil {
-		fmt.Println(err)
+		log.E("(VerifyRecaptcha) Response body was not valid JSON: %v", err)
 		return errors.New(errorMessage)
 	}
 	if responseJson["success"] != true {

@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	log.D("Initializing server")
+	log.I("Initializing server...")
 	now := time.Now()
 	orm, err := database.Factory()
 	if err != nil {
