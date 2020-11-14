@@ -12,7 +12,6 @@
 - Cleanup logging for development and production (fdcd5ea4aa1504781554fab9275d80baebd36742)
 - Rollback migration support via environment variable (d3c61fb70fab5e8f1ee317e1efa8ded58c4c8bf6)
 - Use `DATABASE_URL` instead of separate host, user, password, etc when connecting to the DB (377df0b9f4faccafb86791fc49adee1ff49e88ce)
-- Added `x-response-time` header to requests (c88244620b2b65a1f891f25df0ce55308488d870)
 
 ### Fixes
 
