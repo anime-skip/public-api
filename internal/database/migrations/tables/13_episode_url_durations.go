@@ -1,11 +1,14 @@
 package tables
 
 // AddDurationToEpisodeUrls inserts new duration column
-var AddDurationToEpisodeUrls = migrateTable(
+var AddDurationToEpisodeUrls = migrateTableChange(
 	"MODIFY_EPISODE_URLS_TABLE__add_duration",
-	"episode_urls",
 	[]string{
 		"ALTER TABLE public.episode_urls",
 		"ADD duration decimal;",
+	},
+	[]string{
+		"ALTER TABLE public.episode_urls",
+		"DROP COLUMN duration;",
 	},
 )
