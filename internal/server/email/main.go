@@ -3,7 +3,6 @@ package email
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -34,7 +33,7 @@ func sendEmail(endpoint string, body map[string]interface{}) error {
 		return err
 	}
 	if resp.StatusCode >= 400 {
-		return errors.New(fmt.Sprintf("Send email request failed with status %s", resp.Status))
+		return fmt.Errorf("Send email request failed with status %s", resp.Status)
 	}
 	defer resp.Body.Close()
 
