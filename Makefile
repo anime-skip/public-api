@@ -1,8 +1,8 @@
 build:
-	@docker build . -t backend:dev
+	@docker build . -t anime-skip/backend/api:dev
 run:
-	@docker build -q . -t backend:dev
-	@docker run --network=host --env-file .env -p 8081:8081 backend:dev
+	@docker build -q . -t anime-skip/backend/api:dev
+	@docker run --network=host --env-file .env -p 8081:8081 anime-skip/backend/api:dev
 watch:
 	@modd
 
