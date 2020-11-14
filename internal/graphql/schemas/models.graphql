@@ -146,9 +146,16 @@ type EpisodeUrl {
   """
   The length of the episode at this url. For more information on why this field exists, check out
   the `Episode.baseDuration`. If an `Episode` does not have a duration, that `Episode` and this
-  `EpisodeUrl` should be given the same value so that the difference is 0
+  `EpisodeUrl` should be given the same value, and the `EpisodeUrl.timestampsOffset` should be set to 0
   """
   duration: Float
+  """
+  How much a episode's timestamps should be offset for this `EpisodeUrl`, since different services
+  have different branding animations, leading to offsets between services. This field can be edited
+  to whatever, but it should be suggested to be `EpisodeUrl.duration - Episode.baseDuration`.
+  It can be positive or negative.
+  """
+  timestampsOffset: Float
   "The `Episode.id` that this url belongs to"
   episodeId: ID!
   "The `Episode` that this url belongs to"
@@ -161,6 +168,7 @@ type EpisodeUrl {
 input InputEpisodeUrl {
   url: String!
   duration: Float
+  timestampsOffset: Float
 }
 
 
