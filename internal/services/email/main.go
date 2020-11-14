@@ -11,12 +11,10 @@ import (
 	"anime-skip.com/backend/internal/utils"
 )
 
-var EMAIL_HOST string = utils.EnvString("EMAIL_SERVICE_HOST")
-var EMAIL_SECRET string = utils.EnvString("EMAIL_SERVICE_SECRET")
 var httpClient *http.Client = &http.Client{}
 
 func sendEmail(endpoint string, body map[string]interface{}) error {
-	url := fmt.Sprintf("http://%s/%s", EMAIL_HOST, endpoint)
+	url := fmt.Sprintf("http://%s/%s", utils.ENV.EMAIL_SERVICE_HOST, endpoint)
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
 		return err
@@ -26,7 +24,7 @@ func sendEmail(endpoint string, body map[string]interface{}) error {
 		return err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Secret "+EMAIL_SECRET)
+	req.Header.Set("Authorization", "Secret "+utils.ENV.EMAIL_SERVICE_SECRET)
 
 	resp, err := httpClient.Do(req)
 	if err != nil {

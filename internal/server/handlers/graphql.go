@@ -5,18 +5,11 @@ import (
 	gql "anime-skip.com/backend/internal/graphql"
 	"anime-skip.com/backend/internal/graphql/directives"
 	"anime-skip.com/backend/internal/graphql/resolvers"
-	"anime-skip.com/backend/internal/utils"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 )
-
-var isIntrospectionEnabled bool
-
-func init() {
-	isIntrospectionEnabled = utils.EnvBool("ENABLE_INTROSPECTION")
-}
 
 // GraphQLHandler defines the handler for the generated GraphQL server
 func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {

@@ -32,7 +32,7 @@ func ginContextToContextMiddleware(c *gin.Context) {
 }
 
 func corsMiddleware(c *gin.Context) {
-	if utils.EnvBool("IS_DEV") {
+	if utils.ENV.IS_DEV {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	} else {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // TODO - Figure out origins for prod

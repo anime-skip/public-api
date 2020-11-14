@@ -27,8 +27,8 @@ const BASE_URL = "https://parseapi.back4app.com"
 const APP_ID_KEY = "x-parse-application-id"
 const API_KEY_KEY = "X-Parse-REST-API-Key"
 
-var APP_ID_VALUE = utils.EnvString("BETTER_VRV_APP_ID")
-var API_KEY_VALUE = utils.EnvString("BETTER_VRV_API_KEY")
+var APP_ID_VALUE = utils.ENV.BETTER_VRV_APP_ID
+var API_KEY_VALUE = utils.ENV.BETTER_VRV_API_KEY
 var UNKNOWN_EPISODE = &models.ThirdPartyEpisode{}
 var CACHE_DURATION = 30 * time.Minute
 
