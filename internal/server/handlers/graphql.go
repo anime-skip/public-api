@@ -6,7 +6,9 @@ import (
 	"anime-skip.com/backend/internal/graphql/directives"
 	"anime-skip.com/backend/internal/graphql/resolvers"
 	"anime-skip.com/backend/internal/utils"
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
 )
 
@@ -18,30 +20,24 @@ func init() {
 
 // GraphQLHandler defines the handler for the generated GraphQL server
 func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
-	// NewExecutableSchema and Config are in the internal/graphql/generated.go file
-	config := gql.Config{
+	schema := gql.NewExecutableSchema(gql.Config{
 		Resolvers: resolvers.ResolverWithORM(orm),
-	}
+		Directives: gql.DirectiveRoot{
+			Authorized:  directives.Authorized,
+			HasRole:     directives.HasRole,
+			IsShowAdmin: directives.IsShowAdmin,
+		},
+	})
 
-	// Set the directives
-	config.Directives.Authorized = directives.Authorized
-	config.Directives.HasRole = directives.HasRole
-	config.Directives.IsShowAdmin = directives.IsShowAdmin
+	gqlHandler := handler.New(schema)
+	gqlHandler.AddTransport(transport.POST{})
 
-	// Apply and serve the schema
-	handler := handler.GraphQL(
-		gql.NewExecutableSchema(config),
-		handler.IntrospectionEnabled(isIntrospectionEnabled),
-		// handler.ComplexityLimit(5),
-	)
-	return func(c *gin.Context) {
-		handler.ServeHTTP(c.Writer, c.Request)
-	}
+	return gin.WrapH(gqlHandler)
 }
 
 // PlaygroundHandler defines the handler to expose the GraphQL playground
 func PlaygroundHandler(path string) gin.HandlerFunc {
-	handler := handler.Playground("Go GraphQL Server", path)
+	handler := playground.Handler("Anime Skip Playground", path)
 	return func(c *gin.Context) {
 		handler.ServeHTTP(c.Writer, c.Request.WithContext(c))
 	}
