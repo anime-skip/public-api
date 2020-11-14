@@ -19,7 +19,7 @@ PORT=8000
 GIN_MODE=release
 
 # Postgres
-DATABASE_URL=postgres://<username>:<password>@<host>:<port>/<dbname>
+DATABASE_URL=postgres://postgres:password@db:9001/anime_skip_local
 DATABASE_DISABLE_SSL=true
 DATABASE_ENABLE_SEEDING=true
 

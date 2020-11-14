@@ -22,6 +22,8 @@ func init() {
 
 // Run the web server
 func Run(orm *database.ORM, startedAt time.Time) {
+	prometheus.Register()
+
 	server := gin.New()
 	if isDev {
 		server.Use(log.RequestLogger)
@@ -35,6 +37,7 @@ func Run(orm *database.ORM, startedAt time.Time) {
 
 	// REST endpoints
 	server.GET("/status", handlers.Status())
+	server.GET("/metrics", handlers.PrometheusMetrics)
 
 	// GraphQL endpoints
 	if enablePlayground {

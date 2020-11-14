@@ -9,6 +9,7 @@
         "gorm",
         "gormigrate",
         "graphql",
+        "grafana",
         "jinzhu",
         "postgres",
         "repos",
@@ -18,5 +19,18 @@
         "uuid"
     ],
     "editor.tabSize": 2,
-    "files.insertFinalNewline": true
+    "files.insertFinalNewline": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 9001,
+            "database": "anime_skip_local",
+            "driver": "PostgreSQL",
+            "group": "Anime Skip",
+            "name": "Local",
+            "password": "password",
+            "username": "postgres"
+        }
+    ]
 }

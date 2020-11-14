@@ -6,7 +6,11 @@ import (
 	"anime-skip.com/backend/internal/graphql/directives"
 	"anime-skip.com/backend/internal/graphql/resolvers"
 	"anime-skip.com/backend/internal/utils"
-	"github.com/99designs/gqlgen/handler"
+	"github.com/99designs/gqlgen-contrib/prometheus"
+	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
+	"github.com/99designs/gqlgen/graphql/playground"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -23,10 +27,7 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 		Resolvers: resolvers.ResolverWithORM(orm),
 	}
 
-	// Set the directives
-	config.Directives.Authorized = directives.Authorized
-	config.Directives.HasRole = directives.HasRole
-	config.Directives.IsShowAdmin = directives.IsShowAdmin
+	gqlHandler.Use(prometheus.Tracer{})
 
 	// Apply and serve the schema
 	handler := handler.GraphQL(

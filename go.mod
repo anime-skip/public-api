@@ -6,6 +6,7 @@ go 1.13
 
 require (
 	github.com/99designs/gqlgen v0.12.2
+	github.com/99designs/gqlgen-contrib v0.1.1-0.20200601100547-7a955d321bbd
 	github.com/cmelgarejo/go-gql-server v0.0.0-20191210205900-dcf7db2f156c
 	github.com/cortesi/modd v0.0.0-20200630120222-8983974e5450 // indirect
 	github.com/davecgh/go-spew v1.1.1
@@ -18,6 +19,7 @@ require (
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/onsi/ginkgo v1.14.0
 	github.com/onsi/gomega v1.10.1
+	github.com/prometheus/client_golang v1.8.0
 	github.com/vektah/gqlparser v1.3.1
 	github.com/vektah/gqlparser/v2 v2.0.1
 	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a

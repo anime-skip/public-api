@@ -1,0 +1,45 @@
+version: "3.7"
+
+services:
+
+  prometheus: 
+    image: prom/prometheus:v2.1.0
+    restart: always
+    volumes:
+      - ./.config/prometheus:/etc/prometheus/
+    command:
+      - '--config.file=/etc/prometheus/config.yml'
+    ports:
+      - 9090:9090
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    depends_on:
+      - prometheus
+    volumes:
+      - ./.config/grafana/provisioning:/etc/grafana/provisioning
+    ports:
+      - 3000:3000
+    env_file:
+      - ./.config/grafana/.env
+
+  db:
+    image: postgres:9.6
+    command: -p 9001
+    ports:
+      - 9001:9001
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: anime_skip_local
+
+  anime_skip_api:
+    build: '.'
+    depends_on: 
+      - db
+    ports:
+      - 8081:8081
+    env_file:
+      - ./.env
+      - ./.config/api-overrides.env
