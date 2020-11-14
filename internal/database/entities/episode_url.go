@@ -14,7 +14,8 @@ type EpisodeURL struct {
 	UpdatedAt       time.Time `gorm:"not null"`
 	UpdatedByUserID uuid.UUID `gorm:"not null;type:uuid"`
 
-	Source    int       `gorm:"not null"`
-	Duration  *float64  `gorm:"type:decimal"`
-	EpisodeID uuid.UUID `gorm:"not null;type:uuid"`
+	Source           int       `gorm:"not null"`
+	Duration         *float64  `gorm:"type:decimal"`
+	TimestampsOffset *float64  `gorm:"type:decimal"`
+	EpisodeID        uuid.UUID `gorm:"not null;type:uuid"`
 }

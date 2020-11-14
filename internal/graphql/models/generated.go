@@ -106,8 +106,13 @@ type EpisodeURL struct {
 	UpdatedBy       *User     `json:"updatedBy"`
 	// The length of the episode at this url. For more information on why this field exists, check out
 	// the `Episode.baseDuration`. If an `Episode` does not have a duration, that `Episode` and this
-	// `EpisodeUrl` should be given the same value so that the difference is 0
+	// `EpisodeUrl` should be given the same value, and the `EpisodeUrl.timestampsOffset` should be set to 0
 	Duration *float64 `json:"duration"`
+	// How much a episode's timestamps should be offset for this `EpisodeUrl`, since different services
+	// have different branding animations, leading to offsets between services. This field can be edited
+	// to whatever, but it should be suggested to be `EpisodeUrl.duration - Episode.baseDuration`.
+	// It can be positive or negative.
+	TimestampsOffset *float64 `json:"timestampsOffset"`
 	// The `Episode.id` that this url belongs to
 	EpisodeID string `json:"episodeId"`
 	// The `Episode` that this url belongs to
@@ -132,8 +137,9 @@ type InputEpisode struct {
 
 // Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field
 type InputEpisodeURL struct {
-	URL      string   `json:"url"`
-	Duration *float64 `json:"duration"`
+	URL              string   `json:"url"`
+	Duration         *float64 `json:"duration"`
+	TimestampsOffset *float64 `json:"timestampsOffset"`
 }
 
 // Data required to update a user's `Preferences`. See `Preferences` for a description of each field

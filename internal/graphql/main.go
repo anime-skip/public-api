@@ -95,17 +95,18 @@ type ComplexityRoot struct {
 	}
 
 	EpisodeURL struct {
-		CreatedAt       func(childComplexity int) int
-		CreatedBy       func(childComplexity int) int
-		CreatedByUserID func(childComplexity int) int
-		Duration        func(childComplexity int) int
-		Episode         func(childComplexity int) int
-		EpisodeID       func(childComplexity int) int
-		Source          func(childComplexity int) int
-		URL             func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
-		UpdatedBy       func(childComplexity int) int
-		UpdatedByUserID func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		CreatedBy        func(childComplexity int) int
+		CreatedByUserID  func(childComplexity int) int
+		Duration         func(childComplexity int) int
+		Episode          func(childComplexity int) int
+		EpisodeID        func(childComplexity int) int
+		Source           func(childComplexity int) int
+		TimestampsOffset func(childComplexity int) int
+		URL              func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		UpdatedBy        func(childComplexity int) int
+		UpdatedByUserID  func(childComplexity int) int
 	}
 
 	LoginData struct {
@@ -683,6 +684,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EpisodeURL.Source(childComplexity), true
+
+	case "EpisodeUrl.timestampsOffset":
+		if e.complexity.EpisodeURL.TimestampsOffset == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.TimestampsOffset(childComplexity), true
 
 	case "EpisodeUrl.url":
 		if e.complexity.EpisodeURL.URL == nil {
@@ -2194,9 +2202,16 @@ type EpisodeUrl {
   """
   The length of the episode at this url. For more information on why this field exists, check out
   the ` + "`" + `Episode.baseDuration` + "`" + `. If an ` + "`" + `Episode` + "`" + ` does not have a duration, that ` + "`" + `Episode` + "`" + ` and this
-  ` + "`" + `EpisodeUrl` + "`" + ` should be given the same value so that the difference is 0
+  ` + "`" + `EpisodeUrl` + "`" + ` should be given the same value, and the ` + "`" + `EpisodeUrl.timestampsOffset` + "`" + ` should be set to 0
   """
   duration: Float
+  """
+  How much a episode's timestamps should be offset for this ` + "`" + `EpisodeUrl` + "`" + `, since different services
+  have different branding animations, leading to offsets between services. This field can be edited
+  to whatever, but it should be suggested to be ` + "`" + `EpisodeUrl.duration - Episode.baseDuration` + "`" + `.
+  It can be positive or negative.
+  """
+  timestampsOffset: Float
   "The ` + "`" + `Episode.id` + "`" + ` that this url belongs to"
   episodeId: ID!
   "The ` + "`" + `Episode` + "`" + ` that this url belongs to"
@@ -2209,6 +2224,7 @@ type EpisodeUrl {
 input InputEpisodeUrl {
   url: String!
   duration: Float
+  timestampsOffset: Float
 }
 
 
@@ -4938,6 +4954,37 @@ func (ec *executionContext) _EpisodeUrl_duration(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_timestampsOffset(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimestampsOffset, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -11518,6 +11565,14 @@ func (ec *executionContext) unmarshalInputInputEpisodeUrl(ctx context.Context, o
 			if err != nil {
 				return it, err
 			}
+		case "timestampsOffset":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("timestampsOffset"))
+			it.TimestampsOffset, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -12144,6 +12199,8 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 			})
 		case "duration":
 			out.Values[i] = ec._EpisodeUrl_duration(ctx, field, obj)
+		case "timestampsOffset":
+			out.Values[i] = ec._EpisodeUrl_timestampsOffset(ctx, field, obj)
 		case "episodeId":
 			out.Values[i] = ec._EpisodeUrl_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
