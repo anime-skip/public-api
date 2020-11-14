@@ -19,13 +19,9 @@ PORT=8000
 GIN_MODE=release
 
 # Postgres
-POSTGRES_HOST=localhost
-POSTGRES_PORT=5432
-POSTGRES_USER=<username>
-POSTGRES_PASSWORD=<password>
-POSTGRES_DBNAME=anime_skip
-POSTGRES_DISABLE_SSL=true
-POSTGRES_ENABLE_SEEDING=true
+DATABASE_URL=postgres://<username>:<password>@<host>:<port>/<dbname>
+DATABASE_DISABLE_SSL=true
+DATABASE_ENABLE_SEEDING=true
 
 # Secrets
 JWT_SECRET=<get_from_aaron>" > .env
