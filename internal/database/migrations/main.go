@@ -14,7 +14,6 @@ func Run(db *gorm.DB) error {
 	m := gormigrate.New(db, gormigrate.DefaultOptions, nil)
 	m.InitSchema(func(db *gorm.DB) error {
 		log.V("Initializing database schema")
-
 		// Add the UUID extension
 		return db.Exec("create extension \"uuid-ossp\";").Error
 	})

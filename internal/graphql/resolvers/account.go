@@ -226,7 +226,7 @@ func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHas
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(userID)
+	log.I(userID)
 
 	return nil, fmt.Errorf("not implemented")
 }
