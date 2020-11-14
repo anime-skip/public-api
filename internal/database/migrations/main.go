@@ -3,6 +3,7 @@ package migrations
 import (
 	"anime-skip.com/backend/internal/database/migrations/seeders"
 	"anime-skip.com/backend/internal/database/migrations/tables"
+	"anime-skip.com/backend/internal/utils"
 	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
@@ -23,28 +24,51 @@ func Run(db *gorm.DB) error {
 	}
 
 	// Create the Tables
-	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
-		tables.CreateUsersTable,
-		tables.CreatePreferencesTable,
-		tables.CreateShowsTable,
-		tables.CreateShowAdminsTable,
-		tables.CreateEpisodesTable,
-		tables.CreateEpisodeURLsTable,
-		tables.CreateTimestampTypesTable,
-		tables.CreateTimestampsTable,
-		tables.ModifyEpisodeUrlsTableHardDelete,
-		tables.LowercaseAllEmails,
-		tables.EpisodeColumnsToStrings,
-		tables.AddTimestampSource,
-		tables.AddBaseDurationToEpisodes,
-		tables.AddDurationToEpisodeUrls,
-	})
+	migrations := []*gormigrate.Migration{
+		/* 0  */ tables.CreateUsersTable,
+		/* 1  */ tables.CreatePreferencesTable,
+		/* 2  */ tables.CreateShowsTable,
+		/* 3  */ tables.CreateShowAdminsTable,
+		/* 4  */ tables.CreateEpisodesTable,
+		/* 5  */ tables.CreateEpisodeURLsTable,
+		/* 6  */ tables.CreateTimestampTypesTable,
+		/* 7  */ tables.CreateTimestampsTable,
+		/* 8  */ tables.ModifyEpisodeUrlsTableHardDelete,
+		/* 9  */ tables.LowercaseAllEmails,
+		/* 10 */ tables.EpisodeColumnsToStrings,
+		/* 11 */ tables.AddTimestampSource,
+		/* 12 */ tables.AddBaseDurationToEpisodes,
+		/* 13 */ tables.AddDurationToEpisodeUrls,
+		/* 14 */ tables.AddTimestampsOffsetToEpisodeUrls,
+	}
+	finalMigration := len(migrations) - 1
+	// Set DATABASE_MIGRATION to the number left of the final migration that should be included
+	currentMigration := utils.EnvIntOrDefault("DATABASE_MIGRATION", finalMigration)
+	currentMigrationId := migrations[currentMigration].ID
+	log.D("Current migration: %s", currentMigrationId)
+
+	// Migrate
+	log.D("Running migrations if necessary...")
+	m = gormigrate.New(db, gormigrate.DefaultOptions, migrations[0:currentMigration+1])
 	err = m.Migrate()
 	if err != nil {
 		return err
 	}
 
-	// Seed the database
+	// Rollback
+	r := gormigrate.New(db, gormigrate.DefaultOptions, migrations)
+	log.D("Running rollbacks if necessary...")
+	err = r.RollbackTo(currentMigrationId)
+	if err != nil {
+		return err
+	}
+
+	if !utils.EnvBool("DATABASE_ENABLE_SEEDING") {
+		return nil
+	}
+
+	// Seed
+	log.D("Running seeders if necessary...")
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
 		seeders.SeedAdminUser,
 		seeders.SeedTimestampTypes,
