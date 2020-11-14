@@ -9,6 +9,17 @@ import (
 	"gopkg.in/gormigrate.v1"
 )
 
+func getCurrentMigration(migrations []*gormigrate.Migration) int {
+	finalMigration := len(migrations) - 1
+	currentMigrationPtr := utils.ENV.DATABASE_MIGRATION
+
+	if currentMigrationPtr == nil {
+		return finalMigration
+	} else {
+		return *currentMigrationPtr
+	}
+}
+
 // Run migrates all the tables and modifications to the connected source
 func Run(db *gorm.DB) error {
 	// Keep a list of migrations here
@@ -41,9 +52,7 @@ func Run(db *gorm.DB) error {
 		/* 13 */ tables.AddDurationToEpisodeUrls,
 		/* 14 */ tables.AddTimestampsOffsetToEpisodeUrls,
 	}
-	finalMigration := len(migrations) - 1
-	// Set DATABASE_MIGRATION to the number left of the final migration that should be included
-	currentMigration := utils.EnvIntOrDefault("DATABASE_MIGRATION", finalMigration)
+	currentMigration := getCurrentMigration(migrations)
 	currentMigrationId := migrations[currentMigration].ID
 	log.D("Current migration: %s", currentMigrationId)
 
@@ -63,7 +72,7 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 
-	if !utils.EnvBool("DATABASE_ENABLE_SEEDING") {
+	if !utils.ENV.DATABASE_ENABLE_SEEDING {
 		return nil
 	}
 

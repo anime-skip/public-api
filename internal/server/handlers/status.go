@@ -10,15 +10,13 @@ import (
 
 // Status is the handler that can be easily reached to tell if the application is running
 func Status() gin.HandlerFunc {
-	isPlaygroundEnabled := utils.EnvBool("ENABLE_PLAYGROUND")
-	isIntrospectionEnabled := utils.EnvBool("ENABLE_INTROSPECTION")
-
+	isPlaygroundEnabled := utils.ENV.ENABLE_PLAYGROUND
 	return func(c *gin.Context) {
 		statusData := map[string]interface{}{
 			"status":        "RUNNING",
 			"version":       constants.VERSION,
 			"playground":    isPlaygroundEnabled,
-			"introspection": isIntrospectionEnabled,
+			"introspection": utils.ENV.ENABLE_INTROSPECTION,
 		}
 		if isPlaygroundEnabled {
 			statusData["playgroundPath"] = "/graphiql"

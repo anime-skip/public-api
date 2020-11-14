@@ -10,7 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-var jwtSecret = []byte(EnvString("JWT_SECRET"))
+var jwtSecret = []byte(ENV.JWT_SECRET)
 
 // ValidateAuthHeader parses the authorization header and decides whether or not the token is valid.
 func ValidateAuthHeader(authHeader string) (jwt.MapClaims, error) {

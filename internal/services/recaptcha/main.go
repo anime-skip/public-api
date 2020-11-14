@@ -1,4 +1,4 @@
-package utils
+package recaptcha
 
 import (
 	"encoding/json"
@@ -8,16 +8,17 @@ import (
 	"net/http"
 	"time"
 
+	utils "anime-skip.com/backend/internal/utils"
 	log "anime-skip.com/backend/internal/utils/log"
 )
 
-var recaptcha_secret string = EnvString("RECAPTCHA_SECRET")
-var recaptcha_response_allowlist []string = EnvStringArray("RECAPTCHA_RESPONSE_ALLOWLIST")
+var recaptcha_secret = utils.ENV.RECAPTCHA_SECRET
+var recaptcha_response_allowlist = utils.ENV.RECAPTCHA_RESPONSE_ALLOWLIST
 
 const recaptchaURL = "https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s"
 const errorMessage = "Recaptacha validation failed"
 
-func VerifyRecaptcha(response, ipAddress string) error {
+func Verify(response, ipAddress string) error {
 	if contains(recaptcha_response_allowlist, response) {
 		time.Sleep(2 * time.Second)
 		return nil
