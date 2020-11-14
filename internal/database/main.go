@@ -12,8 +12,6 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-var connectionString string
-
 // ORM struct to store the gorm pointer to db
 type ORM struct {
 	DB *gorm.DB
@@ -21,16 +19,13 @@ type ORM struct {
 
 var ORMInstance *ORM
 
-func init() {
-	var sslmode = "require"
-	if utils.EnvBool("DATABASE_DISABLE_SSL") {
-		sslmode = "disable"
-	}
-	connectionString = fmt.Sprintf("%s?sslmode=%s", utils.EnvString("DATABASE_URL"), sslmode)
-}
-
 // Factory creates a db connection and returns the pointer to the GORM instance
 func Factory() (*ORM, error) {
+	var sslmode = "require"
+	if utils.ENV.DATABASE_DISABLE_SSL {
+		sslmode = "disable"
+	}
+	connectionString := fmt.Sprintf("%s?sslmode=%s", utils.ENV.DATABASE_URL, sslmode)
 	db, err := gorm.Open("postgres", connectionString)
 	if err != nil {
 		log.Panic("Error: ", err)
@@ -43,7 +38,7 @@ func Factory() (*ORM, error) {
 	db.DB().SetMaxOpenConns(10)
 
 	// Enable SQL logs
-	db.LogMode(utils.EnvBool("LOG_SQL"))
+	db.LogMode(utils.ENV.LOG_SQL)
 	db.SetLogger(log.SQLLogger)
 
 	// Migrations

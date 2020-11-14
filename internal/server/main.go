@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"time"
 
 	database "anime-skip.com/backend/internal/database"
@@ -10,20 +11,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-var port, graphqlPath string
-var enablePlayground, isDev bool
-
-func init() {
-	port = utils.EnvString("PORT")
-	graphqlPath = "/graphql"
-	enablePlayground = utils.EnvBool("ENABLE_PLAYGROUND")
-	isDev = utils.EnvBool("IS_DEV")
-}
+const GRAPHQL_PATH = "/graphql"
 
 // Run the web server
 func Run(orm *database.ORM, startedAt time.Time) {
 	server := gin.New()
-	if isDev {
+	if utils.ENV.IS_DEV {
 		server.Use(log.RequestLogger)
 	}
 	server.Use(gin.Recovery())
@@ -37,11 +30,12 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	server.GET("/status", handlers.Status())
 
 	// GraphQL endpoints
-	if enablePlayground {
-		server.GET("/graphiql", handlers.PlaygroundHandler(graphqlPath))
+	if utils.ENV.ENABLE_PLAYGROUND {
+		server.GET("/graphiql", handlers.PlaygroundHandler(GRAPHQL_PATH))
 	}
-	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
+	server.POST(GRAPHQL_PATH, handlers.GraphQLHandler(orm))
 
-	log.I("Started web server in %s @ :%s", time.Since(startedAt), port)
-	log.Panic(server.Run(":" + port))
+	port := fmt.Sprintf(":%d", utils.ENV.PORT)
+	log.I("Started web server in %s @ %s", time.Since(startedAt), port)
+	log.Panic(server.Run(port))
 }

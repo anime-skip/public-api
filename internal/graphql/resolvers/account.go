@@ -9,7 +9,8 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
-	emailService "anime-skip.com/backend/internal/server/email"
+	emailService "anime-skip.com/backend/internal/services/email"
+	"anime-skip.com/backend/internal/services/recaptcha"
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 )
@@ -127,7 +128,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		time.Sleep(2 * time.Second)
 		return nil, errors.New("Could not get ip address from request")
 	}
-	err = utils.VerifyRecaptcha(recaptchaResponse, ipAddress)
+	err = recaptcha.Verify(recaptchaResponse, ipAddress)
 	if err != nil {
 		tx.Rollback()
 		time.Sleep(2 * time.Second)
@@ -217,6 +218,9 @@ func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationTok
 		return nil, err
 	}
 	updatedUser, err := repos.VerifyUserEmail(r.DB(ctx), existingUser)
+	if err != nil {
+		return nil, err
+	}
 
 	return mappers.UserEntityToAccountModel(updatedUser), nil
 }
