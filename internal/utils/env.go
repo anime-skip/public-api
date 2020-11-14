@@ -23,7 +23,7 @@ func EnvStringArray(k string) []string {
 	return strings.Split(str, ",")
 }
 
-// EnvBool will return the env as boolean or panic if it is not present
+// EnvBool will return the env as a boolean, return false when not set, and panic if it's not a boolean
 func EnvBool(k string) bool {
 	v := os.Getenv(k)
 	if v == "" {
@@ -35,4 +35,13 @@ func EnvBool(k string) bool {
 		log.Panic("ENV err: [" + k + "]\n" + err.Error())
 	}
 	return b
+}
+
+// EnvIntOrDefault will return the env as an int or the default value if it doesn't exist
+func EnvIntOrDefault(k string, defaultValue int) int {
+	i, err := strconv.Atoi(os.Getenv(k))
+	if err != nil {
+		return defaultValue
+	}
+	return i
 }

@@ -42,6 +42,6 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	}
 	server.POST(graphqlPath, handlers.GraphQLHandler(orm))
 
-	log.D("Started web server in %s @ :%s", time.Since(startedAt), port)
+	log.I("Started web server in %s @ :%s", time.Since(startedAt), port)
 	log.Panic(server.Run(":" + port))
 }

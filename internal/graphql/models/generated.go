@@ -71,6 +71,12 @@ type Episode struct {
 	// The absolute episode number out of all the episodes of the show. Generally only regular episodes
 	// should have this field
 	AbsoluteNumber *string `json:"absoluteNumber"`
+	// The duration of the episode's first url, which can be used to calculate a suggested offset for new
+	// episode urls. Episodes at different URLs have different branding intros, and that difference can
+	// be computed using: `EpisodeUrl.duration - Episode.baseDuration`
+	// Generally, this works because each service has it's own branding at the beginning of the show, not
+	// at the end of it
+	BaseDuration *float64 `json:"baseDuration"`
 	// The episode's name
 	Name *string `json:"name"`
 	// The show that the episode belongs to
@@ -88,7 +94,7 @@ type Episode struct {
 
 func (Episode) IsBaseModel() {}
 
-// Stores intormation about what where an episode can be watched from
+// Stores information about what where an episode can be watched from
 type EpisodeURL struct {
 	// The url that would take a user to watch the `episode`
 	URL             string    `json:"url"`
@@ -98,11 +104,20 @@ type EpisodeURL struct {
 	UpdatedAt       time.Time `json:"updatedAt"`
 	UpdatedByUserID string    `json:"updatedByUserId"`
 	UpdatedBy       *User     `json:"updatedBy"`
+	// The length of the episode at this url. For more information on why this field exists, check out
+	// the `Episode.baseDuration`. If an `Episode` does not have a duration, that `Episode` and this
+	// `EpisodeUrl` should be given the same value, and the `EpisodeUrl.timestampsOffset` should be set to 0
+	Duration *float64 `json:"duration"`
+	// How much a episode's timestamps should be offset for this `EpisodeUrl`, since different services
+	// have different branding animations, leading to offsets between services. This field can be edited
+	// to whatever, but it should be suggested to be `EpisodeUrl.duration - Episode.baseDuration`.
+	// It can be positive or negative.
+	TimestampsOffset *float64 `json:"timestampsOffset"`
 	// The `Episode.id` that this url belongs to
 	EpisodeID string `json:"episodeId"`
 	// The `Episode` that this url belongs to
 	Episode *Episode `json:"episode"`
-	// What service this url points to
+	// What service this url points to. This is computed when the `EpisodeUrl` is created
 	Source EpisodeSource `json:"source"`
 }
 
@@ -116,11 +131,15 @@ type InputEpisode struct {
 	AbsoluteNumber *string `json:"absoluteNumber"`
 	// See `Episode.name`
 	Name *string `json:"name"`
+	// See `Episode.baseDuration`
+	BaseDuration *float64 `json:"baseDuration"`
 }
 
 // Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field
 type InputEpisodeURL struct {
-	URL string `json:"url"`
+	URL              string   `json:"url"`
+	Duration         *float64 `json:"duration"`
+	TimestampsOffset *float64 `json:"timestampsOffset"`
 }
 
 // Data required to update a user's `Preferences`. See `Preferences` for a description of each field

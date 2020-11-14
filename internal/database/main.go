@@ -12,8 +12,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
-var autoMigrate, seedDB bool
-var connectionString, dialect string
+var connectionString string
 
 // ORM struct to store the gorm pointer to db
 type ORM struct {
@@ -24,19 +23,10 @@ var ORMInstance *ORM
 
 func init() {
 	var sslmode = "require"
-	if utils.EnvBool("POSTGRES_DISABLE_SSL") {
+	if utils.EnvBool("DATABASE_DISABLE_SSL") {
 		sslmode = "disable"
 	}
-	connectionString = fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		utils.EnvString("POSTGRES_HOST"),
-		utils.EnvString("POSTGRES_PORT"),
-		utils.EnvString("POSTGRES_USER"),
-		utils.EnvString("POSTGRES_PASSWORD"),
-		utils.EnvString("POSTGRES_DBNAME"),
-		sslmode,
-	)
-	seedDB = utils.EnvBool("POSTGRES_ENABLE_SEEDING")
+	connectionString = fmt.Sprintf("%s?sslmode=%s", utils.EnvString("DATABASE_URL"), sslmode)
 }
 
 // Factory creates a db connection and returns the pointer to the GORM instance
@@ -45,7 +35,7 @@ func Factory() (*ORM, error) {
 	if err != nil {
 		log.Panic("Error: ", err)
 	}
-	log.D("Connected to PostgreSQL")
+	log.I("Connected to PostgreSQL")
 	ORMInstance = &ORM{
 		DB: db,
 	}
@@ -56,16 +46,15 @@ func Factory() (*ORM, error) {
 	db.LogMode(utils.EnvBool("LOG_SQL"))
 	db.SetLogger(log.SQLLogger)
 
-	// Automigrate tables
-	log.D("Running migrations if necessary")
+	// Migrations
 	err = migrations.Run(ORMInstance.DB)
 
 	// Adding plugins
+	log.D("Registering update callbacks...")
 	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_updated_by", updateColumn("UpdatedByUserId"))
 	db.Callback().Create().Before("gorm:create").Register("anime_skip_create:update_created_by", updateColumn("CreatedByUserId"))
 	db.Callback().Update().Before("gorm:update").Register("anime_skip_update:update_updated_by", updateColumn("UpdatedByUserId"))
 	db.Callback().Delete().Replace("gorm:delete", deleteCallback)
 
-	fmt.Println()
 	return ORMInstance, err
 }

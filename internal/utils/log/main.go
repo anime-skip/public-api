@@ -23,7 +23,6 @@ var italic = escape + "[3m"
 var underline = escape + "[4m"
 
 var logLevel int
-var enableColorLogs bool
 
 func init() {
 	logLevelStr := os.Getenv("LOG_LEVEL")
@@ -60,7 +59,7 @@ func V(format string, a ...interface{}) {
 	if logLevel > constants.LOG_LEVEL_VERBOSE {
 		return
 	}
-	printColored(blue+bold, "verbose", format, a...)
+	printColored(dim, "verbose", format, a...)
 }
 
 // D prints debug (LOG_LEVEL=1) logs
@@ -68,10 +67,18 @@ func D(format string, a ...interface{}) {
 	if logLevel > constants.LOG_LEVEL_DEBUG {
 		return
 	}
-	printColored(reset, " debug ", format, a...)
+	printColored(reset, "debug  ", format, a...)
 }
 
-// W prints warning (LOG_LEVEL=2) logs
+// I prints debug (LOG_LEVEL=2) logs
+func I(format string, a ...interface{}) {
+	if logLevel > constants.LOG_LEVEL_DEBUG {
+		return
+	}
+	printColored(blue+bold, "info   ", format, a...)
+}
+
+// W prints warning (LOG_LEVEL=3) logs
 func W(format string, a ...interface{}) {
 	if logLevel > constants.LOG_LEVEL_WARNING {
 		return
@@ -79,12 +86,12 @@ func W(format string, a ...interface{}) {
 	printColored(yellow+bold, "warning", format, a...)
 }
 
-// E prints error (LOG_LEVEL=3) logs
+// E prints error (LOG_LEVEL=4) logs
 func E(format string, a ...interface{}) {
 	if logLevel > constants.LOG_LEVEL_ERROR {
 		return
 	}
-	printColored(red+bold, " error ", format, a...)
+	printColored(red+bold, "error  ", format, a...)
 }
 
 // Spew will pretty-print object deeply (along with their types), making it useful for debugging
@@ -101,7 +108,6 @@ func Panic(a ...interface{}) {
 }
 
 func printColored(color string, logType string, format string, a ...interface{}) {
-	var str string
-	str = fmt.Sprintf(format, a...)
+	str := fmt.Sprintf(format, a...)
 	fmt.Printf("%s[ %s ] %s%s\n", color, logType, str, reset)
 }

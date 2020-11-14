@@ -24,6 +24,8 @@ func EpisodeURLInputModelToEntity(inputModel models.InputEpisodeURL, entity *ent
 	}
 
 	entity.URL = inputModel.URL
+	entity.Duration = inputModel.Duration
+	entity.TimestampsOffset = inputModel.TimestampsOffset
 	entity.Source = _urlToSource(inputModel.URL)
 
 	return entity
@@ -37,7 +39,9 @@ func EpisodeURLEntityToModel(entity *entities.EpisodeURL) *models.EpisodeURL {
 		UpdatedAt:       entity.UpdatedAt,
 		UpdatedByUserID: entity.UpdatedByUserID.String(),
 
-		EpisodeID: entity.EpisodeID.String(),
-		Source:    EpisodeSourceIntToEnum(entity.Source),
+		Source:           EpisodeSourceIntToEnum(entity.Source),
+		Duration:         entity.Duration,
+		TimestampsOffset: entity.TimestampsOffset,
+		EpisodeID:        entity.EpisodeID.String(),
 	}
 }

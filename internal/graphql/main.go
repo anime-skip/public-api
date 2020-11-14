@@ -74,6 +74,7 @@ type ComplexityRoot struct {
 
 	Episode struct {
 		AbsoluteNumber  func(childComplexity int) int
+		BaseDuration    func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
 		CreatedBy       func(childComplexity int) int
 		CreatedByUserID func(childComplexity int) int
@@ -94,16 +95,18 @@ type ComplexityRoot struct {
 	}
 
 	EpisodeURL struct {
-		CreatedAt       func(childComplexity int) int
-		CreatedBy       func(childComplexity int) int
-		CreatedByUserID func(childComplexity int) int
-		Episode         func(childComplexity int) int
-		EpisodeID       func(childComplexity int) int
-		Source          func(childComplexity int) int
-		URL             func(childComplexity int) int
-		UpdatedAt       func(childComplexity int) int
-		UpdatedBy       func(childComplexity int) int
-		UpdatedByUserID func(childComplexity int) int
+		CreatedAt        func(childComplexity int) int
+		CreatedBy        func(childComplexity int) int
+		CreatedByUserID  func(childComplexity int) int
+		Duration         func(childComplexity int) int
+		Episode          func(childComplexity int) int
+		EpisodeID        func(childComplexity int) int
+		Source           func(childComplexity int) int
+		TimestampsOffset func(childComplexity int) int
+		URL              func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		UpdatedBy        func(childComplexity int) int
+		UpdatedByUserID  func(childComplexity int) int
 	}
 
 	LoginData struct {
@@ -507,6 +510,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Episode.AbsoluteNumber(childComplexity), true
 
+	case "Episode.baseDuration":
+		if e.complexity.Episode.BaseDuration == nil {
+			break
+		}
+
+		return e.complexity.Episode.BaseDuration(childComplexity), true
+
 	case "Episode.createdAt":
 		if e.complexity.Episode.CreatedAt == nil {
 			break
@@ -647,6 +657,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.EpisodeURL.CreatedByUserID(childComplexity), true
 
+	case "EpisodeUrl.duration":
+		if e.complexity.EpisodeURL.Duration == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.Duration(childComplexity), true
+
 	case "EpisodeUrl.episode":
 		if e.complexity.EpisodeURL.Episode == nil {
 			break
@@ -667,6 +684,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.EpisodeURL.Source(childComplexity), true
+
+	case "EpisodeUrl.timestampsOffset":
+		if e.complexity.EpisodeURL.TimestampsOffset == nil {
+			break
+		}
+
+		return e.complexity.EpisodeURL.TimestampsOffset(childComplexity), true
 
 	case "EpisodeUrl.url":
 		if e.complexity.EpisodeURL.URL == nil {
@@ -2100,6 +2124,14 @@ type Episode implements BaseModel {
   should have this field
   """
   absoluteNumber: String
+  """
+  The duration of the episode's first url, which can be used to calculate a suggested offset for new
+  episode urls. Episodes at different URLs have different branding intros, and that difference can
+  be computed using: ` + "`" + `EpisodeUrl.duration - Episode.baseDuration` + "`" + `
+  Generally, this works because each service has it's own branding at the beginning of the show, not
+  at the end of it
+  """
+  baseDuration: Float
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -2152,9 +2184,11 @@ input InputEpisode {
   absoluteNumber: String
   "See ` + "`" + `Episode.name` + "`" + `"
   name: String
+  "See ` + "`" + `Episode.baseDuration` + "`" + `"
+  baseDuration: Float
 }
 
-"Stores intormation about what where an episode can be watched from"
+"Stores information about what where an episode can be watched from"
 type EpisodeUrl {
   "The url that would take a user to watch the ` + "`" + `episode` + "`" + `"
   url: String!
@@ -2165,17 +2199,32 @@ type EpisodeUrl {
   updatedByUserId: ID!
   updatedBy: User!
 
+  """
+  The length of the episode at this url. For more information on why this field exists, check out
+  the ` + "`" + `Episode.baseDuration` + "`" + `. If an ` + "`" + `Episode` + "`" + ` does not have a duration, that ` + "`" + `Episode` + "`" + ` and this
+  ` + "`" + `EpisodeUrl` + "`" + ` should be given the same value, and the ` + "`" + `EpisodeUrl.timestampsOffset` + "`" + ` should be set to 0
+  """
+  duration: Float
+  """
+  How much a episode's timestamps should be offset for this ` + "`" + `EpisodeUrl` + "`" + `, since different services
+  have different branding animations, leading to offsets between services. This field can be edited
+  to whatever, but it should be suggested to be ` + "`" + `EpisodeUrl.duration - Episode.baseDuration` + "`" + `.
+  It can be positive or negative.
+  """
+  timestampsOffset: Float
   "The ` + "`" + `Episode.id` + "`" + ` that this url belongs to"
   episodeId: ID!
   "The ` + "`" + `Episode` + "`" + ` that this url belongs to"
   episode: Episode!
-  "What service this url points to"
+  "What service this url points to. This is computed when the ` + "`" + `EpisodeUrl` + "`" + ` is created"
   source: EpisodeSource!
 }
 
 "Data required to create a new ` + "`" + `EpisodeUrl` + "`" + `. See ` + "`" + `EpisodeUrl` + "`" + ` for a description of each field"
 input InputEpisodeUrl {
   url: String!
+  duration: Float
+  timestampsOffset: Float
 }
 
 
@@ -4451,6 +4500,37 @@ func (ec *executionContext) _Episode_absoluteNumber(ctx context.Context, field g
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Episode_baseDuration(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Episode",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BaseDuration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Episode_name(ctx context.Context, field graphql.CollectedField, obj *models.Episode) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4854,6 +4934,68 @@ func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field gra
 	res := resTmp.(*models.User)
 	fc.Result = res
 	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_duration(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Duration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _EpisodeUrl_timestampsOffset(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "EpisodeUrl",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimestampsOffset, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_episodeId(ctx context.Context, field graphql.CollectedField, obj *models.EpisodeURL) (ret graphql.Marshaler) {
@@ -11387,6 +11529,14 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 			if err != nil {
 				return it, err
 			}
+		case "baseDuration":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("baseDuration"))
+			it.BaseDuration, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		}
 	}
 
@@ -11404,6 +11554,22 @@ func (ec *executionContext) unmarshalInputInputEpisodeUrl(ctx context.Context, o
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("url"))
 			it.URL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "duration":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("duration"))
+			it.Duration, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timestampsOffset":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("timestampsOffset"))
+			it.TimestampsOffset, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -11905,6 +12071,8 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 			out.Values[i] = ec._Episode_number(ctx, field, obj)
 		case "absoluteNumber":
 			out.Values[i] = ec._Episode_absoluteNumber(ctx, field, obj)
+		case "baseDuration":
+			out.Values[i] = ec._Episode_baseDuration(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._Episode_name(ctx, field, obj)
 		case "show":
@@ -12029,6 +12197,10 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 				}
 				return res
 			})
+		case "duration":
+			out.Values[i] = ec._EpisodeUrl_duration(ctx, field, obj)
+		case "timestampsOffset":
+			out.Values[i] = ec._EpisodeUrl_timestampsOffset(ctx, field, obj)
 		case "episodeId":
 			out.Values[i] = ec._EpisodeUrl_episodeId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -14320,6 +14492,21 @@ func (ec *executionContext) marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋbackend�
 		return graphql.Null
 	}
 	return ec._EpisodeUrl(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := graphql.UnmarshalFloat(v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel ast.SelectionSet, v *float64) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return graphql.MarshalFloat(*v)
 }
 
 func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
