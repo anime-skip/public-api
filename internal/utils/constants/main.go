@@ -49,5 +49,3 @@ const (
 	TIMESTAMP_ID_TITLE_CARD    = "67321535-a4ea-4f21-8bed-fb3c8286b510"
 	TIMESTAMP_ID_UNKNOWN       = "ae57fcf9-27b0-49a7-9a99-a91aa7518a29"
 )
-
-const VERSION = "1.0.5"
