@@ -13,6 +13,7 @@ gen:
 	@./scripts/gqlgen.sh
 clean:
 	@go clean --modcache
+	@go mod download
 init:
 	@./scripts/init.sh
 help:
