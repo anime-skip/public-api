@@ -134,6 +134,7 @@ type ComplexityRoot struct {
 		ResendVerificationEmail func(childComplexity int) int
 		SavePreferences         func(childComplexity int, preferences models.InputPreferences) int
 		UpdateEpisode           func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
+		UpdateEpisodeURL        func(childComplexity int, episodeURL string, newEpisodeURL models.InputEpisodeURL) int
 		UpdateShow              func(childComplexity int, showID string, newShow models.InputShow) int
 		UpdateTimestamp         func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
 		UpdateTimestampType     func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
@@ -226,6 +227,7 @@ type ComplexityRoot struct {
 
 	ThirdPartyEpisode struct {
 		AbsoluteNumber func(childComplexity int) int
+		BaseDuration   func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		Number         func(childComplexity int) int
@@ -334,6 +336,7 @@ type MutationResolver interface {
 	DeleteEpisode(ctx context.Context, episodeID string) (*models.Episode, error)
 	CreateEpisodeURL(ctx context.Context, episodeID string, episodeURLInput models.InputEpisodeURL) (*models.EpisodeURL, error)
 	DeleteEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error)
+	UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL models.InputEpisodeURL) (*models.EpisodeURL, error)
 	CreateTimestamp(ctx context.Context, episodeID string, timestampInput models.InputTimestamp) (*models.Timestamp, error)
 	UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp models.InputTimestamp) (*models.Timestamp, error)
 	DeleteTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
@@ -951,6 +954,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateEpisode(childComplexity, args["episodeId"].(string), args["newEpisode"].(models.InputEpisode)), true
+
+	case "Mutation.updateEpisodeUrl":
+		if e.complexity.Mutation.UpdateEpisodeURL == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateEpisodeUrl_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateEpisodeURL(childComplexity, args["episodeUrl"].(string), args["newEpisodeUrl"].(models.InputEpisodeURL)), true
 
 	case "Mutation.updateShow":
 		if e.complexity.Mutation.UpdateShow == nil {
@@ -1606,6 +1621,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ThirdPartyEpisode.AbsoluteNumber(childComplexity), true
 
+	case "ThirdPartyEpisode.baseDuration":
+		if e.complexity.ThirdPartyEpisode.BaseDuration == nil {
+			break
+		}
+
+		return e.complexity.ThirdPartyEpisode.BaseDuration(childComplexity), true
+
 	case "ThirdPartyEpisode.id":
 		if e.complexity.ThirdPartyEpisode.ID == nil {
 			break
@@ -2166,6 +2188,7 @@ type ThirdPartyEpisode {
   season: String
   number: String
   absoluteNumber: String
+  baseDuration: Float
   name: String
   source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
@@ -2592,6 +2615,12 @@ type User {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
+  """
+  Update episode url info
+
+  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
+  """
+  updateEpisodeUrl(episodeUrl: String! @isShowAdmin, newEpisodeUrl: InputEpisodeUrl!): EpisodeUrl
 
   # Timestamps
   """
@@ -3167,6 +3196,43 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 		}
 	}
 	args["preferences"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["episodeUrl"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("episodeUrl"))
+		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(string); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp)
+		}
+	}
+	args["episodeUrl"] = arg0
+	var arg1 models.InputEpisodeURL
+	if tmp, ok := rawArgs["newEpisodeUrl"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newEpisodeUrl"))
+		arg1, err = ec.unmarshalNInputEpisodeUrl2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisodeURL(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newEpisodeUrl"] = arg1
 	return args, nil
 }
 
@@ -5894,6 +5960,44 @@ func (ec *executionContext) _Mutation_deleteEpisodeUrl(ctx context.Context, fiel
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.EpisodeURL)
+	fc.Result = res
+	return ec.marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateEpisodeUrl(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateEpisodeUrl_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateEpisodeURL(rctx, args["episodeUrl"].(string), args["newEpisodeUrl"].(models.InputEpisodeURL))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8906,6 +9010,37 @@ func (ec *executionContext) _ThirdPartyEpisode_absoluteNumber(ctx context.Contex
 	res := resTmp.(*string)
 	fc.Result = res
 	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ThirdPartyEpisode_baseDuration(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyEpisode) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "ThirdPartyEpisode",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.BaseDuration, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*float64)
+	fc.Result = res
+	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyEpisode_name(ctx context.Context, field graphql.CollectedField, obj *models.ThirdPartyEpisode) (ret graphql.Marshaler) {
@@ -12320,6 +12455,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_createEpisodeUrl(ctx, field)
 		case "deleteEpisodeUrl":
 			out.Values[i] = ec._Mutation_deleteEpisodeUrl(ctx, field)
+		case "updateEpisodeUrl":
+			out.Values[i] = ec._Mutation_updateEpisodeUrl(ctx, field)
 		case "createTimestamp":
 			out.Values[i] = ec._Mutation_createTimestamp(ctx, field)
 		case "updateTimestamp":
@@ -13013,6 +13150,8 @@ func (ec *executionContext) _ThirdPartyEpisode(ctx context.Context, sel ast.Sele
 			out.Values[i] = ec._ThirdPartyEpisode_number(ctx, field, obj)
 		case "absoluteNumber":
 			out.Values[i] = ec._ThirdPartyEpisode_absoluteNumber(ctx, field, obj)
+		case "baseDuration":
+			out.Values[i] = ec._ThirdPartyEpisode_baseDuration(ctx, field, obj)
 		case "name":
 			out.Values[i] = ec._ThirdPartyEpisode_name(ctx, field, obj)
 		case "source":

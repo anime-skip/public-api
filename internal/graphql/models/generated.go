@@ -325,6 +325,7 @@ type ThirdPartyEpisode struct {
 	Season         *string                `json:"season"`
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
+	BaseDuration   *float64               `json:"baseDuration"`
 	Name           *string                `json:"name"`
 	Source         *TimestampSource       `json:"source"`
 	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`

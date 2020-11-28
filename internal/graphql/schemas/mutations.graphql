@@ -87,6 +87,12 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
+  """
+  Update episode url info
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  updateEpisodeUrl(episodeUrl: String! @isShowAdmin, newEpisodeUrl: InputEpisodeUrl!): EpisodeUrl
 
   # Timestamps
   """
