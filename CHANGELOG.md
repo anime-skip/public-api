@@ -14,6 +14,21 @@
 
 - None
 
+## `v1.0.6`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added `updateEpisodeUrl` mutation
+- Added `baseDuration` to `ThirdPartyEpisode`
+
+### Fixes
+
+- None
+
 ## `v1.0.5`
 
 ### Breaking Changes
