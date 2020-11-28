@@ -37,5 +37,6 @@ func Run(orm *database.ORM, startedAt time.Time) {
 
 	port := fmt.Sprintf(":%d", utils.ENV.PORT)
 	log.I("Started web server in %s @ %s", time.Since(startedAt), port)
+	log.I("---")
 	log.Panic(server.Run(port))
 }
