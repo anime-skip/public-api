@@ -63,6 +63,18 @@ func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL stri
 	return mappers.EpisodeURLEntityToModel(episodeURLData), nil
 }
 
+func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL models.InputEpisodeURL) (*models.EpisodeURL, error) {
+	existingEpisodeURL, err := repos.FindEpisodeURLByURL(r.DB(ctx), episodeURL)
+	if err != nil {
+		return nil, err
+	}
+	updatedEpisodeURL, err := repos.UpdateEpisodeURL(r.DB(ctx), newEpisodeURL, existingEpisodeURL)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.EpisodeURLEntityToModel(updatedEpisodeURL), nil
+}
+
 // Field Resolvers
 
 func (r *episodeUrlResolver) CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error) {
