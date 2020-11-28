@@ -1,11 +1,17 @@
 package handlers
 
 import (
+	"time"
+
 	"anime-skip.com/backend/internal/database"
 	gql "anime-skip.com/backend/internal/graphql"
 	"anime-skip.com/backend/internal/graphql/directives"
 	"anime-skip.com/backend/internal/graphql/resolvers"
+	"anime-skip.com/backend/internal/utils"
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
+	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-gonic/gin"
@@ -20,12 +26,37 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 			HasRole:     directives.HasRole,
 			IsShowAdmin: directives.IsShowAdmin,
 		},
+		// Complexity: ,
 	})
 
-	gqlHandler := handler.New(schema)
+	gqlHandler := newServer(schema)
 	gqlHandler.AddTransport(transport.POST{})
 
 	return gin.WrapH(gqlHandler)
+}
+
+// Based off handler.NewDefaultServer
+func newServer(es graphql.ExecutableSchema) *handler.Server {
+	srv := handler.New(es)
+
+	srv.AddTransport(transport.Websocket{
+		KeepAlivePingInterval: 10 * time.Second,
+	})
+	srv.AddTransport(transport.Options{})
+	srv.AddTransport(transport.GET{})
+	srv.AddTransport(transport.POST{})
+	// srv.AddTransport(transport.MultipartForm{})
+
+	srv.SetQueryCache(lru.New(1000))
+
+	if utils.ENV.ENABLE_INTROSPECTION {
+		srv.Use(extension.Introspection{})
+	}
+	srv.Use(extension.AutomaticPersistedQuery{
+		Cache: lru.New(100),
+	})
+
+	return srv
 }
 
 // PlaygroundHandler defines the handler to expose the GraphQL playground
