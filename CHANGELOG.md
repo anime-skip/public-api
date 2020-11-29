@@ -8,6 +8,20 @@
 
 ### Enhancements
 
+- None
+
+### Fixes
+
+- None
+
+## `v1.0.7`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
 - Docs added about cleaning URLs before using them with `EpisodeUrl`
 
 ### Fixes
