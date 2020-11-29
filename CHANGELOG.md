@@ -8,11 +8,11 @@
 
 ### Enhancements
 
-- None
+- Docs added about cleaning URLs before using them with `EpisodeUrl`
 
 ### Fixes
 
-- None
+- Unexpected crash when an environment variable isn't passed
 
 ## `v1.0.6`
 
