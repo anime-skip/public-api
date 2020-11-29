@@ -3,6 +3,7 @@ package utils
 import (
 	"context"
 	"fmt"
+	"regexp"
 
 	"anime-skip.com/backend/internal/utils/constants"
 	log "anime-skip.com/backend/internal/utils/log"
@@ -75,4 +76,11 @@ func StringArrayIncludes(array []string, value string) bool {
 		}
 	}
 	return false
+}
+
+func CleanURL(url string) string {
+	queryRegex := regexp.MustCompile(`\?.*$`)
+	withoutQuery := queryRegex.ReplaceAllString(url, "")
+	slashRegex := regexp.MustCompile(`\/$`)
+	return slashRegex.ReplaceAllString(withoutQuery, "")
 }
