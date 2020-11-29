@@ -135,7 +135,11 @@ input InputEpisode {
 
 "Stores information about what where an episode can be watched from"
 type EpisodeUrl {
-  "The url that would take a user to watch the `episode`"
+  """
+  The url that would take a user to watch the `episode`.
+  
+  This url should be stripped of all query params.
+  """
   url: String!
   createdAt: Time!
   createdByUserId: ID!
