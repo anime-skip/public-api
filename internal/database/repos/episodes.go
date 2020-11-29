@@ -93,7 +93,7 @@ func FindEpisodeByID(db *gorm.DB, episodeID string) (*entities.Episode, error) {
 
 func FindEpisodesByExactName(db *gorm.DB, name string) ([]*entities.Episode, error) {
 	episodes := []*entities.Episode{}
-	err := db.Unscoped().Where("name = ?", name).Find(&episodes).Error
+	err := db.Where("name = ?", name).Find(&episodes).Error
 	if err != nil {
 		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode found with name='%s'", name)
