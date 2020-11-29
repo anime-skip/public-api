@@ -93,7 +93,7 @@ func envString(k string) string {
 func envStringOr(k, defaultValue string) string {
 	v := os.Getenv(k)
 	if v == "" {
-		log.V("ENV missing (), defaulting to %", k, defaultValue)
+		log.V("ENV missing (%s), defaulting to %v", k, defaultValue)
 		return defaultValue
 	}
 	return v
