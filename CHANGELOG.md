@@ -12,6 +12,20 @@
 
 ### Fixes
 
+- none
+
+## `v1.0.8`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- None
+
+### Fixes
+
 - Replace empty episode values with `null`
 
 ## `v1.0.7`
