@@ -1,6 +1,8 @@
 package mappers
 
 import (
+	"strings"
+
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/graphql/models"
 )
@@ -12,10 +14,28 @@ func EpisodeInputModelToEntity(inputModel models.InputEpisode, entity *entities.
 		return nil
 	}
 
-	entity.Name = inputModel.Name
-	entity.Season = inputModel.Season
-	entity.Number = inputModel.Number
-	entity.AbsoluteNumber = inputModel.AbsoluteNumber
+	// Replace empty values with nil
+	Name := inputModel.Name
+	if Name != nil && strings.TrimSpace(*Name) == "" {
+		Name = nil
+	}
+	Season := inputModel.Season
+	if Season != nil && strings.TrimSpace(*Season) == "" {
+		Season = nil
+	}
+	Number := inputModel.Number
+	if Number != nil && strings.TrimSpace(*Number) == "" {
+		Number = nil
+	}
+	AbsoluteNumber := inputModel.AbsoluteNumber
+	if AbsoluteNumber != nil && strings.TrimSpace(*AbsoluteNumber) == "" {
+		AbsoluteNumber = nil
+	}
+
+	entity.Name = Name
+	entity.Season = Season
+	entity.Number = Number
+	entity.AbsoluteNumber = AbsoluteNumber
 	entity.BaseDuration = inputModel.BaseDuration
 
 	return entity
