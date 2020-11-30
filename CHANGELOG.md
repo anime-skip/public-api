@@ -12,7 +12,7 @@
 
 ### Fixes
 
-- None
+- Replace empty episode values with `null`
 
 ## `v1.0.7`
 
