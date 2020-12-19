@@ -10,6 +10,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"anime-skip.com/backend/internal/utils/env"
+	timeUtils "anime-skip.com/backend/internal/utils/time"
 )
 
 var jwtSecret = []byte(env.JWT_SECRET)
@@ -45,7 +46,7 @@ func validateToken(tokenString string) (jwt.MapClaims, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid claims")
 	}
-	if isValidExpiresAt := payload.VerifyIssuedAt(CurrentTimeSec(), true); !isValidExpiresAt {
+	if isValidExpiresAt := payload.VerifyIssuedAt(timeUtils.CurrentTimeSec(), true); !isValidExpiresAt {
 		return nil, fmt.Errorf("Token is expired")
 	}
 	if isValidIssuer := payload.VerifyIssuer("anime-skip.com", true); !isValidIssuer {
@@ -79,7 +80,7 @@ func ValidateEmailVerificationToken(token string) (jwt.MapClaims, error) {
 
 // GenerateAuthToken creates a jwt token for the specified user
 func GenerateAuthToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
@@ -101,7 +102,7 @@ func GenerateAuthToken(user *entities.User) (string, error) {
 
 // GenerateRefreshToken creates a refresh token to be used with the login query
 func GenerateRefreshToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
@@ -121,7 +122,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 }
 
 func GenerateVerifyEmailToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{

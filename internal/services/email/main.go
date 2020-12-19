@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"anime-skip.com/backend/internal/database/entities"
+	"anime-skip.com/backend/internal/utils/env"
 )
 
 var httpClient *http.Client = &http.Client{}

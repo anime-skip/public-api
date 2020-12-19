@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/env"
 	"github.com/gin-gonic/gin"
 )
 

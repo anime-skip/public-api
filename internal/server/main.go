@@ -6,6 +6,7 @@ import (
 
 	database "anime-skip.com/backend/internal/database"
 	"anime-skip.com/backend/internal/server/handlers"
+	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 )
@@ -36,6 +37,6 @@ func Run(orm *database.ORM, startedAt time.Time) {
 
 	port := fmt.Sprintf(":%d", env.PORT)
 	log.I("Started web server in %s @ %s", time.Since(startedAt), port)
-	log.I("---")
+	log.V("---")
 	log.Panic(server.Run(port))
 }
