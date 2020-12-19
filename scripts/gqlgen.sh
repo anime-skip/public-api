@@ -1,6 +1,4 @@
 #!/bin/bash
-source scripts/_utils.sh
-
 rm -f internal/graphql/main.go \
     internal/graphql/models/generated.go \
     internal/graphql/resolvers/update_then_delete_me.go
