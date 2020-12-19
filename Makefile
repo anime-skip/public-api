@@ -12,6 +12,7 @@ services:
 	@docker-compose -f docker-compose.dev.yml up --remove-orphans
 reset-services:
 	@docker-compose -f docker-compose.dev.yml up --remove-orphans -V
+
 gen:
 	@./scripts/gqlgen.sh
 clean:
