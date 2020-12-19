@@ -14,6 +14,10 @@ import (
 var httpClient *http.Client = &http.Client{}
 
 func sendEmail(endpoint string, body map[string]interface{}) error {
+	if utils.ENV.DISABLE_EMAILS {
+		return nil
+	}
+
 	url := fmt.Sprintf("http://%s/%s", utils.ENV.EMAIL_SERVICE_HOST, endpoint)
 	jsonBody, err := json.Marshal(body)
 	if err != nil {
