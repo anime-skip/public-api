@@ -1,4 +1,4 @@
-package utils
+package time
 
 import (
 	"time"
