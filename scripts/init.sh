@@ -1,6 +1,12 @@
 #!/bin/bash
 source scripts/_utils.sh
 
+if [ "$OS" == "linux" ]; then
+  HOST="localhost"
+elif [ $OS == "mac" ]; then
+  HOST="host.docker.internal"
+fi
+
 header "Creating .env"
 if [ -f ".env" ]; then
     warning ".env already exists, skipping"
@@ -23,7 +29,7 @@ DISABLE_SHOW_ADMIN_DIRECTIVE=true
 
 # Database
 #
-DATABASE_URL=postgres://<username>:<password>@<host>:<port>/<dbname>
+DATABASE_URL=postgres://postgres:password@localhost:9000/anime_skip_local
 DATABASE_DISABLE_SSL=true
 DATABASE_ENABLE_SEEDING=true
 # DATABASE_MIGRATION=
