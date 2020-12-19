@@ -1,4 +1,4 @@
-package utils
+package auth
 
 import (
 	"fmt"
@@ -8,9 +8,11 @@ import (
 	log "anime-skip.com/backend/internal/utils/log"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+
+	"anime-skip.com/backend/internal/utils/env"
 )
 
-var jwtSecret = []byte(ENV.JWT_SECRET)
+var jwtSecret = []byte(env.JWT_SECRET)
 
 // ValidateAuthHeader parses the authorization header and decides whether or not the token is valid.
 func ValidateAuthHeader(authHeader string) (jwt.MapClaims, error) {

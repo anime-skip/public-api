@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"anime-skip.com/backend/internal/database/migrations"
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 
 	// PostgreSQL dialect
@@ -22,10 +22,10 @@ var ORMInstance *ORM
 // Factory creates a db connection and returns the pointer to the GORM instance
 func Factory() (*ORM, error) {
 	var sslmode = "require"
-	if utils.ENV.DATABASE_DISABLE_SSL {
+	if env.DATABASE_DISABLE_SSL {
 		sslmode = "disable"
 	}
-	connectionString := fmt.Sprintf("%s?sslmode=%s", utils.ENV.DATABASE_URL, sslmode)
+	connectionString := fmt.Sprintf("%s?sslmode=%s", env.DATABASE_URL, sslmode)
 	db, err := gorm.Open("postgres", connectionString)
 	if err != nil {
 		log.Panic("Error: ", err)
@@ -38,7 +38,7 @@ func Factory() (*ORM, error) {
 	db.DB().SetMaxOpenConns(10)
 
 	// Enable SQL logs
-	db.LogMode(utils.ENV.LOG_SQL)
+	db.LogMode(env.LOG_SQL)
 	db.SetLogger(log.SQLLogger)
 
 	// Migrations

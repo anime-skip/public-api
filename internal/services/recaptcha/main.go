@@ -8,12 +8,11 @@ import (
 	"net/http"
 	"time"
 
-	utils "anime-skip.com/backend/internal/utils"
 	log "anime-skip.com/backend/internal/utils/log"
 )
 
-var recaptcha_secret = utils.ENV.RECAPTCHA_SECRET
-var recaptcha_response_allowlist = utils.ENV.RECAPTCHA_RESPONSE_ALLOWLIST
+var recaptcha_secret = env.RECAPTCHA_SECRET
+var recaptcha_response_allowlist = env.RECAPTCHA_RESPONSE_ALLOWLIST
 
 const recaptchaURL = "https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s"
 const errorMessage = "Recaptacha validation failed"

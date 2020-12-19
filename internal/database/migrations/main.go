@@ -3,7 +3,7 @@ package migrations
 import (
 	"anime-skip.com/backend/internal/database/migrations/seeders"
 	"anime-skip.com/backend/internal/database/migrations/tables"
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
@@ -11,7 +11,7 @@ import (
 
 func getCurrentMigration(migrations []*gormigrate.Migration) int {
 	finalMigration := len(migrations) - 1
-	currentMigrationPtr := utils.ENV.DATABASE_MIGRATION
+	currentMigrationPtr := env.DATABASE_MIGRATION
 
 	if currentMigrationPtr == nil {
 		return finalMigration
@@ -72,7 +72,7 @@ func Run(db *gorm.DB) error {
 		return err
 	}
 
-	if !utils.ENV.DATABASE_ENABLE_SEEDING {
+	if !env.DATABASE_ENABLE_SEEDING {
 		return nil
 	}
 
