@@ -7,7 +7,7 @@ import (
 	gql "anime-skip.com/backend/internal/graphql"
 	"anime-skip.com/backend/internal/graphql/directives"
 	"anime-skip.com/backend/internal/graphql/resolvers"
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/env"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
@@ -49,7 +49,7 @@ func newServer(es graphql.ExecutableSchema) *handler.Server {
 
 	srv.SetQueryCache(lru.New(1000))
 
-	if utils.ENV.ENABLE_INTROSPECTION {
+	if env.ENABLE_INTROSPECTION {
 		srv.Use(extension.Introspection{})
 	}
 	srv.Use(extension.AutomaticPersistedQuery{
