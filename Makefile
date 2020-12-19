@@ -1,13 +1,17 @@
 build:
 	@docker build . -t anime-skip/backend/api:dev
 run:
-	@docker build -q . -t anime-skip/backend/api:dev
-	@docker run --network=host --env-file .env -p 8081:8081 anime-skip/backend/api:dev
+	@./scripts/run.sh
 watch:
 	@modd
 
 test:
 	@./scripts/test.sh
+
+services:
+	@docker-compose -f docker-compose.dev.yml up --remove-orphans
+reset-services:
+	@docker-compose -f docker-compose.dev.yml up --remove-orphans -V
 
 gen:
 	@./scripts/gqlgen.sh

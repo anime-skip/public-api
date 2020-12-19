@@ -27,3 +27,15 @@ function underline {
 function codeBlock {
     echo -en "\x1b[1m\x1b[2m\x1b[3m$1\x1b[0m"
 }
+
+unameOut="$(uname -s)"
+case "${unameOut}" in
+    Linux*)     OS=linux;;
+    Darwin*)    OS=mac;;
+    CYGWIN*)    OS=windows;;
+    MINGW*)     OS=windows;;
+    *)          OS="UNKNOWN:${unameOut}"
+esac
+
+loadENV
+trap unloadENV EXIT
