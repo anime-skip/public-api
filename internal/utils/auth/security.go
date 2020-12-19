@@ -1,4 +1,4 @@
-package utils
+package auth
 
 import (
 	"fmt"
@@ -8,9 +8,12 @@ import (
 	log "anime-skip.com/backend/internal/utils/log"
 	jwt "github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
+
+	"anime-skip.com/backend/internal/utils/env"
+	timeUtils "anime-skip.com/backend/internal/utils/time"
 )
 
-var jwtSecret = []byte(ENV.JWT_SECRET)
+var jwtSecret = []byte(env.JWT_SECRET)
 
 // ValidateAuthHeader parses the authorization header and decides whether or not the token is valid.
 func ValidateAuthHeader(authHeader string) (jwt.MapClaims, error) {
@@ -43,7 +46,7 @@ func validateToken(tokenString string) (jwt.MapClaims, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid claims")
 	}
-	if isValidExpiresAt := payload.VerifyIssuedAt(CurrentTimeSec(), true); !isValidExpiresAt {
+	if isValidExpiresAt := payload.VerifyIssuedAt(timeUtils.CurrentTimeSec(), true); !isValidExpiresAt {
 		return nil, fmt.Errorf("Token is expired")
 	}
 	if isValidIssuer := payload.VerifyIssuer("anime-skip.com", true); !isValidIssuer {
@@ -77,7 +80,7 @@ func ValidateEmailVerificationToken(token string) (jwt.MapClaims, error) {
 
 // GenerateAuthToken creates a jwt token for the specified user
 func GenerateAuthToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
@@ -99,7 +102,7 @@ func GenerateAuthToken(user *entities.User) (string, error) {
 
 // GenerateRefreshToken creates a refresh token to be used with the login query
 func GenerateRefreshToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{
@@ -119,7 +122,7 @@ func GenerateRefreshToken(user *entities.User) (string, error) {
 }
 
 func GenerateVerifyEmailToken(user *entities.User) (string, error) {
-	now := CurrentTimeSec()
+	now := timeUtils.CurrentTimeSec()
 	token := jwt.NewWithClaims(
 		jwt.SigningMethodHS256,
 		jwt.MapClaims{

@@ -49,3 +49,9 @@ const (
 	TIMESTAMP_ID_TITLE_CARD    = "67321535-a4ea-4f21-8bed-fb3c8286b510"
 	TIMESTAMP_ID_UNKNOWN       = "ae57fcf9-27b0-49a7-9a99-a91aa7518a29"
 )
+
+const (
+	LOGIN_RETRY_INCREMENT = 500  // ms
+	LOGIN_RETRY_FREEBEES  = 5    // attempts
+	LOGIN_RETRY_MAX_SLEEP = 5000 // ms
+)

@@ -3,15 +3,16 @@ package server
 import (
 	"context"
 
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/auth"
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/env"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 )
 
 func headerMiddleware(c *gin.Context) {
 	authHeader := c.GetHeader("authorization")
-	jwt, err := utils.ValidateAuthHeader(authHeader)
+	jwt, err := auth.ValidateAuthHeader(authHeader)
 
 	if err != nil {
 		c.Set(constants.CTX_JWT_ERROR, err)
@@ -32,7 +33,7 @@ func ginContextToContextMiddleware(c *gin.Context) {
 }
 
 func corsMiddleware(c *gin.Context) {
-	if utils.ENV.IS_DEV {
+	if env.IS_DEV {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
 	} else {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // TODO - Figure out origins for prod

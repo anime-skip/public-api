@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/auth"
 )
 
 func main() {
@@ -19,7 +19,7 @@ func main() {
 	md5 := fmt.Sprintf("%x", md5.Sum([]byte(password)))
 	fmt.Println("md5:      " + md5)
 
-	bcrypt, err := utils.GenerateEncryptedPassword(md5)
+	bcrypt, err := auth.GenerateEncryptedPassword(md5)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
