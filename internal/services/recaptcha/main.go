@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
 
+	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 )
 
@@ -19,7 +19,6 @@ const errorMessage = "Recaptacha validation failed"
 
 func Verify(response, ipAddress string) error {
 	if contains(recaptcha_response_allowlist, response) {
-		time.Sleep(2 * time.Second)
 		return nil
 	}
 	resp, err := http.Post(fmt.Sprintf(recaptchaURL, recaptcha_secret, response, ipAddress), "application/json", nil)

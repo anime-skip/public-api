@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"time"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
@@ -37,12 +36,13 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
-		time.Sleep(3 * time.Second)
+		auth.LoginRetryTimer.Failure(usernameEmail)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
 	if err = auth.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
 		log.V("Failed validate password: %v", err)
+		auth.LoginRetryTimer.Failure(usernameEmail)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
@@ -58,6 +58,7 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 		return nil, fmt.Errorf("Failed to login")
 	}
 
+	defer auth.LoginRetryTimer.Success(usernameEmail)
 	return &models.LoginData{
 		AuthToken:    authToken,
 		RefreshToken: refreshToken,
@@ -105,41 +106,35 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	existingUser, _ := repos.FindUserByUsername(tx, username)
 	if existingUser != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
 	}
 
 	existingUser, _ = repos.FindUserByEmail(tx, email)
 	if existingUser != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
 	}
 
 	encryptedPasswordHash, err := auth.GenerateEncryptedPassword(passwordHash)
 	if err != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
 	ipAddress, err := utils.GetIP(ctx)
 	if err != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, errors.New("Could not get ip address from request")
 	}
 	err = recaptcha.Verify(recaptchaResponse, ipAddress)
 	if err != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
 	user, err := repos.CreateUser(tx, username, email, encryptedPasswordHash)
 	if err != nil {
 		tx.Rollback()
-		time.Sleep(2 * time.Second)
 		return nil, err
 	}
 
