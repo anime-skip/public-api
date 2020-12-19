@@ -9,6 +9,7 @@ import (
 	"anime-skip.com/backend/internal/graphql/models"
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/env"
 	"github.com/99designs/gqlgen/graphql"
 )
 
@@ -105,7 +106,7 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 		return nil, err
 	}
 
-	if utils.ENV.DISABLE_SHOW_ADMIN_DIRECTIVE {
+	if env.DISABLE_SHOW_ADMIN_DIRECTIVE {
 		return next(ctx)
 	}
 
