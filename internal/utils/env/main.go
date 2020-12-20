@@ -10,6 +10,7 @@ import (
 
 // General
 var IS_DEV bool
+var IS_STAGED bool
 var GIN_MODE string
 var PORT int
 var LOG_LEVEL int
@@ -41,6 +42,7 @@ var BETTER_VRV_API_KEY string
 
 func init() {
 	IS_DEV = envBoolOrFalse("IS_DEV")
+	IS_STAGED = envBoolOrFalse("IS_STAGED")
 	GIN_MODE = envStringOr("GIN_MODE", "development")
 	PORT = envIntOr("PORT", 8081)
 	LOG_LEVEL = envIntOr("LOG_LEVEL", 0)
@@ -64,6 +66,7 @@ func init() {
 
 	log.I("Loaded ENV Variables")
 	log.V("IS_DEV=%v", IS_DEV)
+	log.V("IS_STAGED=%v", IS_STAGED)
 	log.V("GIN_MODE=%v", GIN_MODE)
 	log.V("PORT=%v", PORT)
 	log.V("LOG_LEVEL=%v", LOG_LEVEL)
