@@ -96,7 +96,9 @@ func (Episode) IsBaseModel() {}
 
 // Stores information about what where an episode can be watched from
 type EpisodeURL struct {
-	// The url that would take a user to watch the `episode`
+	// The url that would take a user to watch the `episode`.
+	//
+	// This url should be stripped of all query params.
 	URL             string    `json:"url"`
 	CreatedAt       time.Time `json:"createdAt"`
 	CreatedByUserID string    `json:"createdByUserId"`
@@ -142,6 +144,13 @@ type InputEpisodeURL struct {
 	TimestampsOffset *float64 `json:"timestampsOffset"`
 }
 
+type InputExistingTimestamp struct {
+	// The id of the timestamp you want to modify
+	ID string `json:"id"`
+	// The new values for the timestamp
+	Timestamp *InputTimestamp `json:"timestamp"`
+}
+
 // Data required to update a user's `Preferences`. See `Preferences` for a description of each field
 type InputPreferences struct {
 	EnableAutoSkip   bool `json:"enableAutoSkip"`
@@ -180,6 +189,13 @@ type InputTimestamp struct {
 	At     float64          `json:"at"`
 	TypeID string           `json:"typeId"`
 	Source *TimestampSource `json:"source"`
+}
+
+type InputTimestampOn struct {
+	// The episode id the timestamp will be created on
+	EpisodeID string `json:"episodeId"`
+	// The new values for the timestamp
+	Timestamp *InputTimestamp `json:"timestamp"`
 }
 
 // Data required to create a new `TimestampType`. See `TimestampType` for a description of each field
@@ -399,6 +415,12 @@ type TimestampType struct {
 }
 
 func (TimestampType) IsBaseModel() {}
+
+type UpdatedTimestamps struct {
+	Created []*Timestamp `json:"created"`
+	Updated []*Timestamp `json:"updated"`
+	Deleted []*Timestamp `json:"deleted"`
+}
 
 // Information about a user that is public. See `Account` for a description of each field
 type User struct {

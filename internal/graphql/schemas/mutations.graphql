@@ -113,6 +113,16 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
+  """
+  Will create, update, and delete timestamps as passed
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  updateTimestamps(
+    create: [InputTimestampOn!]!,
+    update: [InputExistingTimestamp!]!,
+    delete: [ID!]!
+  ): UpdatedTimestamps
 
   # Timestamp Types
   """
