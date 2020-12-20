@@ -9,3 +9,9 @@ type LoginData {
   "The personal account information of the user that got authenticated"
   account: Account!
 }
+
+type UpdatedTimestamps {
+  created: [Timestamp!]!
+  updated: [Timestamp!]!
+  deleted: [Timestamp!]!
+}
