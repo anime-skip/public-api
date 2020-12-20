@@ -9,13 +9,13 @@ RUN go mod download
 
 # Cached layer for source code
 ADD . .
-RUN go build -o bin/anime-skip-api cmd/anime-skip-api/main.go
+RUN go build -o bin/api cmd/api/main.go
 
 # Make the final image with just the built binary, excluding anything required to do the build
 FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
-COPY --from=builder /build/bin/anime-skip-api /app/
+COPY --from=builder /build/bin/api /app/
 WORKDIR /app
 EXPOSE 8081
-CMD ["./anime-skip-api"]
+CMD ["./api"]
