@@ -10,3 +10,13 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: anime_skip_local
+  db_ui:
+    image: sosedoff/pgweb
+    depends_on:
+      - db
+    ports:
+      - 9001:8081
+    links:
+      - db
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:9000/anime_skip_local?sslmode=disable
