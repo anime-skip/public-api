@@ -3,9 +3,12 @@ package utils
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"regexp"
+	"time"
 
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
 	"github.com/jinzhu/gorm"
@@ -43,6 +46,34 @@ func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
 		tx := db.Begin()
 		return tx
 	}
+}
+
+func StartTransaction2(db *gorm.DB, err *error) (tx *gorm.DB, commitOrRollback func()) {
+	tx = db.Begin()
+	var txID int
+	if env.IS_DEV {
+		txID = rand.New(rand.NewSource(time.Now().Unix())).Int()
+		log.V("Begin transaction %d", txID)
+	}
+	commitOrRollback = func() {
+		if r := recover(); r != nil || *err != nil {
+			tx.Rollback()
+			if env.IS_DEV {
+				log.V("Rollback %d", txID)
+			}
+			if r != nil {
+				log.E("Rollback, panicked: %v", r)
+			} else {
+				log.V("Rollback, expected error: %v", err)
+			}
+		} else {
+			tx.Commit()
+			if env.IS_DEV {
+				log.V("Commit %d", txID)
+			}
+		}
+	}
+	return tx, commitOrRollback
 }
 
 func CommitTransaction(tx *gorm.DB, wasInTransaction bool) *gorm.DB {

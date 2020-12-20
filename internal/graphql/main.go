@@ -138,6 +138,7 @@ type ComplexityRoot struct {
 		UpdateShow              func(childComplexity int, showID string, newShow models.InputShow) int
 		UpdateTimestamp         func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
 		UpdateTimestampType     func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
+		UpdateTimestamps        func(childComplexity int, create []*models.InputTimestampOn, update []*models.InputExistingTimestamp, delete []string) int
 		VerifyEmailAddress      func(childComplexity int, validationToken string) int
 	}
 
@@ -285,6 +286,12 @@ type ComplexityRoot struct {
 		UpdatedByUserID func(childComplexity int) int
 	}
 
+	UpdatedTimestamps struct {
+		Created func(childComplexity int) int
+		Deleted func(childComplexity int) int
+		Updated func(childComplexity int) int
+	}
+
 	User struct {
 		AdminOfShows func(childComplexity int) int
 		CreatedAt    func(childComplexity int) int
@@ -340,6 +347,7 @@ type MutationResolver interface {
 	CreateTimestamp(ctx context.Context, episodeID string, timestampInput models.InputTimestamp) (*models.Timestamp, error)
 	UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp models.InputTimestamp) (*models.Timestamp, error)
 	DeleteTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error)
+	UpdateTimestamps(ctx context.Context, create []*models.InputTimestampOn, update []*models.InputExistingTimestamp, delete []string) (*models.UpdatedTimestamps, error)
 	CreateTimestampType(ctx context.Context, timestampTypeInput models.InputTimestampType) (*models.TimestampType, error)
 	UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType models.InputTimestampType) (*models.TimestampType, error)
 	DeleteTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
@@ -1002,6 +1010,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTimestampType(childComplexity, args["timestampTypeId"].(string), args["newTimestampType"].(models.InputTimestampType)), true
+
+	case "Mutation.updateTimestamps":
+		if e.complexity.Mutation.UpdateTimestamps == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateTimestamps_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateTimestamps(childComplexity, args["create"].([]*models.InputTimestampOn), args["update"].([]*models.InputExistingTimestamp), args["delete"].([]string)), true
 
 	case "Mutation.verifyEmailAddress":
 		if e.complexity.Mutation.VerifyEmailAddress == nil {
@@ -1929,6 +1949,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimestampType.UpdatedByUserID(childComplexity), true
 
+	case "UpdatedTimestamps.created":
+		if e.complexity.UpdatedTimestamps.Created == nil {
+			break
+		}
+
+		return e.complexity.UpdatedTimestamps.Created(childComplexity), true
+
+	case "UpdatedTimestamps.deleted":
+		if e.complexity.UpdatedTimestamps.Deleted == nil {
+			break
+		}
+
+		return e.complexity.UpdatedTimestamps.Deleted(childComplexity), true
+
+	case "UpdatedTimestamps.updated":
+		if e.complexity.UpdatedTimestamps.Updated == nil {
+			break
+		}
+
+		return e.complexity.UpdatedTimestamps.Updated(childComplexity), true
+
 	case "User.adminOfShows":
 		if e.complexity.User.AdminOfShows == nil {
 			break
@@ -2035,6 +2076,20 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
+	{Name: "internal/graphql/schemas/arguments.graphql", Input: `input InputExistingTimestamp {
+  "The id of the timestamp you want to modify"
+  id: ID!
+  "The new values for the timestamp"
+  timestamp: InputTimestamp!
+}
+
+input InputTimestampOn {
+  "The episode id the timestamp will be created on"
+  episodeId: ID!
+  "The new values for the timestamp"
+  timestamp: InputTimestamp!
+}
+`, BuiltIn: false},
 	{Name: "internal/graphql/schemas/directives.graphql", Input: `"Check if the user is signed in"
 directive @authorized on FIELD_DEFINITION
 
@@ -2213,7 +2268,11 @@ input InputEpisode {
 
 "Stores information about what where an episode can be watched from"
 type EpisodeUrl {
-  "The url that would take a user to watch the ` + "`" + `episode` + "`" + `"
+  """
+  The url that would take a user to watch the ` + "`" + `episode` + "`" + `.
+  
+  This url should be stripped of all query params.
+  """
   url: String!
   createdAt: Time!
   createdByUserId: ID!
@@ -2641,6 +2700,16 @@ type User {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
+  """
+  Will create, update, and delete timestamps as passed
+
+  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
+  """
+  updateTimestamps(
+    create: [InputTimestampOn!]!,
+    update: [InputExistingTimestamp!]!,
+    delete: [ID!]!
+  ): UpdatedTimestamps
 
   # Timestamp Types
   """
@@ -2755,6 +2824,12 @@ type LoginData {
   refreshToken: String!
   "The personal account information of the user that got authenticated"
   account: Account!
+}
+
+type UpdatedTimestamps {
+  created: [Timestamp!]!
+  updated: [Timestamp!]!
+  deleted: [Timestamp!]!
 }
 `, BuiltIn: false},
 	{Name: "internal/graphql/schemas/scalars.graphql", Input: `"""
@@ -3368,6 +3443,39 @@ func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Cont
 		}
 	}
 	args["newTimestamp"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_updateTimestamps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 []*models.InputTimestampOn
+	if tmp, ok := rawArgs["create"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("create"))
+		arg0, err = ec.unmarshalNInputTimestampOn2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampOnᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["create"] = arg0
+	var arg1 []*models.InputExistingTimestamp
+	if tmp, ok := rawArgs["update"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("update"))
+		arg1, err = ec.unmarshalNInputExistingTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputExistingTimestampᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["update"] = arg1
+	var arg2 []string
+	if tmp, ok := rawArgs["delete"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("delete"))
+		arg2, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["delete"] = arg2
 	return args, nil
 }
 
@@ -6123,6 +6231,44 @@ func (ec *executionContext) _Mutation_deleteTimestamp(ctx context.Context, field
 	res := resTmp.(*models.Timestamp)
 	fc.Result = res
 	return ec.marshalOTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestamp(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateTimestamps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateTimestamps_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().UpdateTimestamps(rctx, args["create"].([]*models.InputTimestampOn), args["update"].([]*models.InputExistingTimestamp), args["delete"].([]string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.UpdatedTimestamps)
+	fc.Result = res
+	return ec.marshalOUpdatedTimestamps2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐUpdatedTimestamps(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createTimestampType(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -10370,6 +10516,108 @@ func (ec *executionContext) _TimestampType_description(ctx context.Context, fiel
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _UpdatedTimestamps_created(ctx context.Context, field graphql.CollectedField, obj *models.UpdatedTimestamps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdatedTimestamps",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Created, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Timestamp)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdatedTimestamps_updated(ctx context.Context, field graphql.CollectedField, obj *models.UpdatedTimestamps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdatedTimestamps",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Updated, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Timestamp)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _UpdatedTimestamps_deleted(ctx context.Context, field graphql.CollectedField, obj *models.UpdatedTimestamps) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "UpdatedTimestamps",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Deleted, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Timestamp)
+	fc.Result = res
+	return ec.marshalNTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -11714,6 +11962,34 @@ func (ec *executionContext) unmarshalInputInputEpisodeUrl(ctx context.Context, o
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInputExistingTimestamp(ctx context.Context, obj interface{}) (models.InputExistingTimestamp, error) {
+	var it models.InputExistingTimestamp
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "id":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("id"))
+			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timestamp":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("timestamp"))
+			it.Timestamp, err = ec.unmarshalNInputTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, obj interface{}) (models.InputPreferences, error) {
 	var it models.InputPreferences
 	var asMap = obj.(map[string]interface{})
@@ -11945,6 +12221,34 @@ func (ec *executionContext) unmarshalInputInputTimestamp(ctx context.Context, ob
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("source"))
 			it.Source, err = ec.unmarshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampSource(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputInputTimestampOn(ctx context.Context, obj interface{}) (models.InputTimestampOn, error) {
+	var it models.InputTimestampOn
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "episodeId":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("episodeId"))
+			it.EpisodeID, err = ec.unmarshalNID2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timestamp":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("timestamp"))
+			it.Timestamp, err = ec.unmarshalNInputTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12463,6 +12767,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTimestamp(ctx, field)
 		case "deleteTimestamp":
 			out.Values[i] = ec._Mutation_deleteTimestamp(ctx, field)
+		case "updateTimestamps":
+			out.Values[i] = ec._Mutation_updateTimestamps(ctx, field)
 		case "createTimestampType":
 			out.Values[i] = ec._Mutation_createTimestampType(ctx, field)
 		case "updateTimestampType":
@@ -13517,6 +13823,43 @@ func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.Selectio
 	return out
 }
 
+var updatedTimestampsImplementors = []string{"UpdatedTimestamps"}
+
+func (ec *executionContext) _UpdatedTimestamps(ctx context.Context, sel ast.SelectionSet, obj *models.UpdatedTimestamps) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, updatedTimestampsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UpdatedTimestamps")
+		case "created":
+			out.Values[i] = ec._UpdatedTimestamps_created(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updated":
+			out.Values[i] = ec._UpdatedTimestamps_updated(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleted":
+			out.Values[i] = ec._UpdatedTimestamps_deleted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var userImplementors = []string{"User"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
@@ -13983,6 +14326,36 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
+func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]string, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
+	}
+
+	return ret
+}
+
 func (ec *executionContext) unmarshalNInputEpisode2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisode(ctx context.Context, v interface{}) (models.InputEpisode, error) {
 	res, err := ec.unmarshalInputInputEpisode(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -13991,6 +14364,32 @@ func (ec *executionContext) unmarshalNInputEpisode2animeᚑskipᚗcomᚋbackend�
 func (ec *executionContext) unmarshalNInputEpisodeUrl2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputEpisodeURL(ctx context.Context, v interface{}) (models.InputEpisodeURL, error) {
 	res, err := ec.unmarshalInputInputEpisodeUrl(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNInputExistingTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputExistingTimestampᚄ(ctx context.Context, v interface{}) ([]*models.InputExistingTimestamp, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.InputExistingTimestamp, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalNInputExistingTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputExistingTimestamp(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNInputExistingTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputExistingTimestamp(ctx context.Context, v interface{}) (*models.InputExistingTimestamp, error) {
+	res, err := ec.unmarshalInputInputExistingTimestamp(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNInputPreferences2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputPreferences(ctx context.Context, v interface{}) (models.InputPreferences, error) {
@@ -14011,6 +14410,37 @@ func (ec *executionContext) unmarshalNInputShowAdmin2animeᚑskipᚗcomᚋbacken
 func (ec *executionContext) unmarshalNInputTimestamp2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx context.Context, v interface{}) (models.InputTimestamp, error) {
 	res, err := ec.unmarshalInputInputTimestamp(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNInputTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx context.Context, v interface{}) (*models.InputTimestamp, error) {
+	res, err := ec.unmarshalInputInputTimestamp(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNInputTimestampOn2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampOnᚄ(ctx context.Context, v interface{}) ([]*models.InputTimestampOn, error) {
+	var vSlice []interface{}
+	if v != nil {
+		if tmp1, ok := v.([]interface{}); ok {
+			vSlice = tmp1
+		} else {
+			vSlice = []interface{}{v}
+		}
+	}
+	var err error
+	res := make([]*models.InputTimestampOn, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
+		res[i], err = ec.unmarshalNInputTimestampOn2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampOn(ctx, vSlice[i])
+		if err != nil {
+			return nil, graphql.WrapErrorWithInputPath(ctx, err)
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) unmarshalNInputTimestampOn2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampOn(ctx context.Context, v interface{}) (*models.InputTimestampOn, error) {
+	res, err := ec.unmarshalInputInputTimestampOn(ctx, v)
+	return &res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalNInputTimestampType2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampType(ctx context.Context, v interface{}) (models.InputTimestampType, error) {
@@ -14980,6 +15410,13 @@ func (ec *executionContext) marshalOTimestampType2ᚖanimeᚑskipᚗcomᚋbacken
 		return graphql.Null
 	}
 	return ec._TimestampType(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOUpdatedTimestamps2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐUpdatedTimestamps(ctx context.Context, sel ast.SelectionSet, v *models.UpdatedTimestamps) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._UpdatedTimestamps(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOUser2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐUser(ctx context.Context, sel ast.SelectionSet, v *models.User) graphql.Marshaler {
