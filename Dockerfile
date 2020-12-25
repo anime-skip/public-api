@@ -1,7 +1,7 @@
 # build the application in a container
 FROM golang:1.14-alpine as builder
 RUN apk update
-RUN apk add git
+RUN apk add git jq
 RUN mkdir /build
 WORKDIR /build
 
@@ -9,15 +9,10 @@ WORKDIR /build
 ADD go.mod go.sum ./
 RUN go mod download
 
-# Cache layer for the version
-ARG DEV
-ADD .git .
-ADD VERSION .
-
 # Cached layer for source code
 ADD . .
 RUN \
-  VERSION=$(cat VERSION) ;\
+  VERSION=$(jq -r .version meta.json) ;\
   SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;\
   go build \
     -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION -X anime-skip.com/backend/internal/utils/constants.VERSION_SUFFIX=$SUFFIX" \

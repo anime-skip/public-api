@@ -1,5 +1,5 @@
 build:
-	@docker build . --build-arg DEV=true -t anime-skip/backend/api:dev
+	@docker build . -t anime-skip/backend/api:dev
 run: build
 	@./scripts/run.sh
 watch:
