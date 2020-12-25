@@ -10,14 +10,13 @@ ADD go.mod go.sum ./
 RUN go mod download
 
 # Cache layer for the version
-ARG DEV
 ADD .git .
-ADD VERSION .
+ADD meta.json .
 
 # Cached layer for source code
 ADD . .
 RUN \
-  VERSION=$(cat VERSION) ;\
+  VERSION=$(node -e 'console.log(require("./meta.json").version)') ;\
   SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;\
   go build \
     -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION -X anime-skip.com/backend/internal/utils/constants.VERSION_SUFFIX=$SUFFIX" \
