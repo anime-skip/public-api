@@ -1,6 +1,3 @@
-# Default Args
-ARG DEV=false
-
 # build the application in a container
 FROM golang:1.14-alpine as builder
 RUN apk update
@@ -21,19 +18,17 @@ ADD VERSION .
 ADD . .
 RUN \
   VERSION=$(cat VERSION) ;\
-  if [ "$DEV" == "true" ]; then \
-    SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;\
-  fi ;\
+  SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;\
   go build \
-    -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION$SUFFIX" \
-    -o bin/anime-skip-api \
-    cmd/anime-skip-api/main.go
+    -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION -X anime-skip.com/backend/internal/utils/constants.VERSION_SUFFIX=$SUFFIX" \
+    -o bin/api-service \
+    cmd/api-service/main.go
 
 # Make the final image with just the built binary, excluding anything required to do the build
 FROM alpine
 RUN adduser -S -D -H -h /app appuser
 USER appuser
-COPY --from=builder /build/bin/anime-skip-api /app/
+COPY --from=builder /build/bin/api-service /app/
 WORKDIR /app
 EXPOSE 8081
-CMD ["./anime-skip-api"]
+CMD ["./api-service"]

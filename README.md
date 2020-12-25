@@ -13,7 +13,7 @@ The backend is written in Go. However, all builds are done in a docker container
     - [`go ≥ v11`](https://golang.org/doc/install#download)
 1. Clone the repo
     ```bash
-    git clone git@github.com:aklinker1/anime-skip-api.git
+    git clone git@github.com:anime-skip/backend.git
     ```
 1. Generate a `.env` file and get an overview of the different `make` commands
     ```bash
