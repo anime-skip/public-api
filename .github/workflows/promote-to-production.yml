@@ -1,0 +1,49 @@
+name: Prod Release
+on: [workflow_dispatch]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: anime-skip/backend
+
+jobs:
+  promote:
+    name: Promote to Production
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staged
+      - uses: akhileshns/heroku-deploy@v3.7.8
+        with:
+          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          heroku_app_name: ""
+          heroku_email: ${{ secrets.HEROKU_EMAIL }}
+          justlogin: true
+      - name: Promote :staged to :prod in GitHub Packages
+        run: |
+          docker login -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}" "$REGISTRY"
+          docker image tag $STAGED_IMAGE $PROD_IMAGE
+          docker push $PROD_IMAGE
+        env:
+          STAGED_IMAGE: docker.pkg.github.com/anime-skip/backend/api:staged
+          PROD_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
+      - name: Promote staged to prod in Heroku
+        run: heroku pipelines:promote -a staged-api-service web
+        env:
+          BASE_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
+          HEROKU_TAG_PROD: registry.heroku.com/staged-api-service/web
+          HEROKU_TAG_TEST: registry.heroku.com/staged-api-test-service/web
+  update_releases:
+    name: Update Releases
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staged
+  pr_version_change:
+    name: Open PR for Version Change
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          ref: staged

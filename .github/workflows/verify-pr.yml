@@ -3,6 +3,7 @@ on:
   push:
     branches-ignore:
       - main
+      - staged
 
 jobs:
   setup:
