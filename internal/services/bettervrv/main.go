@@ -138,6 +138,9 @@ func fetchRemoteShowsById(id string) (*models.ThirdPartyShow, error) {
 	if err != nil {
 		return nil, err
 	}
+	if len(response.Results) == 0 {
+		return nil, nil
+	}
 
 	// Map list
 	return MapBetterVRVShowToThirdPartyShow(&response.Results[0]), nil
