@@ -9,28 +9,28 @@ env:
   GH_REPO: anime-skip/backend
 
 jobs:
-  # verify:
-  #   name: Verify Build
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - name: Create .env
-  #       run: ./.github/create-env.sh
-  #     - name: Build
-  #       run: make build
-  #     - uses: actions/setup-go@v1
-  #       with:
-  #         go-version: 1.13
-  #     - name: Lint
-  #       run: echo "TODO" # make lint
-  #     - name: Run Tests
-  #       run: make test
-  #     - name: Run E2E Tests
-  #       run: echo "TODO" # make e2e-test
+  verify:
+    name: Verify Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Create .env
+        run: ./.github/create-env.sh
+      - name: Build
+        run: make build
+      - uses: actions/setup-go@v1
+        with:
+          go-version: 1.13
+      - name: Lint
+        run: echo "TODO" # make lint
+      - name: Run Tests
+        run: make test
+      - name: Run E2E Tests
+        run: echo "TODO" # make e2e-test
   publish:
     name: Publish the :staged container
     runs-on: ubuntu-latest
-    # needs: verify
+    needs: verify
     steps:
       - uses: actions/checkout@v2
       - name: Switch to staged branch
