@@ -6,44 +6,63 @@ env:
   GH_REPO: anime-skip/backend
 
 jobs:
-  promote:
-    name: Promote to Production
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          ref: staged
-      - uses: akhileshns/heroku-deploy@v3.7.8
-        with:
-          heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-          heroku_app_name: ""
-          heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          justlogin: true
-      - name: Promote :staged to :prod in GitHub Packages
-        run: |
-          docker login -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}" "$REGISTRY"
-          docker image tag $STAGED_IMAGE $PROD_IMAGE
-          docker push $PROD_IMAGE
-        env:
-          STAGED_IMAGE: docker.pkg.github.com/anime-skip/backend/api:staged
-          PROD_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
-      - name: Promote staged to prod in Heroku
-        run: heroku pipelines:promote -a staged-api-service web
-        env:
-          BASE_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
-          HEROKU_TAG_PROD: registry.heroku.com/staged-api-service/web
-          HEROKU_TAG_TEST: registry.heroku.com/staged-api-test-service/web
+  # promote:
+  #   name: Promote to Production
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         ref: staged
+  #     - name: Promote :staged to :prod in GitHub Packages
+  #       run: |
+  #         docker login -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}" docker.pkg.github.com
+  #         docker pull $STAGED_IMAGE
+  #         docker image tag $STAGED_IMAGE $PROD_IMAGE
+  #         docker push $PROD_IMAGE
+  #       env:
+  #         STAGED_IMAGE: docker.pkg.github.com/anime-skip/backend/api:staged
+  #         PROD_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
+  #     - uses: akhileshns/heroku-deploy@v3.7.8
+  #       with:
+  #         heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+  #         heroku_app_name: ""
+  #         heroku_email: ${{ secrets.HEROKU_EMAIL }}
+  #         justlogin: true
+  #     - name: Push staged image to prod in Heroku
+  #       run: |
+  #         docker login --username=_ --password=$(heroku auth:token) registry.heroku.com
+  #         docker tag $BASE_IMAGE $HEROKU_IMAGE_PROD
+  #         docker tag $BASE_IMAGE $HEROKU_IMAGE_TEST
+  #         docker push $HEROKU_IMAGE_PROD
+  #         docker push $HEROKU_IMAGE_TEST
+  #       env:
+  #         BASE_IMAGE: docker.pkg.github.com/anime-skip/backend/api:prod
+  #         HEROKU_IMAGE_PROD: registry.heroku.com/prod-api-service/web
+  #         HEROKU_IMAGE_TEST: registry.heroku.com/prod-api-test-service/web
+  #     - name: Release prod-api-service
+  #       run: heroku container:release -a prod-api-service web
+  #     - name: Release prod-api-test-service
+  #       run: heroku container:release -a prod-api-test-service web
   update_releases:
-    name: Update Releases
+    name: Create GitHub Release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: staged
-  pr_version_change:
-    name: Open PR for Version Change
+  merge_version_change:
+    name: Merge Version Change
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with:
-          ref: staged
+      - name: Setup Git Config
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+      - name: Create and push release branch
+        run: |
+          BRANCH="release-$(git rev-parse --short HEAD)"
+          git fetch
+          git checkout -b $BRANCH
+          git cherry-pick origin/staged
+          git push origin $BRANCH
+      - name: Create PR
+        run: gh pr create --title "Promoted to production" --body ""
