@@ -1,5 +1,5 @@
-name: Prod Release
-on: [workflow_dispatch]
+name: Promote to Production
+on: workflow_dispatch
 
 env:
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
