@@ -40,3 +40,10 @@ Install the recommended extensions, and install all go tooling by  and type in
 1. Open command pallet: `ctrl+shift+P` (`mcd+shift+P` for Mac)
 1. Run `Go: Install/Update Tools`
 1. Select all tools and press OK
+
+## Deployments
+
+1. When PRs are merged, they are automatically deployed by `.github/workflows/publish-to-staged.yml` to the staging environment.
+1. To promote to production, use the discord bot or run the ["Promote to Production" action](https://github.com/anime-skip/backend/actions/workflows/promote-to-production.yml) manually
+
+> Version bumps are handled automatically. After promoting, GitHub Actions opens a PR to update the `meta.yml` and `CHANGELOG.md`.
