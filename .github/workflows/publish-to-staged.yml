@@ -11,6 +11,7 @@ env:
 jobs:
   verify:
     name: Verify Build
+    if: "!contains(github.event.head_commit.message, 'chore(release)')"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -59,7 +60,7 @@ jobs:
           echo "::set-output name=old_changelog_output::$OLD_CHANGELOG"
       - name: Bump Version and Changelog
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: aklinker1/conventional-changelog-action@7b07deb5df5e4fa8e57c4f6b89859a25c12f45cf
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           git-message: 'chore(release): Version {version}'
@@ -73,16 +74,29 @@ jobs:
           echo "$OLD_CHANGELOG" >> CHANGELOG.md
         env:
           OLD_CHANGELOG: ${{ steps.old_changelog.outputs.old_changelog_output }}
+      - name: Delete the tag from GitHub
+        continue-on-error: true
+        run: git push --delete origin $TAG
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
+      - name: Delete the tag locally
+        continue-on-error: true
+        run: git tag -d $TAG
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
       - name: Commit new changelog
         run: |
-          echo $TAG
-          git commit -am "chore(release): Version $TAG"
-          git push --delete origin $TAG ; git push --tags
+          echo New version: $TAG
+          NEW_META=$(jq ".version=\"${TAG/v/}\"" meta.json)
+          echo $NEW_META > meta.json
+
+          git commit -am "chore(release): $TAG"
+          git tag -a $TAG -m $TAG 
+          git push --tags
         env:
           TAG: ${{ steps.changelog.outputs.tag }}
       - name: Create new staged branch
         run: |
-          cat meta.json
           git push -f origin staged
           git push --tags
       - name: Push :staged to GitHub Packages
