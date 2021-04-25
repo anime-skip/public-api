@@ -8,9 +8,13 @@ import (
 
 func DefaultPreferences(userId uuid.UUID) *entities.Preferences {
 	return &entities.Preferences{
-		UserID:           userId,
-		EnableAutoSkip:   true,
-		EnableAutoPlay:   true,
+		UserID: userId,
+
+		EnableAutoSkip:             true,
+		EnableAutoPlay:             true,
+		MinimizeToolbarWhenEditing: false,
+		HideTimelineWhenMinimized:  false,
+
 		SkipBranding:     true,
 		SkipIntros:       true,
 		SkipNewIntros:    false,
@@ -38,9 +42,12 @@ func PreferencesEntityToModel(entity *entities.Preferences) *models.Preferences 
 		UpdatedAt: entity.UpdatedAt,
 		DeletedAt: entity.DeletedAt,
 
-		UserID:           entity.UserID.String(),
-		EnableAutoSkip:   entity.EnableAutoSkip,
-		EnableAutoPlay:   entity.EnableAutoPlay,
+		UserID:                     entity.UserID.String(),
+		EnableAutoSkip:             entity.EnableAutoSkip,
+		EnableAutoPlay:             entity.EnableAutoPlay,
+		MinimizeToolbarWhenEditing: entity.MinimizeToolbarWhenEditing,
+		HideTimelineWhenMinimized:  entity.HideTimelineWhenMinimized,
+
 		SkipBranding:     entity.SkipBranding,
 		SkipIntros:       entity.SkipIntros,
 		SkipNewIntros:    entity.SkipNewIntros,
@@ -61,8 +68,12 @@ func PreferencesInputModelToEntity(model models.InputPreferences, entity *entiti
 	if entity == nil {
 		return nil
 	}
+
 	entity.EnableAutoSkip = model.EnableAutoSkip
 	entity.EnableAutoPlay = model.EnableAutoPlay
+	entity.MinimizeToolbarWhenEditing = model.MinimizeToolbarWhenEditing
+	entity.HideTimelineWhenMinimized = model.HideTimelineWhenMinimized
+
 	entity.SkipBranding = model.SkipBranding
 	entity.SkipIntros = model.SkipIntros
 	entity.SkipNewIntros = model.SkipNewIntros
@@ -76,5 +87,6 @@ func PreferencesInputModelToEntity(model models.InputPreferences, entity *entiti
 	entity.SkipMixedCredits = model.SkipMixedCredits
 	entity.SkipPreview = model.SkipPreview
 	entity.SkipTitleCard = model.SkipTitleCard
+
 	return entity
 }
