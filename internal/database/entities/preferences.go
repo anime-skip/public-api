@@ -13,9 +13,12 @@ type Preferences struct {
 	UpdatedAt time.Time `gorm:"not null"`
 	DeletedAt *time.Time
 
-	UserID           uuid.UUID `gorm:"not null;type:uuid"`
-	EnableAutoSkip   bool
-	EnableAutoPlay   bool
+	UserID                     uuid.UUID `gorm:"not null;type:uuid"`
+	EnableAutoSkip             bool
+	EnableAutoPlay             bool
+	MinimizeToolbarWhenEditing bool
+	HideTimelineWhenMinimized  bool
+
 	SkipBranding     bool
 	SkipIntros       bool
 	SkipNewIntros    bool

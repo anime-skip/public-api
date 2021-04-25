@@ -51,6 +51,7 @@ func Run(db *gorm.DB) error {
 		/* 12 */ tables.AddBaseDurationToEpisodes,
 		/* 13 */ tables.AddDurationToEpisodeUrls,
 		/* 14 */ tables.AddTimestampsOffsetToEpisodeUrls,
+		/* 15 */ tables.AddHideTimelinePreferences,
 	}
 	currentMigration := getCurrentMigration(migrations)
 	currentMigrationId := migrations[currentMigration].ID

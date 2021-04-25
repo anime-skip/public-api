@@ -153,21 +153,23 @@ type InputExistingTimestamp struct {
 
 // Data required to update a user's `Preferences`. See `Preferences` for a description of each field
 type InputPreferences struct {
-	EnableAutoSkip   bool `json:"enableAutoSkip"`
-	EnableAutoPlay   bool `json:"enableAutoPlay"`
-	SkipBranding     bool `json:"skipBranding"`
-	SkipIntros       bool `json:"skipIntros"`
-	SkipNewIntros    bool `json:"skipNewIntros"`
-	SkipMixedIntros  bool `json:"skipMixedIntros"`
-	SkipRecaps       bool `json:"skipRecaps"`
-	SkipFiller       bool `json:"skipFiller"`
-	SkipCanon        bool `json:"skipCanon"`
-	SkipTransitions  bool `json:"skipTransitions"`
-	SkipCredits      bool `json:"skipCredits"`
-	SkipNewCredits   bool `json:"skipNewCredits"`
-	SkipMixedCredits bool `json:"skipMixedCredits"`
-	SkipPreview      bool `json:"skipPreview"`
-	SkipTitleCard    bool `json:"skipTitleCard"`
+	EnableAutoSkip             bool `json:"enableAutoSkip"`
+	EnableAutoPlay             bool `json:"enableAutoPlay"`
+	MinimizeToolbarWhenEditing bool `json:"minimizeToolbarWhenEditing"`
+	HideTimelineWhenMinimized  bool `json:"hideTimelineWhenMinimized"`
+	SkipBranding               bool `json:"skipBranding"`
+	SkipIntros                 bool `json:"skipIntros"`
+	SkipNewIntros              bool `json:"skipNewIntros"`
+	SkipMixedIntros            bool `json:"skipMixedIntros"`
+	SkipRecaps                 bool `json:"skipRecaps"`
+	SkipFiller                 bool `json:"skipFiller"`
+	SkipCanon                  bool `json:"skipCanon"`
+	SkipTransitions            bool `json:"skipTransitions"`
+	SkipCredits                bool `json:"skipCredits"`
+	SkipNewCredits             bool `json:"skipNewCredits"`
+	SkipMixedCredits           bool `json:"skipMixedCredits"`
+	SkipPreview                bool `json:"skipPreview"`
+	SkipTitleCard              bool `json:"skipTitleCard"`
 }
 
 // Data required to create a new `Show`. See `Show` for a description of each field
@@ -229,6 +231,12 @@ type Preferences struct {
 	EnableAutoSkip bool `json:"enableAutoSkip"`
 	// Whether or not the user wants to auto-play the videos. Default: `true`
 	EnableAutoPlay bool `json:"enableAutoPlay"`
+	// Whether or not the bottom toolbar with the video progress and play button is minimized after
+	// inactivity while editing
+	MinimizeToolbarWhenEditing bool `json:"minimizeToolbarWhenEditing"`
+	// When false, timeline is pinned to the bottom of the screen after inactivity. When true, it is
+	// hidden completely
+	HideTimelineWhenMinimized bool `json:"hideTimelineWhenMinimized"`
 	// Whether or not the user whats to skip branding timestamps. Default: `true`
 	SkipBranding bool `json:"skipBranding"`
 	// Whether or not the user whats to skip regular intros. Default: `true`

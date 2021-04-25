@@ -221,6 +221,17 @@ type Preferences {
   enableAutoSkip: Boolean!
   "Whether or not the user wants to auto-play the videos. Default: `true`"
   enableAutoPlay: Boolean!
+  """
+  Whether or not the bottom toolbar with the video progress and play button is minimized after
+  inactivity while editing
+  """
+  minimizeToolbarWhenEditing: Boolean!
+  """
+  When false, timeline is pinned to the bottom of the screen after inactivity. When true, it is
+  hidden completely
+  """
+  hideTimelineWhenMinimized: Boolean!
+
   "Whether or not the user whats to skip branding timestamps. Default: `true`"
   skipBranding: Boolean!
   "Whether or not the user whats to skip regular intros. Default: `true`"
@@ -253,6 +264,9 @@ type Preferences {
 input InputPreferences {
   enableAutoSkip: Boolean!
   enableAutoPlay: Boolean!
+  minimizeToolbarWhenEditing: Boolean!
+  hideTimelineWhenMinimized: Boolean!
+
   skipBranding: Boolean!
   skipIntros: Boolean!
   skipNewIntros: Boolean!
