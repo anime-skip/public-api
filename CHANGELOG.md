@@ -1,4 +1,4 @@
-## [1.0.9](https://github.com/anime-skip/backend/compare/v1.0.8...v1.0.9) (2021-02-18)
+# [1.1.0](https://github.com/anime-skip/backend/compare/v1.0.8...v1.1.0) (2021-04-25)
 
 
 ### Bug Fixes
@@ -7,6 +7,11 @@
 * Internal error with the fetchEpsiodeByName query ([9389729](https://github.com/anime-skip/backend/commit/938972977923127d7343a3c6d9dc519d605c380a))
 * Setup login timer to remove constant sleeps ([51b1cb3](https://github.com/anime-skip/backend/commit/51b1cb35e447160f1a827c14bb1d79f096ec8df0))
 * updateTimestamps, better rollback utils ([43c1e63](https://github.com/anime-skip/backend/commit/43c1e63d89ff576135a0bd5e9cd8457c2f31815c))
+
+
+### Features
+
+* added new preferences around hiding the toolbar and timeline ([bd4ca99](https://github.com/anime-skip/backend/commit/bd4ca99c67759eccc961cb31907296b260385728))
 
 
 
