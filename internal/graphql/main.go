@@ -143,27 +143,29 @@ type ComplexityRoot struct {
 	}
 
 	Preferences struct {
-		CreatedAt        func(childComplexity int) int
-		DeletedAt        func(childComplexity int) int
-		EnableAutoPlay   func(childComplexity int) int
-		EnableAutoSkip   func(childComplexity int) int
-		ID               func(childComplexity int) int
-		SkipBranding     func(childComplexity int) int
-		SkipCanon        func(childComplexity int) int
-		SkipCredits      func(childComplexity int) int
-		SkipFiller       func(childComplexity int) int
-		SkipIntros       func(childComplexity int) int
-		SkipMixedCredits func(childComplexity int) int
-		SkipMixedIntros  func(childComplexity int) int
-		SkipNewCredits   func(childComplexity int) int
-		SkipNewIntros    func(childComplexity int) int
-		SkipPreview      func(childComplexity int) int
-		SkipRecaps       func(childComplexity int) int
-		SkipTitleCard    func(childComplexity int) int
-		SkipTransitions  func(childComplexity int) int
-		UpdatedAt        func(childComplexity int) int
-		User             func(childComplexity int) int
-		UserID           func(childComplexity int) int
+		CreatedAt                  func(childComplexity int) int
+		DeletedAt                  func(childComplexity int) int
+		EnableAutoPlay             func(childComplexity int) int
+		EnableAutoSkip             func(childComplexity int) int
+		HideTimelineWhenMinimized  func(childComplexity int) int
+		ID                         func(childComplexity int) int
+		MinimizeToolbarWhenEditing func(childComplexity int) int
+		SkipBranding               func(childComplexity int) int
+		SkipCanon                  func(childComplexity int) int
+		SkipCredits                func(childComplexity int) int
+		SkipFiller                 func(childComplexity int) int
+		SkipIntros                 func(childComplexity int) int
+		SkipMixedCredits           func(childComplexity int) int
+		SkipMixedIntros            func(childComplexity int) int
+		SkipNewCredits             func(childComplexity int) int
+		SkipNewIntros              func(childComplexity int) int
+		SkipPreview                func(childComplexity int) int
+		SkipRecaps                 func(childComplexity int) int
+		SkipTitleCard              func(childComplexity int) int
+		SkipTransitions            func(childComplexity int) int
+		UpdatedAt                  func(childComplexity int) int
+		User                       func(childComplexity int) int
+		UserID                     func(childComplexity int) int
 	}
 
 	Query struct {
@@ -1063,12 +1065,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Preferences.EnableAutoSkip(childComplexity), true
 
+	case "Preferences.hideTimelineWhenMinimized":
+		if e.complexity.Preferences.HideTimelineWhenMinimized == nil {
+			break
+		}
+
+		return e.complexity.Preferences.HideTimelineWhenMinimized(childComplexity), true
+
 	case "Preferences.id":
 		if e.complexity.Preferences.ID == nil {
 			break
 		}
 
 		return e.complexity.Preferences.ID(childComplexity), true
+
+	case "Preferences.minimizeToolbarWhenEditing":
+		if e.complexity.Preferences.MinimizeToolbarWhenEditing == nil {
+			break
+		}
+
+		return e.complexity.Preferences.MinimizeToolbarWhenEditing(childComplexity), true
 
 	case "Preferences.skipBranding":
 		if e.complexity.Preferences.SkipBranding == nil {
@@ -2354,6 +2370,17 @@ type Preferences {
   enableAutoSkip: Boolean!
   "Whether or not the user wants to auto-play the videos. Default: ` + "`" + `true` + "`" + `"
   enableAutoPlay: Boolean!
+  """
+  Whether or not the bottom toolbar with the video progress and play button is minimized after
+  inactivity while editing
+  """
+  minimizeToolbarWhenEditing: Boolean!
+  """
+  When false, timeline is pinned to the bottom of the screen after inactivity. When true, it is
+  hidden completely
+  """
+  hideTimelineWhenMinimized: Boolean!
+
   "Whether or not the user whats to skip branding timestamps. Default: ` + "`" + `true` + "`" + `"
   skipBranding: Boolean!
   "Whether or not the user whats to skip regular intros. Default: ` + "`" + `true` + "`" + `"
@@ -2386,6 +2413,9 @@ type Preferences {
 input InputPreferences {
   enableAutoSkip: Boolean!
   enableAutoPlay: Boolean!
+  minimizeToolbarWhenEditing: Boolean!
+  hideTimelineWhenMinimized: Boolean!
+
   skipBranding: Boolean!
   skipIntros: Boolean!
   skipNewIntros: Boolean!
@@ -6710,6 +6740,74 @@ func (ec *executionContext) _Preferences_enableAutoPlay(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.EnableAutoPlay, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Preferences_minimizeToolbarWhenEditing(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MinimizeToolbarWhenEditing, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Preferences_hideTimelineWhenMinimized(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.HideTimelineWhenMinimized, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12012,6 +12110,22 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "minimizeToolbarWhenEditing":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("minimizeToolbarWhenEditing"))
+			it.MinimizeToolbarWhenEditing, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "hideTimelineWhenMinimized":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hideTimelineWhenMinimized"))
+			it.HideTimelineWhenMinimized, err = ec.unmarshalNBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "skipBranding":
 			var err error
 
@@ -12840,6 +12954,16 @@ func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionS
 			}
 		case "enableAutoPlay":
 			out.Values[i] = ec._Preferences_enableAutoPlay(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "minimizeToolbarWhenEditing":
+			out.Values[i] = ec._Preferences_minimizeToolbarWhenEditing(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "hideTimelineWhenMinimized":
+			out.Values[i] = ec._Preferences_hideTimelineWhenMinimized(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
