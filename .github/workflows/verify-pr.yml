@@ -20,8 +20,10 @@ jobs:
     needs: [setup]
     steps:
       - uses: actions/checkout@v1
-      - name: Build
+      - name: Build Server
         run: make build
+      - name: Build Lambda
+        run: make package-lambda
   lint:
     name: Lint
     runs-on: ubuntu-latest

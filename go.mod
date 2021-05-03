@@ -4,6 +4,8 @@ go 1.13
 
 require (
 	github.com/99designs/gqlgen v0.12.2
+	github.com/aws/aws-lambda-go v1.23.0
+	github.com/awslabs/aws-lambda-go-api-proxy v0.10.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v4.1.2+incompatible

@@ -5,6 +5,11 @@ run: build
 watch:
 	@modd
 
+package-lambda:
+	@./scripts/package-lambda.sh
+deploy-lambda: package-lambda
+	@./.aws/deploy.sh
+
 test:
 	@./scripts/test.sh
 

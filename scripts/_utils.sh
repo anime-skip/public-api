@@ -39,6 +39,9 @@ esac
 
 VERSION=$(jq -r .version meta.json) ;
 SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;
+VERSION_COMPILER_FLAG="-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION"
+SUFFIX_COMPILER_FLAG="-X anime-skip.com/backend/internal/utils/constants.VERSION_SUFFIX=$SUFFIX"
+BUILD_ARGS="-ldflags=\"$VERSION_COMPILER_FLAG $SUFFIX_COMPILER_FLAG\""
 
 loadENV
 trap unloadENV EXIT

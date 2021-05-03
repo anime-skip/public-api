@@ -19,7 +19,7 @@ The backend is written in Go. However, all builds are done in a docker container
     ```bash
     make init
     ```
-1. Spin up postgres and other services the backend depends on via `docker-compose`
+1. Spin up postgres and other services the backend depends on
     ```bash
     make services
     ```
@@ -29,7 +29,10 @@ The backend is written in Go. However, all builds are done in a docker container
     ```
 1. (Optional) Install [Modd](https://github.com/cortesi/modd) to use `make watch` (restart the server on change)
     ```bash
+    # Install
     env GO111MODULE=on go get github.com/cortesi/modd/cmd/modd
+
+    # Watch
     make watch
     ```
 
@@ -43,7 +46,9 @@ Install the recommended extensions, and install all go tooling by  and type in
 
 ## Deployments
 
-1. When PRs are merged, they are automatically deployed by `.github/workflows/publish-to-staged.yml` to the staging environment.
+1. When PRs are merged, they are automatically deployed to the staging environment.
 1. To promote to production, use the discord bot or run the ["Promote to Production" action](https://github.com/anime-skip/backend/actions/workflows/promote-to-production.yml) manually
 
-> Version bumps are handled automatically. After promoting, GitHub Actions opens a PR to update the `meta.yml` and `CHANGELOG.md`.
+> Version bumps are handled automatically. After promoting, GitHub Actions opens a PR to update the `meta.json` and `CHANGELOG.md`.
+
+If you need to manually deploy, use `make deploy-lambdas`. This script will walk you through the deployment process 
