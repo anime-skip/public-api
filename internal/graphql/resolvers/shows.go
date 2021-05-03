@@ -8,6 +8,7 @@ import (
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
 	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/context_utils"
 	"github.com/jinzhu/gorm"
 )
 
@@ -65,7 +66,7 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 	}
 
 	// Add the Admin relation for this user
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		tx.Rollback()
 		return nil, err

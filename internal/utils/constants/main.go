@@ -3,15 +3,21 @@ package constants
 const (
 	CTX_GIN_CONTEXT  = "ctx_gin_context"
 	CTX_USER_ID      = "ctx_user_id"
-	CTX_JWT_ERROR    = "ctx_jwt_error"
+	CTX_AUTH_ERROR   = "ctx_auth_error"
 	CTX_ROLE         = "ctx_role"
 	CTX_DATA_LOADERS = "ctx_data_loaders"
+	CTX_IP_ADDRESS   = "ctx_real_ip_address"
 )
 
+// ! Migrate changes to role numbers
+// Old:
+// - ROLE_DEV   = 0
+// - ROLE_ADMIN = 1
+// - ROLE_USER  = 2
 const (
-	ROLE_DEV   = 0
+	ROLE_DEV   = 2
 	ROLE_ADMIN = 1
-	ROLE_USER  = 2
+	ROLE_USER  = 0
 )
 
 const (

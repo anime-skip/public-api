@@ -7,8 +7,8 @@ import (
 	"anime-skip.com/backend/internal/database"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/context_utils"
 	"anime-skip.com/backend/internal/utils/env"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -102,7 +102,7 @@ func _findShowID(ctx context.Context, obj interface{}) (string, error) {
 }
 
 func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	if err := isAuthorized(ctx); err != nil {
+	if err := context_utils.AuthError(ctx); err != nil {
 		return nil, err
 	}
 
@@ -110,7 +110,7 @@ func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (i
 		return next(ctx)
 	}
 
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("500 Internal Error [004]")
 	}

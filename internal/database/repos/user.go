@@ -49,7 +49,6 @@ func FindUserByID(db *gorm.DB, userID string) (*entities.User, error) {
 	user := &entities.User{}
 	err := db.Unscoped().Where("id = ?", userID).Find(user).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with id='%s'", userID)
 	}
 	return user, nil
@@ -59,7 +58,6 @@ func FindUserByUsername(db *gorm.DB, username string) (*entities.User, error) {
 	user := &entities.User{}
 	err := db.Where("username = ?", username).Find(user).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with username='%s'", username)
 	}
 	return user, nil
@@ -69,7 +67,6 @@ func FindUserByEmail(db *gorm.DB, email string) (*entities.User, error) {
 	user := &entities.User{}
 	err := db.Where("email = ?", strings.ToLower(email)).Find(user).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with email='%s'", email)
 	}
 	return user, nil
@@ -79,7 +76,6 @@ func FindUserByUsernameOrEmail(db *gorm.DB, usernameOrEmail string) (*entities.U
 	user := &entities.User{}
 	err := db.Where("email = ? OR username = ?", strings.ToLower(usernameOrEmail), usernameOrEmail).Find(user).Error
 	if err != nil {
-		log.E("Failed query: %v", err)
 		return nil, fmt.Errorf("No user found with email or username = '%s'", usernameOrEmail)
 	}
 	return user, nil

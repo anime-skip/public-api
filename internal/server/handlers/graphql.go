@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"net/http"
 	"time"
 
 	"anime-skip.com/backend/internal/database"
@@ -14,11 +15,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/lru"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/gin-gonic/gin"
 )
 
 // GraphQLHandler defines the handler for the generated GraphQL server
-func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
+func GraphQLHandler(orm *database.ORM) http.HandlerFunc {
 	schema := gql.NewExecutableSchema(gql.Config{
 		Resolvers: resolvers.ResolverWithORM(orm),
 		Directives: gql.DirectiveRoot{
@@ -30,9 +30,8 @@ func GraphQLHandler(orm *database.ORM) gin.HandlerFunc {
 	})
 
 	gqlHandler := newServer(schema)
-	gqlHandler.AddTransport(transport.POST{})
 
-	return gin.WrapH(gqlHandler)
+	return gqlHandler.ServeHTTP
 }
 
 // Based off handler.NewDefaultServer
@@ -60,9 +59,6 @@ func newServer(es graphql.ExecutableSchema) *handler.Server {
 }
 
 // PlaygroundHandler defines the handler to expose the GraphQL playground
-func PlaygroundHandler(path string) gin.HandlerFunc {
-	handler := playground.Handler("Anime Skip Playground", path)
-	return func(c *gin.Context) {
-		handler.ServeHTTP(c.Writer, c.Request.WithContext(c))
-	}
+func PlaygroundHandler(graphqlPath string) http.HandlerFunc {
+	return playground.Handler("Anime Skip Playground", graphqlPath).ServeHTTP
 }

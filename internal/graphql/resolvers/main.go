@@ -5,8 +5,8 @@ import (
 
 	"anime-skip.com/backend/internal/database"
 	gql "anime-skip.com/backend/internal/graphql"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/context_utils"
 	"github.com/jinzhu/gorm"
 )
 
@@ -22,7 +22,7 @@ func ResolverWithORM(orm *database.ORM) *Resolver {
 }
 
 func (r *Resolver) DB(ctx context.Context) *gorm.DB {
-	if userID, err := utils.UserIDFromContext(ctx); err == nil {
+	if userID, err := context_utils.UserID(ctx); err == nil {
 		r._orm.DB = r._orm.DB.Set(constants.CTX_USER_ID, userID)
 	}
 	return r._orm.DB

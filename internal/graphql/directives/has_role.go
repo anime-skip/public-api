@@ -3,32 +3,25 @@ package directives
 import (
 	"context"
 	"fmt"
+	"net/http"
 
-	"anime-skip.com/backend/internal/database"
 	"anime-skip.com/backend/internal/database/mappers"
-	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
-	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/backend/internal/utils/context_utils"
 	"github.com/99designs/gqlgen/graphql"
 )
 
+// ! Test after switching to use ctx
 func HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (interface{}, error) {
-	if err := isAuthorized(ctx); err != nil {
+	if err := context_utils.AuthError(ctx); err != nil {
 		return nil, err
 	}
 
-	roleInt := mappers.RoleEnumToInt(role)
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("500 Internal Error [005]")
+	requiredRole := mappers.RoleEnumToInt(role)
+	actualRole, hasRole := context_utils.Role(ctx)
+
+	if !hasRole || actualRole < requiredRole {
+		return nil, fmt.Errorf(http.StatusText(403))
 	}
-	user, err := repos.FindUserByID(database.ORMInstance.DB, userID)
-	if err != nil {
-		return nil, err
-	}
-	if user.Role == roleInt || user.Role == constants.ROLE_DEV {
-		return next(ctx)
-	}
-	return nil, fmt.Errorf("403 Forebidden")
+	return next(ctx)
 }

@@ -59,7 +59,6 @@ func FindTimestampByID(db *gorm.DB, timestampID string) (*entities.Timestamp, er
 	timestamp := &entities.Timestamp{}
 	err := db.Unscoped().Where("id = ?", timestampID).Find(timestamp).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No timestamp found with id='%s'", timestampID)
 	}
 	return timestamp, nil
@@ -69,7 +68,6 @@ func FindTimestampsByEpisodeID(db *gorm.DB, showID string) ([]*entities.Timestam
 	timestamps := []*entities.Timestamp{}
 	err := db.Where("episode_id = ?", showID).Order("at ASC").Find(&timestamps).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No timestamps found with episode_id='%s'", showID)
 	}
 	return timestamps, nil

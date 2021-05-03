@@ -12,6 +12,7 @@ import (
 	"anime-skip.com/backend/internal/services/recaptcha"
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/auth"
+	"anime-skip.com/backend/internal/utils/context_utils"
 	"anime-skip.com/backend/internal/utils/log"
 )
 
@@ -20,7 +21,7 @@ import (
 type AccountResolver struct{ *Resolver }
 
 func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -121,7 +122,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		return nil, err
 	}
 
-	ipAddress, err := utils.GetIP(ctx)
+	ipAddress, err := context_utils.IPAddress(ctx)
 	if err != nil {
 		tx.Rollback()
 		return nil, errors.New("Could not get ip address from request")
@@ -181,7 +182,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 }
 
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context) (*bool, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +223,7 @@ func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationTok
 }
 
 func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		return nil, err
 	}

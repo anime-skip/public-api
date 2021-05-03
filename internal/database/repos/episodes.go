@@ -85,7 +85,6 @@ func FindEpisodeByID(db *gorm.DB, episodeID string) (*entities.Episode, error) {
 	episode := &entities.Episode{}
 	err := db.Unscoped().Where("id = ?", episodeID).Find(episode).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode found with id='%s'", episodeID)
 	}
 	return episode, nil
@@ -95,7 +94,6 @@ func FindEpisodesByExactName(db *gorm.DB, name string) ([]*entities.Episode, err
 	episodes := []*entities.Episode{}
 	err := db.Where("name = ?", name).Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode found with name='%s'", name)
 	}
 	return episodes, nil
@@ -105,7 +103,6 @@ func FindEpisodesByShowID(db *gorm.DB, showID string) ([]*entities.Episode, erro
 	episodes := []*entities.Episode{}
 	err := db.Where("show_id = ?", showID).Order("season ASC, number ASC, absolute_number ASC").Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episodes found with show_id='%s'", showID)
 	}
 	return episodes, nil
@@ -127,7 +124,6 @@ func SearchEpisodes(db *gorm.DB, search string, showID *string, offset int, limi
 	}
 	err := db.Where(queryString, searchVars...).Offset(offset).Limit(limit).Order(sortOrder).Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episodes found with name LIKE '%s'", search)
 	}
 	return episodes, nil
@@ -154,7 +150,6 @@ func RecentlyAddedEpisodes(db *gorm.DB, limit, offset int) ([]*entities.Episode,
 	`, limit, offset).Scan(&episodes).Error
 
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("Failed to select recent episodes")
 	}
 	return episodes, nil

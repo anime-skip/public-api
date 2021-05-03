@@ -6,7 +6,7 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/context_utils"
 )
 
 // Helpers
@@ -18,7 +18,7 @@ type preferencesResolver struct{ *Resolver }
 // Mutation Resolvers
 
 func (r *mutationResolver) SavePreferences(ctx context.Context, newPreferences models.InputPreferences) (*models.Preferences, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+	userID, err := context_utils.UserID(ctx)
 	if err != nil {
 		return nil, err
 	}

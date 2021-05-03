@@ -37,5 +37,8 @@ case "${unameOut}" in
     *)          OS="UNKNOWN:${unameOut}"
 esac
 
+VERSION=$(jq -r .version meta.json) ;
+SUFFIX="-$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')" ;
+
 loadENV
 trap unloadENV EXIT

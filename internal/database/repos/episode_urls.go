@@ -61,7 +61,6 @@ func FindEpisodeURLByURL(db *gorm.DB, url string) (*entities.EpisodeURL, error) 
 	episodeURL := &entities.EpisodeURL{}
 	err := db.Unscoped().Where("url = ?", url).Find(episodeURL).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode url found with url='%s'", url)
 	}
 	return episodeURL, nil
@@ -71,7 +70,6 @@ func FindEpisodeURLsByEpisodeID(db *gorm.DB, showID string) ([]*entities.Episode
 	episodeURLs := []*entities.EpisodeURL{}
 	err := db.Where("episode_id = ?", showID).Find(&episodeURLs).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
 		return nil, fmt.Errorf("No episode urls found with episode_id='%s'", showID)
 	}
 	return episodeURLs, nil

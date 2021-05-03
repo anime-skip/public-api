@@ -1,5 +1,5 @@
 build:
-	@docker build . -t anime-skip/backend/api:dev
+	@./scripts/build.sh
 run: build
 	@./scripts/run.sh
 watch:
@@ -16,6 +16,7 @@ reset-services:
 gen:
 	@./scripts/gqlgen.sh
 clean:
+	@go mod tidy
 	@go clean --modcache
 	@go mod download
 init:
