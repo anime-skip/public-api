@@ -260,28 +260,30 @@ type Preferences {
   skipTitleCard: Boolean!
 }
 
-"Data required to update a user's `Preferences`. See `Preferences` for a description of each field"
+"""
+Data used to update a user's `Preferences`. See `Preferences` for a description of each field. If a
+field is not passed or passed as `null`, it will leave the value as is and skip updating it
+"""
 input InputPreferences {
-  enableAutoSkip: Boolean!
-  enableAutoPlay: Boolean!
-  minimizeToolbarWhenEditing: Boolean!
-  hideTimelineWhenMinimized: Boolean!
+  enableAutoSkip: Boolean
+  enableAutoPlay: Boolean
+  minimizeToolbarWhenEditing: Boolean
+  hideTimelineWhenMinimized: Boolean
 
-  skipBranding: Boolean!
-  skipIntros: Boolean!
-  skipNewIntros: Boolean!
-  skipMixedIntros: Boolean!
-  skipRecaps: Boolean!
-  skipFiller: Boolean!
-  skipCanon: Boolean!
-  skipTransitions: Boolean!
-  skipCredits: Boolean!
-  skipNewCredits: Boolean!
-  skipMixedCredits: Boolean!
-  skipPreview: Boolean!
-  skipTitleCard: Boolean!
+  skipBranding: Boolean
+  skipIntros: Boolean
+  skipNewIntros: Boolean
+  skipMixedIntros: Boolean
+  skipRecaps: Boolean
+  skipFiller: Boolean
+  skipCanon: Boolean
+  skipTransitions: Boolean
+  skipCredits: Boolean
+  skipNewCredits: Boolean
+  skipMixedCredits: Boolean
+  skipPreview: Boolean
+  skipTitleCard: Boolean
 }
-
 
 "A show containing a list of episodes and relevate links"
 type Show implements BaseModel {

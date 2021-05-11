@@ -151,25 +151,26 @@ type InputExistingTimestamp struct {
 	Timestamp *InputTimestamp `json:"timestamp"`
 }
 
-// Data required to update a user's `Preferences`. See `Preferences` for a description of each field
+// Data used to update a user's `Preferences`. See `Preferences` for a description of each field. If a
+// field is not passed or passed as `null`, it will leave the value as is and skip updating it
 type InputPreferences struct {
-	EnableAutoSkip             bool `json:"enableAutoSkip"`
-	EnableAutoPlay             bool `json:"enableAutoPlay"`
-	MinimizeToolbarWhenEditing bool `json:"minimizeToolbarWhenEditing"`
-	HideTimelineWhenMinimized  bool `json:"hideTimelineWhenMinimized"`
-	SkipBranding               bool `json:"skipBranding"`
-	SkipIntros                 bool `json:"skipIntros"`
-	SkipNewIntros              bool `json:"skipNewIntros"`
-	SkipMixedIntros            bool `json:"skipMixedIntros"`
-	SkipRecaps                 bool `json:"skipRecaps"`
-	SkipFiller                 bool `json:"skipFiller"`
-	SkipCanon                  bool `json:"skipCanon"`
-	SkipTransitions            bool `json:"skipTransitions"`
-	SkipCredits                bool `json:"skipCredits"`
-	SkipNewCredits             bool `json:"skipNewCredits"`
-	SkipMixedCredits           bool `json:"skipMixedCredits"`
-	SkipPreview                bool `json:"skipPreview"`
-	SkipTitleCard              bool `json:"skipTitleCard"`
+	EnableAutoSkip             *bool `json:"enableAutoSkip"`
+	EnableAutoPlay             *bool `json:"enableAutoPlay"`
+	MinimizeToolbarWhenEditing *bool `json:"minimizeToolbarWhenEditing"`
+	HideTimelineWhenMinimized  *bool `json:"hideTimelineWhenMinimized"`
+	SkipBranding               *bool `json:"skipBranding"`
+	SkipIntros                 *bool `json:"skipIntros"`
+	SkipNewIntros              *bool `json:"skipNewIntros"`
+	SkipMixedIntros            *bool `json:"skipMixedIntros"`
+	SkipRecaps                 *bool `json:"skipRecaps"`
+	SkipFiller                 *bool `json:"skipFiller"`
+	SkipCanon                  *bool `json:"skipCanon"`
+	SkipTransitions            *bool `json:"skipTransitions"`
+	SkipCredits                *bool `json:"skipCredits"`
+	SkipNewCredits             *bool `json:"skipNewCredits"`
+	SkipMixedCredits           *bool `json:"skipMixedCredits"`
+	SkipPreview                *bool `json:"skipPreview"`
+	SkipTitleCard              *bool `json:"skipTitleCard"`
 }
 
 // Data required to create a new `Show`. See `Show` for a description of each field
