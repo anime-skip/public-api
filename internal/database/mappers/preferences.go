@@ -69,24 +69,58 @@ func PreferencesInputModelToEntity(model models.InputPreferences, entity *entiti
 		return nil
 	}
 
-	entity.EnableAutoSkip = model.EnableAutoSkip
-	entity.EnableAutoPlay = model.EnableAutoPlay
-	entity.MinimizeToolbarWhenEditing = model.MinimizeToolbarWhenEditing
-	entity.HideTimelineWhenMinimized = model.HideTimelineWhenMinimized
+	if model.EnableAutoSkip != nil {
+		entity.EnableAutoSkip = *model.EnableAutoSkip
+	}
+	if model.EnableAutoPlay != nil {
+		entity.EnableAutoPlay = *model.EnableAutoPlay
+	}
+	if model.MinimizeToolbarWhenEditing != nil {
+		entity.MinimizeToolbarWhenEditing = *model.MinimizeToolbarWhenEditing
+	}
+	if model.HideTimelineWhenMinimized != nil {
+		entity.HideTimelineWhenMinimized = *model.HideTimelineWhenMinimized
+	}
 
-	entity.SkipBranding = model.SkipBranding
-	entity.SkipIntros = model.SkipIntros
-	entity.SkipNewIntros = model.SkipNewIntros
-	entity.SkipMixedIntros = model.SkipMixedIntros
-	entity.SkipRecaps = model.SkipRecaps
-	entity.SkipFiller = model.SkipFiller
-	entity.SkipCanon = model.SkipCanon
-	entity.SkipTransitions = model.SkipTransitions
-	entity.SkipCredits = model.SkipCredits
-	entity.SkipNewCredits = model.SkipNewCredits
-	entity.SkipMixedCredits = model.SkipMixedCredits
-	entity.SkipPreview = model.SkipPreview
-	entity.SkipTitleCard = model.SkipTitleCard
+	if model.SkipBranding != nil {
+		entity.SkipBranding = *model.SkipBranding
+	}
+	if model.SkipIntros != nil {
+		entity.SkipIntros = *model.SkipIntros
+	}
+	if model.SkipNewIntros != nil {
+		entity.SkipNewIntros = *model.SkipNewIntros
+	}
+	if model.SkipMixedIntros != nil {
+		entity.SkipMixedIntros = *model.SkipMixedIntros
+	}
+	if model.SkipRecaps != nil {
+		entity.SkipRecaps = *model.SkipRecaps
+	}
+	if model.SkipFiller != nil {
+		entity.SkipFiller = *model.SkipFiller
+	}
+	if model.SkipCanon != nil {
+		entity.SkipCanon = *model.SkipCanon
+	}
+	if model.SkipTransitions != nil {
+		entity.SkipTransitions = *model.SkipTransitions
+	}
+	if model.SkipCredits != nil {
+		entity.SkipCredits = *model.SkipCredits
+	}
+	if model.SkipNewCredits != nil {
+		entity.SkipNewCredits = *model.SkipNewCredits
+	}
+	if model.SkipMixedCredits != nil {
+		entity.SkipMixedCredits = *model.SkipMixedCredits
+	}
+	if model.SkipPreview != nil {
+		entity.SkipPreview = *model.SkipPreview
+	}
+	if model.SkipTitleCard != nil {
+		entity.SkipTitleCard = *model.SkipTitleCard
+	}
 
 	return entity
 }

@@ -20,7 +20,7 @@ type Mutation {
   "Handle a deleteToken from `deleteAccountRequest` and actually delete the user's account"
   deleteAccount(deleteToken: String!): Account
 
-  # Prefernces
+  # Preferences
   "Update user preferences"
   savePreferences(preferences: InputPreferences!): Preferences @authorized
 
