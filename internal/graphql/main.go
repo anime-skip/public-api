@@ -2409,28 +2409,30 @@ type Preferences {
   skipTitleCard: Boolean!
 }
 
-"Data required to update a user's ` + "`" + `Preferences` + "`" + `. See ` + "`" + `Preferences` + "`" + ` for a description of each field"
+"""
+Data used to update a user's ` + "`" + `Preferences` + "`" + `. See ` + "`" + `Preferences` + "`" + ` for a description of each field. If a
+field is not passed or passed as ` + "`" + `null` + "`" + `, it will leave the value as is and skip updating it
+"""
 input InputPreferences {
-  enableAutoSkip: Boolean!
-  enableAutoPlay: Boolean!
-  minimizeToolbarWhenEditing: Boolean!
-  hideTimelineWhenMinimized: Boolean!
+  enableAutoSkip: Boolean
+  enableAutoPlay: Boolean
+  minimizeToolbarWhenEditing: Boolean
+  hideTimelineWhenMinimized: Boolean
 
-  skipBranding: Boolean!
-  skipIntros: Boolean!
-  skipNewIntros: Boolean!
-  skipMixedIntros: Boolean!
-  skipRecaps: Boolean!
-  skipFiller: Boolean!
-  skipCanon: Boolean!
-  skipTransitions: Boolean!
-  skipCredits: Boolean!
-  skipNewCredits: Boolean!
-  skipMixedCredits: Boolean!
-  skipPreview: Boolean!
-  skipTitleCard: Boolean!
+  skipBranding: Boolean
+  skipIntros: Boolean
+  skipNewIntros: Boolean
+  skipMixedIntros: Boolean
+  skipRecaps: Boolean
+  skipFiller: Boolean
+  skipCanon: Boolean
+  skipTransitions: Boolean
+  skipCredits: Boolean
+  skipNewCredits: Boolean
+  skipMixedCredits: Boolean
+  skipPreview: Boolean
+  skipTitleCard: Boolean
 }
-
 
 "A show containing a list of episodes and relevate links"
 type Show implements BaseModel {
@@ -2637,7 +2639,7 @@ type User {
   "Handle a deleteToken from ` + "`" + `deleteAccountRequest` + "`" + ` and actually delete the user's account"
   deleteAccount(deleteToken: String!): Account
 
-  # Prefernces
+  # Preferences
   "Update user preferences"
   savePreferences(preferences: InputPreferences!): Preferences @authorized
 
@@ -12098,7 +12100,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("enableAutoSkip"))
-			it.EnableAutoSkip, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.EnableAutoSkip, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12106,7 +12108,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("enableAutoPlay"))
-			it.EnableAutoPlay, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.EnableAutoPlay, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12114,7 +12116,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("minimizeToolbarWhenEditing"))
-			it.MinimizeToolbarWhenEditing, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.MinimizeToolbarWhenEditing, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12122,7 +12124,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("hideTimelineWhenMinimized"))
-			it.HideTimelineWhenMinimized, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.HideTimelineWhenMinimized, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12130,7 +12132,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipBranding"))
-			it.SkipBranding, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipBranding, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12138,7 +12140,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipIntros"))
-			it.SkipIntros, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12146,7 +12148,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipNewIntros"))
-			it.SkipNewIntros, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipNewIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12154,7 +12156,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipMixedIntros"))
-			it.SkipMixedIntros, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipMixedIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12162,7 +12164,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipRecaps"))
-			it.SkipRecaps, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipRecaps, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12170,7 +12172,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipFiller"))
-			it.SkipFiller, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipFiller, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12178,7 +12180,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipCanon"))
-			it.SkipCanon, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipCanon, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12186,7 +12188,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipTransitions"))
-			it.SkipTransitions, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipTransitions, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12194,7 +12196,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipCredits"))
-			it.SkipCredits, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12202,7 +12204,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipNewCredits"))
-			it.SkipNewCredits, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipNewCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12210,7 +12212,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipMixedCredits"))
-			it.SkipMixedCredits, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipMixedCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12218,7 +12220,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipPreview"))
-			it.SkipPreview, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipPreview, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -12226,7 +12228,7 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("skipTitleCard"))
-			it.SkipTitleCard, err = ec.unmarshalNBoolean2bool(ctx, v)
+			it.SkipTitleCard, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
 			if err != nil {
 				return it, err
 			}
