@@ -1,8 +1,9 @@
-# [1.1.0](https://github.com/anime-skip/backend/compare/v1.0.8...v1.1.0) (2021-04-25)
+# [1.1.0](https://github.com/anime-skip/backend/compare/v1.0.8...v1.1.0) (2021-05-11)
 
 
 ### Bug Fixes
 
+* Allow for passing not the entire preferences object to `savePreferences` ([68ac868](https://github.com/anime-skip/backend/commit/68ac868dbfe2207c72e25abb59f46ab5892b1d3d))
 * Consume env.DISABLE_EMAILS ([f184245](https://github.com/anime-skip/backend/commit/f184245ac93cbf4421bd60d78e72b471372e7489))
 * Internal error with the fetchEpsiodeByName query ([9389729](https://github.com/anime-skip/backend/commit/938972977923127d7343a3c6d9dc519d605c380a))
 * Setup login timer to remove constant sleeps ([51b1cb3](https://github.com/anime-skip/backend/commit/51b1cb35e447160f1a827c14bb1d79f096ec8df0))
