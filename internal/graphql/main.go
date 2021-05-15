@@ -358,6 +358,7 @@ type EpisodeResolver interface {
 
 	Timestamps(ctx context.Context, obj *models.Episode) ([]*models.Timestamp, error)
 	Urls(ctx context.Context, obj *models.Episode) ([]*models.EpisodeURL, error)
+	Template(ctx context.Context, obj *models.Episode) (*models.Template, error)
 }
 type EpisodeUrlResolver interface {
 	CreatedBy(ctx context.Context, obj *models.EpisodeURL) (*models.User, error)
@@ -434,6 +435,7 @@ type ShowResolver interface {
 
 	Admins(ctx context.Context, obj *models.Show) ([]*models.ShowAdmin, error)
 	Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error)
+	Templates(ctx context.Context, obj *models.Show) ([]*models.Template, error)
 }
 type ShowAdminResolver interface {
 	CreatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
@@ -5512,13 +5514,13 @@ func (ec *executionContext) _Episode_template(ctx context.Context, field graphql
 		Object:   "Episode",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Template, nil
+		return ec.resolvers.Episode().Template(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9615,13 +9617,13 @@ func (ec *executionContext) _Show_templates(ctx context.Context, field graphql.C
 		Object:   "Show",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Templates, nil
+		return ec.resolvers.Show().Templates(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14464,7 +14466,16 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 				return res
 			})
 		case "template":
-			out.Values[i] = ec._Episode_template(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_template(ctx, field, obj)
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15248,10 +15259,19 @@ func (ec *executionContext) _Show(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			})
 		case "templates":
-			out.Values[i] = ec._Show_templates(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_templates(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

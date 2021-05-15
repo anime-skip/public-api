@@ -124,3 +124,7 @@ func (r *showResolver) Admins(ctx context.Context, obj *models.Show) ([]*models.
 func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error) {
 	return episodesByShowID(r.DB(ctx), obj.ID)
 }
+
+func (r *showResolver) Templates(ctx context.Context, obj *models.Show) ([]*models.Template, error) {
+	return templatesByShowID(r.DB(ctx), obj.ID)
+}

@@ -26,6 +26,11 @@ const (
 )
 
 const (
+	TEMPLATE_TYPE_SHOW    = 0
+	TEMPLATE_TYPE_SEASONS = 1
+)
+
+const (
 	LOG_LEVEL_VERBOSE = 0
 	LOG_LEVEL_DEBUG   = 1
 	LOG_LEVEL_WARNING = 2

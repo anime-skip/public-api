@@ -69,3 +69,25 @@ func TimestampSouceIntToEnum(value int) models.TimestampSource {
 	}
 	return models.TimestampSourceAnimeSkip
 }
+
+func TemplateTypeEnumToInt(templateType models.TemplateType) int {
+	switch templateType {
+	case models.TemplateTypeShow:
+		return constants.TEMPLATE_TYPE_SHOW
+	case models.TemplateTypeSeasons:
+		return constants.TEMPLATE_TYPE_SEASONS
+	}
+	log.E("Invalid template type enum: %v", templateType)
+	return -1
+}
+
+func TemplateTypeIntToEnum(value int) models.TemplateType {
+	switch value {
+	case constants.TEMPLATE_TYPE_SHOW:
+		return models.TemplateTypeShow
+	case constants.TEMPLATE_TYPE_SEASONS:
+		return models.TemplateTypeSeasons
+	}
+	log.E("Invalid template type int: %d", value)
+	return models.TemplateTypeShow
+}
