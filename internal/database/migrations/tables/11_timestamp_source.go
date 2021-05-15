@@ -1,16 +1,16 @@
 package tables
 
-// AddTimestampSource inserts new source column with a default value
+// AddTimestampSource inserts the new source column with a default value of 0
 var AddTimestampSource = migrateTableChange(
 	"MODIFY_TIMESTAMPS_TABLE__add_source",
-	[]string{
-		"ALTER TABLE public.timestamps",
-		"ADD source integer NOT NULL",
-		"CONSTRAINT source_default_value",
-		"DEFAULT 0;",
-	},
-	[]string{
-		"ALTER TABLE public.timestamps",
-		"DROP COLUMN source;",
-	},
+	`
+	ALTER TABLE public.timestamps
+		ADD source integer NOT NULL
+			CONSTRAINT source_default_value
+			DEFAULT 0;
+	`,
+	`
+	ALTER TABLE public.timestamps
+		DROP COLUMN source;
+	`,
 )
