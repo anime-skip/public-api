@@ -137,3 +137,9 @@ models:
         resolver: true
       timestampIds:
         resolver: true
+  TemplateTimestamp:
+    fields:
+      template:
+        resolver: true
+      timestamp:
+        resolver: true

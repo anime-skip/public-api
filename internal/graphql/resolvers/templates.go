@@ -2,10 +2,14 @@ package resolvers
 
 import (
 	"context"
+	"strings"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/log"
+	"anime-skip.com/backend/internal/utils/validation"
 	"github.com/jinzhu/gorm"
 )
 
@@ -41,34 +45,112 @@ func templatesByShowID(db *gorm.DB, showID string) ([]*models.Template, error) {
 
 // Query Resolvers
 
-func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *string, showID *string, showName string, season *string) (*models.Template, error) {
-	panic("not implemented")
+func (r *queryResolver) FindTemplate(ctx context.Context, templateID string) (*models.Template, error) {
+	return templateByID(r.DB(ctx), templateID)
 }
 
-func (r *queryResolver) FindTemplate(ctx context.Context, templateID string) (*models.Template, error) {
-	panic("not implemented")
+func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID string) ([]*models.Template, error) {
+	return templatesByShowID(r.DB(ctx), showID)
+}
+
+func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *string, showName *string, season *string) (*models.Template, error) {
+	db := r.DB(ctx)
+	// Lookup by episode ID first
+	if episodeID != nil {
+		log.D("Looking up template by id")
+		template, err := templateBySourceEpisodeID(db, *episodeID)
+		if template != nil {
+			return template, nil
+		} else if err != nil {
+			log.D("Failed to get template by episode id: %v", err)
+		}
+	}
+
+	// Get templates by show name
+	if showName != nil {
+		log.V("Show name passed, looking up shows with the exact name '%s'", *showName)
+		show, err := repos.SearchShows(db, *showName, 0, 1, "ASC")
+		if err != nil {
+			return nil, err
+		}
+		if len(show) < 1 {
+			return nil, nil
+		}
+		templates, err := templatesByShowID(db, show[0].ID.String())
+		if err != nil {
+			return nil, err
+		}
+
+		if season != nil {
+			log.V("Getting template by show name and season '%s'", *season)
+			// When season is passed, return the template that includes that season
+			for _, template := range templates {
+				if template.Type == models.TemplateTypeSeasons && template.Seasons != nil && utils.StringArrayIncludes(template.Seasons, *season) {
+					return template, nil
+				}
+			}
+		} else {
+			log.V("Getting template by just show name")
+			// When season is not passed, return the template for the show
+			for _, template := range templates {
+				if template.Type == models.TemplateTypeShow {
+					return template, nil
+				}
+			}
+		}
+	}
+
+	return nil, nil
 }
 
 // Mutation Resolvers
 
+func (r *mutationResolver) CreateTemplate(ctx context.Context, newTemplate models.InputTemplate) (*models.Template, error) {
+	db := r.DB(ctx)
+	err := validation.CreateTemplateInput(db, newTemplate)
+	if err != nil {
+		return nil, err
+	}
+
+	template, err := repos.CreateTemplate(db, newTemplate)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.TemplateEntityToModel(template), nil
+}
+
 func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID string, newTemplate models.InputTemplate) (*models.Template, error) {
-	panic("not implemented")
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
+
+	err = validation.CreateTemplateInput(tx, newTemplate)
+	if err != nil && !strings.Contains(err.Error(), templateID) {
+		return nil, err
+	}
+
+	existingTemplate, err := repos.FindTemplateByID(tx, templateID)
+	if err != nil {
+		return nil, err
+	}
+	updatedTemplate, err := repos.UpdateTemplate(tx, newTemplate, existingTemplate)
+	if err != nil {
+		return nil, err
+	}
+
+	return mappers.TemplateEntityToModel(updatedTemplate), nil
 }
 
 func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID string) (*models.Template, error) {
-	panic("not implemented")
-}
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
+	err = repos.DeleteTemplate(tx, templateID)
+	if err != nil {
+		return nil, err
+	}
 
-func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateTimestamp models.InputTemplateTimestamp) (*models.TemplateTimestamp, error) {
-	panic("not implemented")
-}
-
-func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp models.InputTemplateTimestamp) (*models.TemplateTimestamp, error) {
-	panic("not implemented")
-}
-
-func (r *mutationResolver) UpdateTemplateTimestamps(ctx context.Context, templateID string, add []*models.InputTemplateTimestamp, remove []*models.InputTemplateTimestamp) ([]*models.TemplateTimestamp, error) {
-	panic("not implemented")
+	return templateByID(tx, templateID)
 }
 
 // Field Resolvers
@@ -96,9 +178,9 @@ func (r *templateResolver) SourceEpisode(ctx context.Context, obj *models.Templa
 }
 
 func (r *templateResolver) Timestamps(ctx context.Context, obj *models.Template) ([]*models.Timestamp, error) {
-	panic("not implemented")
+	return timestampsByTemplateId(r.DB(ctx), obj.ID)
 }
 
 func (r *templateResolver) TimestampIds(ctx context.Context, obj *models.Template) ([]string, error) {
-	panic("not implemented")
+	return timestampIDsByTemplateId(r.DB(ctx), obj.ID)
 }

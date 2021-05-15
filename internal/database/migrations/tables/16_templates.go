@@ -21,7 +21,7 @@ var CreateTemplatesTable = migrateTable(
 		source_episode_id uuid NOT NULL,
 
 		-- Constraints
-		UNIQUE(source_episode_id) -- An episode cannot be the source for multiple templates
+		CONSTRAINT templates_pkey PRIMARY KEY (id)
 	)
 	WITH (
 		OIDS = FALSE

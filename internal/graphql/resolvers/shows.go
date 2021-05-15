@@ -90,17 +90,24 @@ func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newSho
 		return nil, err
 	}
 	updatedShow, err := repos.UpdateShow(r.DB(ctx), newShow, existingShow)
+	if err != nil {
+		return nil, err
+	}
 
 	return mappers.ShowEntityToModel(updatedShow), nil
 }
 
 func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*models.Show, error) {
-	db := r.DB(ctx)
-	err := repos.DeleteShow(db, false, showID)
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
+
+	err = repos.DeleteShow(tx, showID)
 	if err != nil {
 		return nil, err
 	}
-	return showByID(db.Unscoped(), showID)
+
+	return showByID(tx, showID)
 }
 
 // Field Resolvers

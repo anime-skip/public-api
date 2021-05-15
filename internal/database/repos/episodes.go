@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -34,32 +33,23 @@ func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode 
 	return data, err
 }
 
-func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error) {
-	tx := utils.StartTransaction(db, inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to delete episode and it's admins: %+v", r)
-			tx.Rollback()
-		}
-	}()
-
+func DeleteEpisode(tx *gorm.DB, episodeID string) error {
 	// Delete the episode
-	err = tx.Delete(entities.Episode{}, "id = ?", episodeID).Error
+	err := tx.Delete(entities.Episode{}, "id = ?", episodeID).Error
 	if err != nil {
 		log.E("Failed to delete episode for id='%s': %v", episodeID, err)
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete episode with id='%s'", episodeID)
 	}
+
+	// TODO: delete Template
 
 	// Delete the timestamps for that episode
 	timestamps, err := FindTimestampsByEpisodeID(tx, episodeID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	for _, timestamp := range timestamps {
-		if err = DeleteTimestamp(tx, true, timestamp.ID.String()); err != nil {
-			tx.Rollback()
+		if err = DeleteTimestamp(tx, timestamp.ID.String()); err != nil {
 			return err
 		}
 	}
@@ -67,17 +57,14 @@ func DeleteEpisode(db *gorm.DB, inTransaction bool, episodeID string) (err error
 	// Delete the urls for that episode
 	urls, err := FindEpisodeURLsByEpisodeID(tx, episodeID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	for _, url := range urls {
-		if _, err = DeleteEpisodeURL(tx, true, url.URL); err != nil {
-			tx.Rollback()
+		if err = DeleteEpisodeURL(tx, url.URL); err != nil {
 			return err
 		}
 	}
 
-	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

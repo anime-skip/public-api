@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -31,50 +30,38 @@ func UpdateShow(db *gorm.DB, newShow models.InputShow, existingShow *entities.Sh
 	return data, err
 }
 
-func DeleteShow(db *gorm.DB, inTransaction bool, showID string) (err error) {
-	tx := utils.StartTransaction(db, inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to delete show and it's admins: %+v", r)
-			tx.Rollback()
-		}
-	}()
-
+func DeleteShow(tx *gorm.DB, showID string) error {
 	// Delete the show
-	err = tx.Delete(entities.Show{}, "id=?", showID).Error
+	err := tx.Delete(entities.Show{}, "id=?", showID).Error
 	if err != nil {
 		log.E("Failed to delete show for id='%s': %v", showID, err)
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete show with id='%s'", showID)
 	}
 
 	// Delete the admins for that show
 	admins, err := FindShowAdminsByShowID(tx, showID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	for _, admin := range admins {
 		if err = DeleteShowAdmin(tx, admin.ID.String()); err != nil {
-			tx.Rollback()
 			return err
 		}
 	}
+
+	// TODO: delete Templates
 
 	// Episodes
 	episodes, err := FindEpisodesByShowID(tx, showID)
 	if err != nil {
-		tx.Rollback()
 		return err
 	}
 	for _, episode := range episodes {
-		if err = DeleteEpisode(tx, true, episode.ID.String()); err != nil {
-			tx.Rollback()
+		if err = DeleteEpisode(tx, episode.ID.String()); err != nil {
 			return err
 		}
 	}
 
-	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

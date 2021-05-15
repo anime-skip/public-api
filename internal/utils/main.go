@@ -48,30 +48,32 @@ func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
 	}
 }
 
-func StartTransaction2(db *gorm.DB, err *error) (tx *gorm.DB, commitOrRollback func()) {
+func StartTransaction2(db *gorm.DB, err *error) (tx *gorm.DB, commitOrRollback func() interface{}) {
 	tx = db.Begin()
 	var txID int
 	if env.IS_DEV {
 		txID = rand.New(rand.NewSource(time.Now().Unix())).Int()
 		log.V("Begin transaction %d", txID)
 	}
-	commitOrRollback = func() {
-		if r := recover(); r != nil || *err != nil {
+	commitOrRollback = func() interface{} {
+		if r := recover(); r != nil {
 			tx.Rollback()
-			if env.IS_DEV {
-				log.V("Rollback %d", txID)
-			}
-			if r != nil {
-				log.E("Rollback, panicked: %v", r)
-			} else {
-				log.V("Rollback, expected error: %v", err)
-			}
-		} else {
-			tx.Commit()
-			if env.IS_DEV {
-				log.V("Commit %d", txID)
-			}
+			log.V("Rollback %d", txID)
+			log.E("Rollback due to panicked: %v", r)
+			return r
 		}
+		if *err != nil {
+			tx.Rollback()
+			log.V("Rollback %d", txID)
+			log.V("Rollback due to known error: %v", err)
+			return err
+		}
+
+		tx.Commit()
+		if env.IS_DEV {
+			log.V("Commit %d", txID)
+		}
+		return nil
 	}
 	return tx, commitOrRollback
 }
@@ -114,4 +116,11 @@ func CleanURL(url string) string {
 	withoutQuery := queryRegex.ReplaceAllString(url, "")
 	slashRegex := regexp.MustCompile(`\/$`)
 	return slashRegex.ReplaceAllString(withoutQuery, "")
+}
+
+func ArrayOrNil(array []string) []string {
+	if len(array) == 0 {
+		return nil
+	}
+	return array
 }
