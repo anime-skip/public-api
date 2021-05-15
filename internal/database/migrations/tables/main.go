@@ -1,18 +1,16 @@
 package tables
 
 import (
-	"strings"
-
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 	"gopkg.in/gormigrate.v1"
 )
 
-func migrateTable(migrationID string, tableName string, command []string) *gormigrate.Migration {
+func migrateTable(migrationID string, tableName string, sql string) *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: migrationID,
 		Migrate: func(db *gorm.DB) error {
-			return db.Exec(strings.Join(command, "\n")).Error
+			return db.Exec(sql).Error
 		},
 		Rollback: func(db *gorm.DB) error {
 			return db.DropTable(tableName).Error
@@ -20,16 +18,16 @@ func migrateTable(migrationID string, tableName string, command []string) *gormi
 	}
 }
 
-func migrateTableChange(migrationID string, upCommand []string, downCommand []string) *gormigrate.Migration {
+func migrateTableChange(migrationID string, upSql string, downSql string) *gormigrate.Migration {
 	return &gormigrate.Migration{
 		ID: migrationID,
 		Migrate: func(db *gorm.DB) error {
 			log.V(migrationID)
-			return db.Exec(strings.Join(upCommand, "\n")).Error
+			return db.Exec(upSql).Error
 		},
 		Rollback: func(db *gorm.DB) error {
 			log.V(migrationID)
-			return db.Exec(strings.Join(downCommand, "\n")).Error
+			return db.Exec(downSql).Error
 		},
 	}
 }
