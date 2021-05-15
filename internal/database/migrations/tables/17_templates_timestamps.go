@@ -1,7 +1,7 @@
 package tables
 
 var CreateTemplateTimestampsTable = migrateTable(
-	"CREATE_TEMPLATES_TABLE",
+	"CREATE_TEMPLATE_TIMESTAMPS_TABLE",
 	"template_timestamps",
 
 	`CREATE TABLE public.template_timestamps (
