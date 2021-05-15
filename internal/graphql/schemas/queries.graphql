@@ -78,4 +78,17 @@ type Query {
   findTimestampType(timestampTypeId: ID!): TimestampType
   "List all the `TimestampType`s. Items come back in a random order"
   allTimestampTypes: [TimestampType!]
+
+  # Templates
+  """
+  Find the most relevant template based on a few search criteria. If multiple templates are found,
+  their priority is like so:
+  
+  1. Matching `sourceEpisodeID`
+  2. Matching `showId`/show name AND season
+  3. Matching `showId`/show name
+  """
+  findTemplateByDetails(episodeId: ID, showId: ID, showName: String!, season: String): Template
+  "Get template info based on a `Template.id`"
+  findTemplate(templateId: ID!): Template
 }
