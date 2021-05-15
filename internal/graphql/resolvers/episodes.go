@@ -175,3 +175,7 @@ func (r *thirdPartyEpisodeResolver) Show(ctx context.Context, obj *models.ThirdP
 	}
 	return mappers.ShowModelToThirdPartyShowModel(show), nil
 }
+
+func (r *episodeResolver) Template(ctx context.Context, obj *models.Episode) (*models.Template, error) {
+	return templateBySourceEpisodeID(r.DB(ctx), obj.ID)
+}

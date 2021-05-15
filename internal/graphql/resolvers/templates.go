@@ -3,10 +3,41 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/backend/internal/database/mappers"
+	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
+	"github.com/jinzhu/gorm"
 )
 
 // Helpers
+
+func templateByID(db *gorm.DB, templateID string) (*models.Template, error) {
+	template, err := repos.FindTemplateByID(db, templateID)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.TemplateEntityToModel(template), nil
+}
+
+func templateBySourceEpisodeID(db *gorm.DB, sourceEpisodeID string) (*models.Template, error) {
+	template, err := repos.FindTemplateBySourceEpisodeID(db, sourceEpisodeID)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.TemplateEntityToModel(template), nil
+}
+
+func templatesByShowID(db *gorm.DB, showID string) ([]*models.Template, error) {
+	templates, err := repos.FindTemplatesByShowID(db, showID)
+	if err != nil {
+		return nil, err
+	}
+	templateModels := make([]*models.Template, len(templates))
+	for index, episode := range templates {
+		templateModels[index] = mappers.TemplateEntityToModel(episode)
+	}
+	return templateModels, nil
+}
 
 // Query Resolvers
 
