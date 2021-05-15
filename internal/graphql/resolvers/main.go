@@ -49,6 +49,9 @@ func (r *Resolver) Show() gql.ShowResolver {
 func (r *Resolver) ShowAdmin() gql.ShowAdminResolver {
 	return &showAdminResolver{r}
 }
+func (r *Resolver) Template() gql.TemplateResolver {
+	return &templateResolver{r}
+}
 func (r *Resolver) Timestamp() gql.TimestampResolver {
 	return &timestampResolver{r}
 }

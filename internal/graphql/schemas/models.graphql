@@ -91,6 +91,8 @@ type Episode implements BaseModel {
   timestamps: [Timestamp!]!
   "The list of urls and services that the episode can be accessed from"
   urls: [EpisodeUrl!]!
+  "If the episode is the source episode for a `Template`, this will resolve to that template"
+  template: Template
 }
 
 """
@@ -324,6 +326,8 @@ type Show implements BaseModel {
   admins: [ShowAdmin!]!
   "All the episodes that belong to the show"
   episodes: [Episode!]!
+  "All the templates that belong to this show"
+  templates: [Template!]!
 }
 
 type ThirdPartyShow {
@@ -466,4 +470,65 @@ type User {
   username: String!
   profileUrl: String!
   adminOfShows: [ShowAdmin!]!
+}
+
+
+"""
+When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
+"""
+type Template implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  "The id of the show that this template is for"
+  showId: ID!
+  "The show that this template is for"
+  show: Show!
+  "Specify the scope of the template, if it's for the entire show, or just for a set of seasons"
+  type: TemplateType!
+  "When the template is for a set of seasons, this is the set of seasons it is applied to"
+  seasons: [String!]
+  "The id of the episode used to create the template. All the timestamps are from this episode"
+  sourceEpisodeId: ID!
+  "The episode used to create the template. All the timestamps are from this episode"
+  sourceEpisode: Episode!
+  "The list of timestamps that are apart of this template"
+  timestamps: [Timestamp!]!
+  """
+  The list of timestamp ids that are apart of this template. Since this is a many-to-many
+  relationship, this field will resolve quicker than `timestamps` since it doesn't have to do an
+  extra join
+  
+  This is useful when you already got the episode and timestamps, and you just need to know what
+  timestamps are apart of the template
+  """
+  timestampIds: [ID!]!
+}
+"Data required to create a new template. See `Template` for a description of each field"
+input InputTemplate {
+  showId: ID!
+  type: TemplateType!
+  seasons: [String!]
+  sourceEpisodeId: ID!
+}
+
+"The many to many object that links a timestamp to a template"
+type TemplateTimestamp {
+  templateId: ID!
+  template: Template!
+  timestampId: ID!
+  timestamp: Timestamp!
+}
+"Data required to modify the timestamps on a template"
+input InputTemplateTimestamp {
+  templateId: ID!
+  timestampId: ID!
 }

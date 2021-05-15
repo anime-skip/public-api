@@ -29,3 +29,11 @@ enum TimestampSource {
   ANIME_SKIP
   BETTER_VRV
 }
+
+"The scope that a template applies to"
+enum TemplateType {
+  "The template is loaded for all episodes of a given show"
+  SHOW
+  "The template is loaded for episodes of a given show where their season is included in `Template.seasons`"
+  SEASONS
+}
