@@ -6,6 +6,7 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils"
 	"github.com/jinzhu/gorm"
 )
 
@@ -55,12 +56,16 @@ func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID strin
 }
 
 func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL string) (*models.EpisodeURL, error) {
-	episodeURLData, err := repos.DeleteEpisodeURL(r.DB(ctx), false, episodeURL)
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
+
+	err = repos.DeleteEpisodeURL(tx, episodeURL)
 	if err != nil {
 		return nil, err
 	}
 
-	return mappers.EpisodeURLEntityToModel(episodeURLData), nil
+	return episodeURLByURL(tx, episodeURL)
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL models.InputEpisodeURL) (*models.EpisodeURL, error) {

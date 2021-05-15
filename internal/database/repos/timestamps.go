@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -34,24 +33,13 @@ func UpdateTimestamp(db *gorm.DB, newTimestamp models.InputTimestamp, existingTi
 	return data, err
 }
 
-func DeleteTimestamp(db *gorm.DB, inTransaction bool, timestampID string) (err error) {
-	tx := utils.StartTransaction(db, inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to delete timestamp and it's admins: %+v", r)
-			tx.Rollback()
-		}
-	}()
-
+func DeleteTimestamp(tx *gorm.DB, timestampID string) error {
 	// Delete the timestamp
-	err = tx.Delete(entities.Timestamp{}, "id = ?", timestampID).Error
+	err := tx.Delete(entities.Timestamp{}, "id = ?", timestampID).Error
 	if err != nil {
 		log.E("Failed to delete timestamp for id='%s': %v", timestampID, err)
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete timestamp with id='%s'", timestampID)
 	}
-
-	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 

@@ -1,11 +1,14 @@
 package entities
 
-import "github.com/gofrs/uuid"
+import (
+	"github.com/gofrs/uuid"
+	"github.com/lib/pq"
+)
 
 type Template struct {
 	BaseEntity
 	ShowID          uuid.UUID `gorm:"not null;type:uuid"`
 	Type            int
-	Seasons         []string
-	SourceEpisodeID uuid.UUID `gorm:"not null;type:uuid"`
+	Seasons         pq.StringArray `gorm:"type:text[]"`
+	SourceEpisodeID uuid.UUID      `gorm:"not null;type:uuid"`
 }

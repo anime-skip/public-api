@@ -7,6 +7,7 @@ import (
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
 	. "anime-skip.com/backend/internal/services/bettervrv"
+	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -110,18 +111,24 @@ func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID string, 
 		return nil, err
 	}
 	updatedEpisode, err := repos.UpdateEpisode(r.DB(ctx), newEpisode, existingEpisode)
+	if err != nil {
+		return nil, err
+	}
 
 	return mappers.EpisodeEntityToModel(updatedEpisode), nil
 }
 
 func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID string) (*models.Episode, error) {
-	db := r.DB(ctx)
-	err := repos.DeleteEpisode(r.DB(ctx), false, episodeID)
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
+
+	err = repos.DeleteEpisode(tx, episodeID)
 	if err != nil {
 		return nil, err
 	}
 
-	return episodeByID(db.Unscoped(), episodeID)
+	return episodeByID(tx, episodeID)
 }
 
 // Field Resolvers

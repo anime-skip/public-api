@@ -36,7 +36,7 @@ func DeleteShowAdmin(db *gorm.DB, showAdminID string) error {
 		log.E("Failed to delete show admin for id='%s': %v", showAdminID, err)
 		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdminID)
 	}
-	return err
+	return nil
 }
 
 func FindShowAdminByID(db *gorm.DB, showAdminID string) (*entities.ShowAdmin, error) {
