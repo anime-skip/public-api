@@ -117,3 +117,19 @@ models:
     fields:
       adminOfShows:
         resolver: true
+  Template:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      show:
+        resolver: true
+      sourceEpisode:
+        resolver: true
+      timestamps:
+        resolver: true
+      timestampIds:
+        resolver: true

@@ -90,6 +90,8 @@ type Episode struct {
 	Timestamps []*Timestamp `json:"timestamps"`
 	// The list of urls and services that the episode can be accessed from
 	Urls []*EpisodeURL `json:"urls"`
+	// If the episode is the source episode for a `Template`, this will resolve to that template
+	Template *Template `json:"template"`
 }
 
 func (Episode) IsBaseModel() {}
@@ -185,6 +187,20 @@ type InputShow struct {
 type InputShowAdmin struct {
 	ShowID string `json:"showId"`
 	UserID string `json:"userId"`
+}
+
+// Data required to create a new template. See `Template` for a description of each field
+type InputTemplate struct {
+	ShowID          string       `json:"showId"`
+	Type            TemplateType `json:"type"`
+	Seasons         []string     `json:"seasons"`
+	SourceEpisodeID string       `json:"sourceEpisodeId"`
+}
+
+// Data required to modify the timestamps on a template
+type InputTemplateTimestamp struct {
+	TemplateID  string `json:"templateId"`
+	TimestampID string `json:"timestampId"`
 }
 
 // Data required to create a new `Timestamp`. See `Timestamp` for a description of each field
@@ -300,6 +316,8 @@ type Show struct {
 	Admins []*ShowAdmin `json:"admins"`
 	// All the episodes that belong to the show
 	Episodes []*Episode `json:"episodes"`
+	// All the templates that belong to this show
+	Templates []*Template `json:"templates"`
 }
 
 func (Show) IsBaseModel() {}
@@ -334,6 +352,51 @@ type ShowAdmin struct {
 }
 
 func (ShowAdmin) IsBaseModel() {}
+
+// When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
+type Template struct {
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	// The id of the show that this template is for
+	ShowID string `json:"showId"`
+	// The show that this template is for
+	Show *Show `json:"show"`
+	// Specify the scope of the template, if it's for the entire show, or just for a set of seasons
+	Type TemplateType `json:"type"`
+	// When the template is for a set of seasons, this is the set of seasons it is applied to
+	Seasons []string `json:"seasons"`
+	// The id of the episode used to create the template. All the timestamps are from this episode
+	SourceEpisodeID string `json:"sourceEpisodeId"`
+	// The episode used to create the template. All the timestamps are from this episode
+	SourceEpisode *Episode `json:"sourceEpisode"`
+	// The list of timestamps that are apart of this template
+	Timestamps []*Timestamp `json:"timestamps"`
+	// The list of timestamp ids that are apart of this template. Since this is a many-to-many
+	// relationship, this field will resolve quicker than `timestamps` since it doesn't have to do an
+	// extra join
+	//
+	// This is useful when you already got the episode and timestamps, and you just need to know what
+	// timestamps are apart of the template
+	TimestampIds []string `json:"timestampIds"`
+}
+
+func (Template) IsBaseModel() {}
+
+// The many to many object that links a timestamp to a template
+type TemplateTimestamp struct {
+	TemplateID  string     `json:"templateId"`
+	Template    *Template  `json:"template"`
+	TimestampID string     `json:"timestampId"`
+	Timestamp   *Timestamp `json:"timestamp"`
+}
 
 // Episode info provided by a third party. See `Episode` for a description of each field.
 //
@@ -534,6 +597,50 @@ func (e *Role) UnmarshalGQL(v interface{}) error {
 }
 
 func (e Role) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
+// The scope that a template applies to
+type TemplateType string
+
+const (
+	// The template is loaded for all episodes of a given show
+	TemplateTypeShow TemplateType = "SHOW"
+	// The template is loaded for episodes of a given show where their season is included in `Template.seasons`
+	TemplateTypeSeasons TemplateType = "SEASONS"
+)
+
+var AllTemplateType = []TemplateType{
+	TemplateTypeShow,
+	TemplateTypeSeasons,
+}
+
+func (e TemplateType) IsValid() bool {
+	switch e {
+	case TemplateTypeShow, TemplateTypeSeasons:
+		return true
+	}
+	return false
+}
+
+func (e TemplateType) String() string {
+	return string(e)
+}
+
+func (e *TemplateType) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = TemplateType(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid TemplateType", str)
+	}
+	return nil
+}
+
+func (e TemplateType) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 

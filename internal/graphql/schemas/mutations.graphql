@@ -114,7 +114,7 @@ type Mutation {
   """
   deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
   """
-  Will create, update, and delete timestamps as passed
+  Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
@@ -143,4 +143,20 @@ type Mutation {
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
   deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
+
+  # Templates
+  # TODO: Add case to isShowAdmin for `templateId`
+  "Make changes to an existing template"
+  updateTemplate(templateId: ID! @isShowAdmin, newTemplate: InputTemplate!): Template @authorized
+  "Delete an existing template"
+  deleteTemplate(templateId: ID! @isShowAdmin): Template @authorized
+  "Add a timestamp to an existing template"
+  addTimestampToTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
+  "Remove a timestamp from an existing template"
+  removeTimestampFromTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
+  """
+  Add and/or remove a set of timestamps from an existing template. Partial failures are completely
+  rolled back
+  """
+  updateTemplateTimestamps(templateId: ID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
 }
