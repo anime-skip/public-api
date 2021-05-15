@@ -33,6 +33,8 @@ models:
         resolver: true
       urls:
         resolver: true
+      template:
+        resolver: true
   ThirdPartyEpisode:
     fields:
       timestamps:
@@ -76,6 +78,8 @@ models:
       admins:
         resolver: true
       episodes:
+        resolver: true
+      templates:
         resolver: true
   ShowAdmin:
     fields:
