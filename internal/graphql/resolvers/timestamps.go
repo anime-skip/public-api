@@ -54,7 +54,7 @@ func updateTimestamp(tx *gorm.DB, timestampID string, newTimestamp models.InputT
 }
 
 func deleteTimestamp(tx *gorm.DB, timestampID string) (*models.Timestamp, error) {
-	err := repos.DeleteTimestamp(tx, true, timestampID)
+	err := repos.DeleteTimestamp(tx, timestampID)
 	if err != nil {
 		return nil, err
 	}
@@ -88,16 +88,14 @@ func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID stri
 	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
 	defer commitOrRollback()
 
-	result, err = updateTimestamp(tx, timestampID, newTimestamp)
-	return result, err
+	return updateTimestamp(tx, timestampID, newTimestamp)
 }
 
 func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID string) (result *models.Timestamp, err error) {
 	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
 	defer commitOrRollback()
 
-	result, err = deleteTimestamp(tx, timestampID)
-	return result, err
+	return deleteTimestamp(tx, timestampID)
 }
 
 func (r *mutationResolver) UpdateTimestamps(
@@ -121,7 +119,6 @@ func (r *mutationResolver) UpdateTimestamps(
 		}
 		created = append(created, newTimestamp)
 	}
-	// return nil, errors.New("Test")
 
 	for _, timestamp := range update {
 		updatedTimestamp, err := updateTimestamp(tx, timestamp.ID, *timestamp.Timestamp)

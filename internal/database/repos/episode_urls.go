@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/gofrs/uuid"
 	"github.com/jinzhu/gorm"
@@ -34,27 +33,15 @@ func UpdateEpisodeURL(db *gorm.DB, newEpisodeURL models.InputEpisodeURL, existin
 	return data, err
 }
 
-func DeleteEpisodeURL(db *gorm.DB, inTransaction bool, episodeURLID string) (episodeURLData *entities.EpisodeURL, err error) {
-	tx := utils.StartTransaction(db, inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to delete episode url and it's admins: %+v", r)
-			tx.Rollback()
-		}
-	}()
-
-	episodeURLData, _ = FindEpisodeURLByURL(tx, episodeURLID)
-
+func DeleteEpisodeURL(tx *gorm.DB, episodeURLID string) error {
 	// Delete the episodeURL
-	err = tx.Delete(entities.EpisodeURL{}, "url = ?", episodeURLID).Error
+	err := tx.Delete(entities.EpisodeURL{}, "url = ?", episodeURLID).Error
 	if err != nil {
 		log.E("Failed to delete episode url for url='%s': %v", episodeURLID, err)
-		tx.Rollback()
-		return nil, fmt.Errorf("Failed to delete episode url with url='%s'", episodeURLID)
+		return fmt.Errorf("Failed to delete episode url with url='%s'", episodeURLID)
 	}
 
-	utils.CommitTransaction(tx, inTransaction)
-	return episodeURLData, nil
+	return nil
 }
 
 func FindEpisodeURLByURL(db *gorm.DB, url string) (*entities.EpisodeURL, error) {

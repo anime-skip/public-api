@@ -6,6 +6,8 @@ import (
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
 
@@ -82,6 +84,9 @@ func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTyp
 		return nil, err
 	}
 	updatedTimestampType, err := repos.UpdateTimestampType(r.DB(ctx), newTimestampType, existingTimestampType)
+	if err != nil {
+		return nil, err
+	}
 
 	model := mappers.TimestampTypeEntityToModel(updatedTimestampType)
 	_timestampTypeCache[model.ID] = model
@@ -90,19 +95,23 @@ func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTyp
 }
 
 func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error) {
-	db := r.DB(ctx)
-	err := repos.DeleteTimestampType(r.DB(ctx), false, timestampTypeID)
+	var err error
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer (func() {
+		err := commitOrRollback()
+		if err == nil {
+			log.V("Deleting cached TimestampType (id = %v)", timestampTypeID)
+			delete(_timestampTypeCache, timestampTypeID)
+		}
+	})()
+	defer commitOrRollback()
+
+	err = repos.DeleteTimestampType(tx, timestampTypeID)
 	if err != nil {
 		return nil, err
 	}
 
-	model, err := timestampTypeByID(db.Unscoped(), timestampTypeID)
-	if err != nil {
-		return nil, err
-	}
-	delete(_timestampTypeCache, model.ID)
-
-	return model, nil
+	return timestampTypeByID(tx, timestampTypeID)
 }
 
 // Field Resolvers

@@ -46,6 +46,7 @@ type ResolverRoot interface {
 	Show() ShowResolver
 	ShowAdmin() ShowAdminResolver
 	Template() TemplateResolver
+	TemplateTimestamp() TemplateTimestampResolver
 	ThirdPartyEpisode() ThirdPartyEpisodeResolver
 	ThirdPartyTimestamp() ThirdPartyTimestampResolver
 	Timestamp() TimestampResolver
@@ -124,6 +125,7 @@ type ComplexityRoot struct {
 		CreateEpisodeURL            func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
 		CreateShow                  func(childComplexity int, showInput models.InputShow, becomeAdmin bool) int
 		CreateShowAdmin             func(childComplexity int, showAdminInput models.InputShowAdmin) int
+		CreateTemplate              func(childComplexity int, newTemplate models.InputTemplate) int
 		CreateTimestamp             func(childComplexity int, episodeID string, timestampInput models.InputTimestamp) int
 		CreateTimestampType         func(childComplexity int, timestampTypeInput models.InputTimestampType) int
 		DeleteAccount               func(childComplexity int, deleteToken string) int
@@ -142,7 +144,6 @@ type ComplexityRoot struct {
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL models.InputEpisodeURL) int
 		UpdateShow                  func(childComplexity int, showID string, newShow models.InputShow) int
 		UpdateTemplate              func(childComplexity int, templateID string, newTemplate models.InputTemplate) int
-		UpdateTemplateTimestamps    func(childComplexity int, templateID string, add []*models.InputTemplateTimestamp, remove []*models.InputTemplateTimestamp) int
 		UpdateTimestamp             func(childComplexity int, timestampID string, newTimestamp models.InputTimestamp) int
 		UpdateTimestampType         func(childComplexity int, timestampTypeID string, newTimestampType models.InputTimestampType) int
 		UpdateTimestamps            func(childComplexity int, create []*models.InputTimestampOn, update []*models.InputExistingTimestamp, delete []string) int
@@ -188,7 +189,8 @@ type ComplexityRoot struct {
 		FindShowAdminsByShowID     func(childComplexity int, showID string) int
 		FindShowAdminsByUserID     func(childComplexity int, userID string) int
 		FindTemplate               func(childComplexity int, templateID string) int
-		FindTemplateByDetails      func(childComplexity int, episodeID *string, showID *string, showName string, season *string) int
+		FindTemplateByDetails      func(childComplexity int, episodeID *string, showName *string, season *string) int
+		FindTemplatesByShowID      func(childComplexity int, showID string) int
 		FindTimestamp              func(childComplexity int, timestampID string) int
 		FindTimestampType          func(childComplexity int, timestampTypeID string) int
 		FindTimestampsByEpisodeID  func(childComplexity int, episodeID string) int
@@ -392,11 +394,11 @@ type MutationResolver interface {
 	CreateTimestampType(ctx context.Context, timestampTypeInput models.InputTimestampType) (*models.TimestampType, error)
 	UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType models.InputTimestampType) (*models.TimestampType, error)
 	DeleteTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
+	CreateTemplate(ctx context.Context, newTemplate models.InputTemplate) (*models.Template, error)
 	UpdateTemplate(ctx context.Context, templateID string, newTemplate models.InputTemplate) (*models.Template, error)
 	DeleteTemplate(ctx context.Context, templateID string) (*models.Template, error)
 	AddTimestampToTemplate(ctx context.Context, templateTimestamp models.InputTemplateTimestamp) (*models.TemplateTimestamp, error)
 	RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp models.InputTemplateTimestamp) (*models.TemplateTimestamp, error)
-	UpdateTemplateTimestamps(ctx context.Context, templateID string, add []*models.InputTemplateTimestamp, remove []*models.InputTemplateTimestamp) ([]*models.TemplateTimestamp, error)
 }
 type PreferencesResolver interface {
 	User(ctx context.Context, obj *models.Preferences) (*models.User, error)
@@ -423,8 +425,9 @@ type QueryResolver interface {
 	FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*models.Timestamp, error)
 	FindTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error)
 	AllTimestampTypes(ctx context.Context) ([]*models.TimestampType, error)
-	FindTemplateByDetails(ctx context.Context, episodeID *string, showID *string, showName string, season *string) (*models.Template, error)
 	FindTemplate(ctx context.Context, templateID string) (*models.Template, error)
+	FindTemplatesByShowID(ctx context.Context, showID string) ([]*models.Template, error)
+	FindTemplateByDetails(ctx context.Context, episodeID *string, showName *string, season *string) (*models.Template, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *models.Show) (*models.User, error)
@@ -460,6 +463,11 @@ type TemplateResolver interface {
 	SourceEpisode(ctx context.Context, obj *models.Template) (*models.Episode, error)
 	Timestamps(ctx context.Context, obj *models.Template) ([]*models.Timestamp, error)
 	TimestampIds(ctx context.Context, obj *models.Template) ([]string, error)
+}
+type TemplateTimestampResolver interface {
+	Template(ctx context.Context, obj *models.TemplateTimestamp) (*models.Template, error)
+
+	Timestamp(ctx context.Context, obj *models.TemplateTimestamp) (*models.Timestamp, error)
 }
 type ThirdPartyEpisodeResolver interface {
 	Timestamps(ctx context.Context, obj *models.ThirdPartyEpisode) ([]*models.ThirdPartyTimestamp, error)
@@ -893,6 +901,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateShowAdmin(childComplexity, args["showAdminInput"].(models.InputShowAdmin)), true
 
+	case "Mutation.createTemplate":
+		if e.complexity.Mutation.CreateTemplate == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createTemplate_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateTemplate(childComplexity, args["newTemplate"].(models.InputTemplate)), true
+
 	case "Mutation.createTimestamp":
 		if e.complexity.Mutation.CreateTimestamp == nil {
 			break
@@ -1103,18 +1123,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.UpdateTemplate(childComplexity, args["templateId"].(string), args["newTemplate"].(models.InputTemplate)), true
-
-	case "Mutation.updateTemplateTimestamps":
-		if e.complexity.Mutation.UpdateTemplateTimestamps == nil {
-			break
-		}
-
-		args, err := ec.field_Mutation_updateTemplateTimestamps_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Mutation.UpdateTemplateTimestamps(childComplexity, args["templateId"].(string), args["add"].([]*models.InputTemplateTimestamp), args["remove"].([]*models.InputTemplateTimestamp)), true
 
 	case "Mutation.updateTimestamp":
 		if e.complexity.Mutation.UpdateTimestamp == nil {
@@ -1469,7 +1477,19 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTemplateByDetails(childComplexity, args["episodeId"].(*string), args["showId"].(*string), args["showName"].(string), args["season"].(*string)), true
+		return e.complexity.Query.FindTemplateByDetails(childComplexity, args["episodeId"].(*string), args["showName"].(*string), args["season"].(*string)), true
+
+	case "Query.findTemplatesByShowId":
+		if e.complexity.Query.FindTemplatesByShowID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findTemplatesByShowId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindTemplatesByShowID(childComplexity, args["showId"].(string)), true
 
 	case "Query.findTimestamp":
 		if e.complexity.Query.FindTimestamp == nil {
@@ -3149,7 +3169,9 @@ input InputTemplateTimestamp {
   deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
 
   # Templates
-  # TODO: Add case to isShowAdmin for ` + "`" + `templateId` + "`" + `
+  # TODO: Add case to isShowAdmin for ` + "`" + `newTemplate` + "`" + ` and ` + "`" + `templateId` + "`" + `
+  "Make changes to an existing template"
+  createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template @authorized
   "Make changes to an existing template"
   updateTemplate(templateId: ID! @isShowAdmin, newTemplate: InputTemplate!): Template @authorized
   "Delete an existing template"
@@ -3158,11 +3180,11 @@ input InputTemplateTimestamp {
   addTimestampToTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
   "Remove a timestamp from an existing template"
   removeTimestampFromTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
-  """
-  Add and/or remove a set of timestamps from an existing template. Partial failures are completely
-  rolled back
-  """
-  updateTemplateTimestamps(templateId: ID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
+  # """
+  # Add and/or remove a set of timestamps from an existing template. Partial failures are completely
+  # rolled back
+  # """
+  # updateTemplateTimestamps(templateId: ID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
 }
 `, BuiltIn: false},
 	{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
@@ -3247,17 +3269,19 @@ input InputTemplateTimestamp {
   allTimestampTypes: [TimestampType!]
 
   # Templates
+  "Get template info based on a ` + "`" + `Template.id` + "`" + `"
+  findTemplate(templateId: ID!): Template
+  "Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `"
+  findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
   
   1. Matching ` + "`" + `sourceEpisodeID` + "`" + `
-  2. Matching ` + "`" + `showId` + "`" + `/show name AND season
-  3. Matching ` + "`" + `showId` + "`" + `/show name
+  2. Matching show name (case sensitive) and season (case sensitive)
+  3. Matching show name (case sensitive)
   """
-  findTemplateByDetails(episodeId: ID, showId: ID, showName: String!, season: String): Template
-  "Get template info based on a ` + "`" + `Template.id` + "`" + `"
-  findTemplate(templateId: ID!): Template
+  findTemplateByDetails(episodeId: ID, showName: String, season: String): Template
 }
 `, BuiltIn: false},
 	{Name: "internal/graphql/schemas/return_types.graphql", Input: `"""
@@ -3493,6 +3517,36 @@ func (ec *executionContext) field_Mutation_createShow_args(ctx context.Context, 
 		}
 	}
 	args["becomeAdmin"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createTemplate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 models.InputTemplate
+	if tmp, ok := rawArgs["newTemplate"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newTemplate"))
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNInputTemplate2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplate(ctx, tmp)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if data, ok := tmp.(models.InputTemplate); ok {
+			arg0 = data
+		} else {
+			return nil, fmt.Errorf(`unexpected type %T from directive, should be anime-skip.com/backend/internal/graphql/models.InputTemplate`, tmp)
+		}
+	}
+	args["newTemplate"] = arg0
 	return args, nil
 }
 
@@ -3889,39 +3943,6 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 	return args, nil
 }
 
-func (ec *executionContext) field_Mutation_updateTemplateTimestamps_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["templateId"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("templateId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["templateId"] = arg0
-	var arg1 []*models.InputTemplateTimestamp
-	if tmp, ok := rawArgs["add"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("add"))
-		arg1, err = ec.unmarshalOInputTemplateTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplateTimestampᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["add"] = arg1
-	var arg2 []*models.InputTemplateTimestamp
-	if tmp, ok := rawArgs["remove"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("remove"))
-		arg2, err = ec.unmarshalOInputTemplateTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplateTimestampᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["remove"] = arg2
-	return args, nil
-}
-
 func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4231,32 +4252,23 @@ func (ec *executionContext) field_Query_findTemplateByDetails_args(ctx context.C
 	}
 	args["episodeId"] = arg0
 	var arg1 *string
-	if tmp, ok := rawArgs["showId"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("showId"))
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["showId"] = arg1
-	var arg2 string
 	if tmp, ok := rawArgs["showName"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("showName"))
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["showName"] = arg2
-	var arg3 *string
+	args["showName"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["season"]; ok {
 		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("season"))
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["season"] = arg3
+	args["season"] = arg2
 	return args, nil
 }
 
@@ -4272,6 +4284,21 @@ func (ec *executionContext) field_Query_findTemplate_args(ctx context.Context, r
 		}
 	}
 	args["templateId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findTemplatesByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["showId"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("showId"))
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showId"] = arg0
 	return args, nil
 }
 
@@ -7119,6 +7146,64 @@ func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, f
 	return ec.marshalOTimestampType2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampType(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createTemplate_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTemplate(rctx, args["newTemplate"].(models.InputTemplate))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authorized == nil {
+				return nil, errors.New("directive authorized is not implemented")
+			}
+			return ec.directives.Authorized(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Template); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/backend/internal/graphql/models.Template`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Template)
+	fc.Result = res
+	return ec.marshalOTemplate2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplate(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_updateTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7309,47 +7394,6 @@ func (ec *executionContext) _Mutation_removeTimestampFromTemplate(ctx context.Co
 	res := resTmp.(*models.TemplateTimestamp)
 	fc.Result = res
 	return ec.marshalOTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateTimestamp(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Mutation_updateTemplateTimestamps(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Mutation",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_updateTemplateTimestamps_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTemplateTimestamps(rctx, args["templateId"].(string), args["add"].([]*models.InputTemplateTimestamp), args["remove"].([]*models.InputTemplateTimestamp))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.([]*models.TemplateTimestamp)
-	fc.Result = res
-	return ec.marshalNTemplateTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateTimestampᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
@@ -8935,44 +8979,6 @@ func (ec *executionContext) _Query_allTimestampTypes(ctx context.Context, field 
 	return ec.marshalOTimestampType2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampTypeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Query",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_findTemplateByDetails_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	fc.Args = args
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTemplateByDetails(rctx, args["episodeId"].(*string), args["showId"].(*string), args["showName"].(string), args["season"].(*string))
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.Template)
-	fc.Result = res
-	return ec.marshalOTemplate2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplate(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _Query_findTemplate(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8998,6 +9004,85 @@ func (ec *executionContext) _Query_findTemplate(ctx context.Context, field graph
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Query().FindTemplate(rctx, args["templateId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.Template)
+	fc.Result = res
+	return ec.marshalOTemplate2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findTemplatesByShowId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findTemplatesByShowId_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTemplatesByShowID(rctx, args["showId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*models.Template)
+	fc.Result = res
+	return ec.marshalNTemplate2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findTemplateByDetails_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTemplateByDetails(rctx, args["episodeId"].(*string), args["showName"].(*string), args["season"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10752,13 +10837,13 @@ func (ec *executionContext) _TemplateTimestamp_template(ctx context.Context, fie
 		Object:   "TemplateTimestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Template, nil
+		return ec.resolvers.TemplateTimestamp().Template(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -10820,13 +10905,13 @@ func (ec *executionContext) _TemplateTimestamp_timestamp(ctx context.Context, fi
 		Object:   "TemplateTimestamp",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Timestamp, nil
+		return ec.resolvers.TemplateTimestamp().Timestamp(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -14690,6 +14775,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_updateTimestampType(ctx, field)
 		case "deleteTimestampType":
 			out.Values[i] = ec._Mutation_deleteTimestampType(ctx, field)
+		case "createTemplate":
+			out.Values[i] = ec._Mutation_createTemplate(ctx, field)
 		case "updateTemplate":
 			out.Values[i] = ec._Mutation_updateTemplate(ctx, field)
 		case "deleteTemplate":
@@ -14698,11 +14785,6 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_addTimestampToTemplate(ctx, field)
 		case "removeTimestampFromTemplate":
 			out.Values[i] = ec._Mutation_removeTimestampFromTemplate(ctx, field)
-		case "updateTemplateTimestamps":
-			out.Values[i] = ec._Mutation_updateTemplateTimestamps(ctx, field)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -15103,17 +15185,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_allTimestampTypes(ctx, field)
 				return res
 			})
-		case "findTemplateByDetails":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_findTemplateByDetails(ctx, field)
-				return res
-			})
 		case "findTemplate":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -15123,6 +15194,31 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findTemplate(ctx, field)
+				return res
+			})
+		case "findTemplatesByShowId":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findTemplatesByShowId(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "findTemplateByDetails":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findTemplateByDetails(ctx, field)
 				return res
 			})
 		case "__type":
@@ -15588,23 +15684,41 @@ func (ec *executionContext) _TemplateTimestamp(ctx context.Context, sel ast.Sele
 		case "templateId":
 			out.Values[i] = ec._TemplateTimestamp_templateId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "template":
-			out.Values[i] = ec._TemplateTimestamp_template(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TemplateTimestamp_template(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "timestampId":
 			out.Values[i] = ec._TemplateTimestamp_timestampId(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "timestamp":
-			out.Values[i] = ec._TemplateTimestamp_timestamp(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TemplateTimestamp_timestamp(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16596,11 +16710,6 @@ func (ec *executionContext) unmarshalNInputTemplateTimestamp2animeᚑskipᚗcom�
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNInputTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplateTimestamp(ctx context.Context, v interface{}) (*models.InputTemplateTimestamp, error) {
-	res, err := ec.unmarshalInputInputTemplateTimestamp(ctx, v)
-	return &res, graphql.WrapErrorWithInputPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNInputTimestamp2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestamp(ctx context.Context, v interface{}) (models.InputTimestamp, error) {
 	res, err := ec.unmarshalInputInputTimestamp(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -16742,6 +16851,10 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
+func (ec *executionContext) marshalNTemplate2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplate(ctx context.Context, sel ast.SelectionSet, v models.Template) graphql.Marshaler {
+	return ec._Template(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNTemplate2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Template) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -16787,53 +16900,6 @@ func (ec *executionContext) marshalNTemplate2ᚖanimeᚑskipᚗcomᚋbackendᚋi
 		return graphql.Null
 	}
 	return ec._Template(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNTemplateTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateTimestampᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.TemplateTimestamp) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	var wg sync.WaitGroup
-	isLen1 := len(v) == 1
-	if !isLen1 {
-		wg.Add(len(v))
-	}
-	for i := range v {
-		i := i
-		fc := &graphql.FieldContext{
-			Index:  &i,
-			Result: &v[i],
-		}
-		ctx := graphql.WithFieldContext(ctx, fc)
-		f := func(i int) {
-			defer func() {
-				if r := recover(); r != nil {
-					ec.Error(ctx, ec.Recover(ctx, r))
-					ret = nil
-				}
-			}()
-			if !isLen1 {
-				defer wg.Done()
-			}
-			ret[i] = ec.marshalNTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateTimestamp(ctx, sel, v[i])
-		}
-		if isLen1 {
-			f(i)
-		} else {
-			go f(i)
-		}
-
-	}
-	wg.Wait()
-	return ret
-}
-
-func (ec *executionContext) marshalNTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateTimestamp(ctx context.Context, sel ast.SelectionSet, v *models.TemplateTimestamp) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._TemplateTimestamp(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNTemplateType2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateType(ctx context.Context, v interface{}) (models.TemplateType, error) {
@@ -16920,6 +16986,10 @@ func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel as
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNTimestamp2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v models.Timestamp) graphql.Marshaler {
+	return ec._Timestamp(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTimestampᚄ(ctx context.Context, sel ast.SelectionSet, v []*models.Timestamp) graphql.Marshaler {
@@ -17389,30 +17459,6 @@ func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.Se
 		return graphql.Null
 	}
 	return graphql.MarshalID(*v)
-}
-
-func (ec *executionContext) unmarshalOInputTemplateTimestamp2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplateTimestampᚄ(ctx context.Context, v interface{}) ([]*models.InputTemplateTimestamp, error) {
-	if v == nil {
-		return nil, nil
-	}
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]*models.InputTemplateTimestamp, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithIndex(i))
-		res[i], err = ec.unmarshalNInputTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTemplateTimestamp(ctx, vSlice[i])
-		if err != nil {
-			return nil, graphql.WrapErrorWithInputPath(ctx, err)
-		}
-	}
-	return res, nil
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {

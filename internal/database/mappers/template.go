@@ -3,6 +3,7 @@ package mappers
 import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -36,7 +37,7 @@ func TemplateEntityToModel(entity *entities.Template) *models.Template {
 
 		ShowID:          entity.ShowID.String(),
 		Type:            TemplateTypeIntToEnum(entity.Type),
-		Seasons:         entity.Seasons,
+		Seasons:         utils.ArrayOrNil(entity.Seasons),
 		SourceEpisodeID: entity.SourceEpisodeID.String(),
 	}
 }

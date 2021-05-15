@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
@@ -31,24 +30,13 @@ func UpdateTimestampType(db *gorm.DB, newTimestampType models.InputTimestampType
 	return data, err
 }
 
-func DeleteTimestampType(db *gorm.DB, inTransaction bool, timestampTypeID string) (err error) {
-	tx := utils.StartTransaction(db, inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to delete timestamp type and it's admins: %+v", r)
-			tx.Rollback()
-		}
-	}()
-
+func DeleteTimestampType(tx *gorm.DB, timestampTypeID string) error {
 	// Delete the timestampType
-	err = tx.Delete(entities.TimestampType{}, "id = ?", timestampTypeID).Error
+	err := tx.Delete(entities.TimestampType{}, "id = ?", timestampTypeID).Error
 	if err != nil {
 		log.E("Failed to delete timestamp type for id='%s': %v", timestampTypeID, err)
-		tx.Rollback()
 		return fmt.Errorf("Failed to delete timestamp type with id='%s'", timestampTypeID)
 	}
-
-	utils.CommitTransaction(tx, inTransaction)
 	return nil
 }
 
