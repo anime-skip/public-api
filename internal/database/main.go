@@ -42,7 +42,9 @@ func Factory() (*ORM, error) {
 	db.SetLogger(log.SQLLogger)
 
 	// Migrations
-	err = migrations.Run(ORMInstance.DB)
+	if env.IS_DEV {
+		err = migrations.Run(ORMInstance.DB)
+	}
 
 	// Adding plugins
 	log.D("Registering update callbacks...")
