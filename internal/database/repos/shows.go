@@ -49,7 +49,16 @@ func DeleteShow(tx *gorm.DB, showID string) error {
 		}
 	}
 
-	// TODO: delete Templates
+	// Delete timestamps attached to the show
+	templates, err := FindTemplatesByShowID(tx, showID)
+	if err != nil {
+		return err
+	}
+	for _, template := range templates {
+		if err = DeleteTemplate(tx, template.ID.String()); err != nil {
+			return err
+		}
+	}
 
 	// Episodes
 	episodes, err := FindEpisodesByShowID(tx, showID)

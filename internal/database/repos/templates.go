@@ -39,16 +39,16 @@ func DeleteTemplate(tx *gorm.DB, templateID string) (err error) {
 	}
 
 	// Delete the TemplateTimestamps for that template
-	// TODO: delete TemplateTimestamps
-	// timestamps, err := FindTimestampsByEpisodeID(tx, episodeID)
-	// if err != nil {
-	// 	return err
-	// }
-	// for _, timestamp := range timestamps {
-	// 	if err = DeleteTimestamp(tx, true, timestamp.ID.String()); err != nil {
-	// 		return err
-	// 	}
-	// }
+	templateTimestamps, err := FindTemplateTimestampsByTemplateID(tx, templateID)
+	if err != nil {
+		return err
+	}
+	for _, templateTimestamp := range templateTimestamps {
+		err = DeleteTemplateTimestamp(tx, templateID, templateTimestamp.TimestampID.String())
+		if err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
