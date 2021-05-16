@@ -43,7 +43,6 @@ Install the recommended extensions, and install all go tooling by  and type in
 
 ## Deployments
 
-1. When PRs are merged, they are automatically deployed by `.github/workflows/publish-to-staged.yml` to the staging environment.
-1. To promote to production, use the discord bot or run the ["Promote to Production" action](https://github.com/anime-skip/backend/actions/workflows/promote-to-production.yml) manually
+1. Nothing is deployed automatically. Instead, just run the [`Deploy` workflow](https://github.com/anime-skip/backend/actions/workflows/deploy.yml) whenever you need to deploy to either `staged` or `prod`
 
-> Version bumps are handled automatically. After promoting, GitHub Actions opens a PR to update the `meta.yml` and `CHANGELOG.md`.
+> Version bumps are handled automatically when deploying `prod`. GitHub Actions commits the version change directly to `main`
