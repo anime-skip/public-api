@@ -1,18 +1,35 @@
-# [1.1.0](https://github.com/anime-skip/backend/compare/v1.0.8...v1.1.0) (2021-05-11)
+# [1.2.0](https://github.com/anime-skip/backend/compare/v1.1.0...v1.2.0) (2021-05-16)
+
+
+### Features
+
+* added show and season templates ([2f6ccef](https://github.com/anime-skip/backend/commit/2f6ccef2f11c3538742ceb999b5fc1addc69e203))
+
+
+
+# [1.1.0](https://github.com/anime-skip/backend/compare/v1.0.9...v1.1.0) (2021-05-11)
 
 
 ### Bug Fixes
 
 * Allow for passing not the entire preferences object to `savePreferences` ([68ac868](https://github.com/anime-skip/backend/commit/68ac868dbfe2207c72e25abb59f46ab5892b1d3d))
-* Consume env.DISABLE_EMAILS ([f184245](https://github.com/anime-skip/backend/commit/f184245ac93cbf4421bd60d78e72b471372e7489))
-* Internal error with the fetchEpsiodeByName query ([9389729](https://github.com/anime-skip/backend/commit/938972977923127d7343a3c6d9dc519d605c380a))
-* Setup login timer to remove constant sleeps ([51b1cb3](https://github.com/anime-skip/backend/commit/51b1cb35e447160f1a827c14bb1d79f096ec8df0))
-* updateTimestamps, better rollback utils ([43c1e63](https://github.com/anime-skip/backend/commit/43c1e63d89ff576135a0bd5e9cd8457c2f31815c))
 
 
 ### Features
 
 * added new preferences around hiding the toolbar and timeline ([bd4ca99](https://github.com/anime-skip/backend/commit/bd4ca99c67759eccc961cb31907296b260385728))
+
+
+
+## [1.0.9](https://github.com/anime-skip/backend/compare/v1.0.8...v1.0.9) (2021-02-18)
+
+
+### Bug Fixes
+
+* Consume env.DISABLE_EMAILS ([f184245](https://github.com/anime-skip/backend/commit/f184245ac93cbf4421bd60d78e72b471372e7489))
+* Internal error with the fetchEpsiodeByName query ([9389729](https://github.com/anime-skip/backend/commit/938972977923127d7343a3c6d9dc519d605c380a))
+* Setup login timer to remove constant sleeps ([51b1cb3](https://github.com/anime-skip/backend/commit/51b1cb35e447160f1a827c14bb1d79f096ec8df0))
+* updateTimestamps, better rollback utils ([43c1e63](https://github.com/anime-skip/backend/commit/43c1e63d89ff576135a0bd5e9cd8457c2f31815c))
 
 
 
@@ -101,3 +118,125 @@
 
 
 
+## `v1.0.8`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- None
+
+### Fixes
+
+- Replace empty episode values with `null`
+
+## `v1.0.7`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Docs added about cleaning URLs before using them with `EpisodeUrl`
+
+### Fixes
+
+- Unexpected crash when an environment variable isn't passed
+
+## `v1.0.6`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added `updateEpisodeUrl` mutation
+- Added `baseDuration` to `ThirdPartyEpisode`
+
+### Fixes
+
+- None
+
+## `v1.0.5`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added durations and timestamp offsets for episodes and episode urls
+- Cleanup logging for development and production, added info level
+- Rollback migration support via environment variable
+- Use `DATABASE_URL` instead of separate host, user, password, etc when connecting to the DB
+
+### Fixes
+
+- Added rollback strategy to some old migrations
+
+## `v1.0.4`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added `showId` and `show` to `ThirdPartyEpisode`, providing resolution when multiple shows have
+episodes with the same name
+
+### Fixes
+
+- None
+
+## `v1.0.3`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- none
+
+### Fixes
+
+- Recently added was returning an episode for each timestamp, now it just returns one
+
+## `v1.0.2`
+
+### Breaking Changes
+
+- None
+
+### Enhancements
+
+- Added the `recentlyAddedEpisodes` query for the website
+
+### Fixes
+
+- None
+
+## `v1.0.1`
+
+Prep for public release
+
+### Breaking Changes
+
+- Remove account email allowlists - anyone can create an account
+
+### Enhancements
+
+- ENV var for enabling the `@isShowAdmin` directive
+
+### Fixes
+
+- None
+
+## `v1.0.0`
+
+Initial release
