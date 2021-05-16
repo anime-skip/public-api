@@ -130,9 +130,17 @@ jobs:
           echo "$OLD_CHANGELOG" >> CHANGELOG.md
           rm -rf $GITHUB_WORKSPACE/wiki
       - 
+        name: Update meta.json
+        run: |
+          NEW_META=$(jq ".version=\"${TAG/v/}\"" meta.json)
+          echo $NEW_META > meta.json
+        env:
+          TAG: ${{ steps.changelog.outputs.tag }}
+      - 
         name: Commit Version Change
         run: |
-          git commit -am "chore(release): $TAG"
+          git add meta.json CHANGELOG.md
+          git commit -m "chore(release): $TAG"
           git push origin main
         env:
           TAG: ${{ steps.changelog.outputs.tag }}
