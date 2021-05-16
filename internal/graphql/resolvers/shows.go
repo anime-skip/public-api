@@ -2,7 +2,6 @@ package resolvers
 
 import (
 	"context"
-	"fmt"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
@@ -44,30 +43,21 @@ func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset 
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.InputShow, becomeAdmin bool) (showModel *models.Show, err error) {
-	inTransaction := false
-	tx := utils.StartTransaction(r.DB(ctx), inTransaction)
-	defer func() {
-		if r := recover(); r != nil {
-			err = fmt.Errorf("Failed to create show: %+v", r)
-			tx.Rollback()
-		}
-	}()
+	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
+	defer commitOrRollback()
 
 	show, err := repos.CreateShow(tx, showInput)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	showModel = mappers.ShowEntityToModel(show)
 	if !becomeAdmin {
-		utils.CommitTransaction(tx, inTransaction)
 		return showModel, nil
 	}
 
 	// Add the Admin relation for this user
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 	newAdmin := models.InputShowAdmin{
@@ -76,11 +66,9 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput models.Inpu
 	}
 	_, err = repos.CreateShowAdmin(tx, newAdmin)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
-	utils.CommitTransaction(tx, inTransaction)
 	return showModel, nil
 }
 
