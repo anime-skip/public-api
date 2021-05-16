@@ -41,7 +41,16 @@ func DeleteEpisode(tx *gorm.DB, episodeID string) error {
 		return fmt.Errorf("Failed to delete episode with id='%s'", episodeID)
 	}
 
-	// TODO: delete Template
+	// Delete the template if it exists
+	template, err := FindTemplateBySourceEpisodeID(tx, episodeID)
+	if err != nil {
+		return err
+	}
+	templateID := template.ID.String()
+	err = DeleteTemplate(tx, templateID)
+	if err != nil {
+		return err
+	}
 
 	// Delete the timestamps for that episode
 	timestamps, err := FindTimestampsByEpisodeID(tx, episodeID)
