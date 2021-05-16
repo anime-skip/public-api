@@ -101,7 +101,7 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
-	tx := utils.StartTransaction(r.DB(ctx), false)
+	tx := r.DB(ctx).Begin()
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
 	if existingUser != nil {
@@ -161,7 +161,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		return nil, fmt.Errorf("Failed to create user")
 	}
 
-	utils.CommitTransaction(tx, false)
+	tx.Commit()
 
 	verifyEmailToken, err := auth.GenerateVerifyEmailToken(user)
 	if err != nil {
