@@ -39,15 +39,6 @@ func UserIDFromContext(ctx context.Context) (string, error) {
 	return "", fmt.Errorf("500 Internal Error [003]")
 }
 
-func StartTransaction(db *gorm.DB, inTransaction bool) *gorm.DB {
-	if inTransaction {
-		return db
-	} else {
-		tx := db.Begin()
-		return tx
-	}
-}
-
 func StartTransaction2(db *gorm.DB, err *error) (tx *gorm.DB, commitOrRollback func() interface{}) {
 	tx = db.Begin()
 	var txID int
@@ -76,14 +67,6 @@ func StartTransaction2(db *gorm.DB, err *error) (tx *gorm.DB, commitOrRollback f
 		return nil
 	}
 	return tx, commitOrRollback
-}
-
-func CommitTransaction(tx *gorm.DB, wasInTransaction bool) *gorm.DB {
-	if wasInTransaction {
-		return tx
-	} else {
-		return tx.Commit()
-	}
 }
 
 func RandomProfileURL() string {
