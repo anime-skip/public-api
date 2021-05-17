@@ -1,3 +1,12 @@
+## [1.2.1](https://github.com/anime-skip/backend/compare/v1.2.0...v1.2.1) (2021-05-17)
+
+
+### Bug Fixes
+
+* cache result of `recentlyAddedEpisodes` for 20 min ([6bd2e6b](https://github.com/anime-skip/backend/commit/6bd2e6ba31885b04b742d91e0babc49c2903845e))
+
+
+
 # [1.2.0](https://github.com/anime-skip/backend/compare/v1.1.0...v1.2.0) (2021-05-16)
 
 
