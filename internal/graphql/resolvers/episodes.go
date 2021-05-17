@@ -2,15 +2,19 @@ package resolvers
 
 import (
 	"context"
+	"time"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
 	. "anime-skip.com/backend/internal/services/bettervrv"
 	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/backend/internal/utils/cache"
 	"anime-skip.com/backend/internal/utils/log"
 	"github.com/jinzhu/gorm"
 )
+
+var recentlyAddedCache = cache.NewTimedCache(20 * time.Minute)
 
 // Helpers
 
@@ -41,6 +45,12 @@ type episodeResolver struct{ *Resolver }
 type thirdPartyEpisodeResolver struct{ *Resolver }
 
 func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*models.Episode, error) {
+	if cachedResponse := recentlyAddedCache.Get(); cachedResponse != nil {
+		log.V("Using cached recent episodes")
+		return cachedResponse.([]*models.Episode), nil
+	}
+	log.V("Cache was expired or empty, getting current value")
+
 	episodes, err := repos.RecentlyAddedEpisodes(r.DB(ctx), *limit, *offset)
 	if err != nil {
 		return nil, err
@@ -49,6 +59,8 @@ func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, o
 	for index, episode := range episodes {
 		episodeModels[index] = mappers.EpisodeEntityToModel(episode)
 	}
+
+	recentlyAddedCache.Set(episodeModels)
 	return episodeModels, nil
 }
 

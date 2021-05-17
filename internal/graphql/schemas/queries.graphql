@@ -34,7 +34,12 @@ type Query {
   findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
 
   # Episodes
-  "Get a list of recently added episodes with timestamps"
+  """
+  Get a list of recently added episodes that have timestamps.
+  
+  > Since this is a rather intensive query, it is cached for 20 minutes before it will look for new
+  > episodes again
+  """
   recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]
   "Find episode with a matching `Episode.id`"
   findEpisode(episodeId: ID!): Episode
