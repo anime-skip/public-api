@@ -27,6 +27,5 @@ var CreateUsersTable = migrateTable(
 	
 	CREATE UNIQUE INDEX "user_username"
 	    ON public.users USING btree
-	    ("username" ASC NULLS LAST);
-	}`,
+	    ("username" ASC NULLS LAST);`,
 )
