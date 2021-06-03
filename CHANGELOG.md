@@ -1,3 +1,12 @@
+## [1.2.2](https://github.com/anime-skip/backend/compare/v1.2.1...v1.2.2) (2021-06-03)
+
+
+### Bug Fixes
+
+* create users table migration when spinning up DB for E2E testing ([49bb80b](https://github.com/anime-skip/backend/commit/49bb80ba9ce91652c25259ffe4854a361cf88971))
+
+
+
 ## [1.2.1](https://github.com/anime-skip/backend/compare/v1.2.0...v1.2.1) (2021-05-17)
 
 
