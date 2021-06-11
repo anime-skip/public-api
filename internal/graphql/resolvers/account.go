@@ -25,7 +25,7 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 		return nil, err
 	}
 
-	user, err := repos.FindUserByID(r.DB(ctx), userID)
+	user, err := repos.FindUserByID(r.DB(ctx).Unscoped(), userID)
 	if err != nil {
 		return nil, err
 	}

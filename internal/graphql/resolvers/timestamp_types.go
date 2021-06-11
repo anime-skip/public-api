@@ -57,7 +57,7 @@ func allTimestampTypes(db *gorm.DB) ([]*models.TimestampType, error) {
 // Query Resolvers
 
 func (r *queryResolver) FindTimestampType(ctx context.Context, timestampTypeID string) (*models.TimestampType, error) {
-	return timestampTypeByID(r.DB(ctx), timestampTypeID)
+	return timestampTypeByID(r.DB(ctx).Unscoped(), timestampTypeID)
 }
 
 func (r *queryResolver) AllTimestampTypes(ctx context.Context) ([]*models.TimestampType, error) {
@@ -111,7 +111,7 @@ func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTyp
 		return nil, err
 	}
 
-	return timestampTypeByID(tx, timestampTypeID)
+	return timestampTypeByID(tx.Unscoped(), timestampTypeID)
 }
 
 // Field Resolvers

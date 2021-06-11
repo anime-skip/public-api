@@ -58,7 +58,7 @@ func deleteTimestamp(tx *gorm.DB, timestampID string) (*models.Timestamp, error)
 	if err != nil {
 		return nil, err
 	}
-	return timestampByID(tx, timestampID)
+	return timestampByID(tx.Unscoped(), timestampID)
 }
 
 // Query Resolvers
@@ -67,7 +67,7 @@ type timestampResolver struct{ *Resolver }
 type thirdPartyTimestampResolver struct{ *Resolver }
 
 func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID string) (*models.Timestamp, error) {
-	return timestampByID(r.DB(ctx), timestampID)
+	return timestampByID(r.DB(ctx).Unscoped(), timestampID)
 }
 
 func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*models.Timestamp, error) {

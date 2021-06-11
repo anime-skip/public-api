@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"fmt"
+	"errors"
 
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
@@ -18,7 +18,7 @@ func CreateEpisodeURL(db *gorm.DB, episodeID string, episodeURLInput models.Inpu
 	err := db.Create(&episodeURL).Error
 	if err != nil {
 		log.E("Failed to create episode url with [%+v]: %v", episodeURLInput, err)
-		return nil, fmt.Errorf("Failed to create episode url: %v", err)
+		return nil, err
 	}
 	return episodeURL, nil
 }
@@ -28,17 +28,17 @@ func UpdateEpisodeURL(db *gorm.DB, newEpisodeURL models.InputEpisodeURL, existin
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update episode url for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update episode url with url='%s'", data.URL)
+		return nil, err
 	}
-	return data, err
+	return data, nil
 }
 
 func DeleteEpisodeURL(tx *gorm.DB, episodeURLID string) error {
 	// Delete the episodeURL
 	err := tx.Delete(entities.EpisodeURL{}, "url = ?", episodeURLID).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.E("Failed to delete episode url for url='%s': %v", episodeURLID, err)
-		return fmt.Errorf("Failed to delete episode url with url='%s'", episodeURLID)
+		return err
 	}
 
 	return nil
@@ -46,10 +46,10 @@ func DeleteEpisodeURL(tx *gorm.DB, episodeURLID string) error {
 
 func FindEpisodeURLByURL(db *gorm.DB, url string) (*entities.EpisodeURL, error) {
 	episodeURL := &entities.EpisodeURL{}
-	err := db.Unscoped().Where("url = ?", url).Find(episodeURL).Error
+	err := db.Where("url = ?", url).Find(episodeURL).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episode url found with url='%s'", url)
+		log.V("No episode url found with url='%s': %v", url, err)
+		return nil, err
 	}
 	return episodeURL, nil
 }
@@ -58,8 +58,8 @@ func FindEpisodeURLsByEpisodeID(db *gorm.DB, showID string) ([]*entities.Episode
 	episodeURLs := []*entities.EpisodeURL{}
 	err := db.Where("episode_id = ?", showID).Find(&episodeURLs).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episode urls found with episode_id='%s'", showID)
+		log.V("No episode urls found with episode_id='%s': %v", showID, err)
+		return nil, err
 	}
 	return episodeURLs, nil
 }

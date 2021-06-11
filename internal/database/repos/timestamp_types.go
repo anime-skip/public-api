@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"fmt"
+	"errors"
 
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
@@ -15,7 +15,7 @@ func CreateTimestampType(db *gorm.DB, timestampTypeInput models.InputTimestampTy
 	err := db.Model(&timestampType).Create(timestampType).Error
 	if err != nil {
 		log.E("Failed to create timestamp type with [%+v]: %v", timestampTypeInput, err)
-		return nil, fmt.Errorf("Failed to create timestamp type: %v", err)
+		return nil, err
 	}
 	return timestampType, nil
 }
@@ -25,7 +25,7 @@ func UpdateTimestampType(db *gorm.DB, newTimestampType models.InputTimestampType
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update timestamp type for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update timestamp type with id='%s'", data.ID)
+		return nil, err
 	}
 	return data, err
 }
@@ -33,19 +33,19 @@ func UpdateTimestampType(db *gorm.DB, newTimestampType models.InputTimestampType
 func DeleteTimestampType(tx *gorm.DB, timestampTypeID string) error {
 	// Delete the timestampType
 	err := tx.Delete(entities.TimestampType{}, "id = ?", timestampTypeID).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.E("Failed to delete timestamp type for id='%s': %v", timestampTypeID, err)
-		return fmt.Errorf("Failed to delete timestamp type with id='%s'", timestampTypeID)
+		return err
 	}
 	return nil
 }
 
 func FindTimestampTypeByID(db *gorm.DB, timestampTypeID string) (*entities.TimestampType, error) {
 	timestampType := &entities.TimestampType{}
-	err := db.Unscoped().Where("id = ?", timestampTypeID).Find(timestampType).Error
+	err := db.Where("id = ?", timestampTypeID).Find(timestampType).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No timestamp type found with id='%s'", timestampTypeID)
+		log.V("No timestamp type found with id='%s': %v", timestampTypeID, err)
+		return nil, err
 	}
 	return timestampType, nil
 }
@@ -54,8 +54,8 @@ func FindAllTimestampTypes(db *gorm.DB) ([]*entities.TimestampType, error) {
 	timestampTypes := []*entities.TimestampType{}
 	err := db.Find(&timestampTypes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No timestamp types found")
+		log.V("Failed loading timestamp types: %v", err)
+		return nil, err
 	}
 	return timestampTypes, nil
 }

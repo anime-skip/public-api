@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"fmt"
+	"errors"
 
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
@@ -15,7 +15,7 @@ func CreateShowAdmin(db *gorm.DB, showInput models.InputShowAdmin) (*entities.Sh
 	err := db.Model(&showAdmin).Create(showAdmin).Error
 	if err != nil {
 		log.E("Failed to create show admin with [%+v]: %v", showInput, err)
-		return nil, fmt.Errorf("Failed to create show admin: %v", err)
+		return nil, err
 	}
 	return showAdmin, nil
 }
@@ -25,26 +25,26 @@ func UpdateShowAdmin(db *gorm.DB, newShowAdmin models.InputShowAdmin, existingSh
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update show admin for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update show admin with id='%s'", data.ID)
+		return nil, err
 	}
 	return data, err
 }
 
 func DeleteShowAdmin(db *gorm.DB, showAdminID string) error {
 	err := db.Delete(entities.ShowAdmin{}, "id = ?", showAdminID).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.E("Failed to delete show admin for id='%s': %v", showAdminID, err)
-		return fmt.Errorf("Failed to delete show admin with id='%s'", showAdminID)
+		return err
 	}
 	return nil
 }
 
 func FindShowAdminByID(db *gorm.DB, showAdminID string) (*entities.ShowAdmin, error) {
 	showAdmin := &entities.ShowAdmin{}
-	err := db.Unscoped().Where("id = ?", showAdminID).Find(showAdmin).Error
+	err := db.Where("id = ?", showAdminID).Find(showAdmin).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No show admin found with id='%s'", showAdminID)
+		log.V("No show admin found with id='%s' (%v)", showAdminID, err)
+		return nil, err
 	}
 	return showAdmin, nil
 }
@@ -53,8 +53,8 @@ func FindShowAdminsByUserID(db *gorm.DB, userID string) ([]*entities.ShowAdmin, 
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("user_id = ?", userID).Find(&showAdmin).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("Query for show admins for user_id='%s' failed", userID)
+		log.V("Query for show admins for user_id='%s' failed: %v", userID, err)
+		return nil, err
 	}
 	return showAdmin, nil
 }
@@ -63,8 +63,8 @@ func FindShowAdminsByShowID(db *gorm.DB, showID string) ([]*entities.ShowAdmin, 
 	showAdmin := []*entities.ShowAdmin{}
 	err := db.Where("show_id = ?", showID).Find(&showAdmin).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("Query for show admins for show_id='%s' failed", showID)
+		log.V("Query for show admins for show_id='%s' failed: %v", showID, err)
+		return nil, err
 	}
 	return showAdmin, nil
 }
@@ -73,8 +73,8 @@ func FindShowAdminsByUserIDShowID(db *gorm.DB, userID string, showID string) (*e
 	showAdmin := &entities.ShowAdmin{}
 	err := db.Where("user_id = ? AND show_id = ?", userID, showID).Find(&showAdmin).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("Query for show admins for user_id='%s' AND show_id='%s' failed", userID, showID)
+		log.V("Query for show admins for user_id='%s' AND show_id='%s' failed: %v", userID, showID, err)
+		return nil, err
 	}
 	return showAdmin, nil
 }
