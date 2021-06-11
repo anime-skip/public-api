@@ -1,8 +1,6 @@
 package repos
 
 import (
-	"fmt"
-
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/graphql/models"
@@ -15,17 +13,17 @@ func SavePreferences(db *gorm.DB, newPreferences models.InputPreferences, existi
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update preferences for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update preferences with id='%s'", data.ID)
+		return nil, err
 	}
-	return data, err
+	return data, nil
 }
 
 func FindPreferencesByUserID(db *gorm.DB, userID string) (*entities.Preferences, error) {
 	preferences := &entities.Preferences{}
-	err := db.Unscoped().Where("user_id = ?", userID).Find(preferences).Error
+	err := db.Where("user_id = ?", userID).Find(preferences).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No preferences found with user_id='%s'", userID)
+		log.V("No preferences found with user_id='%s' (%v)", userID, err)
+		return nil, err
 	}
 	return preferences, nil
 }

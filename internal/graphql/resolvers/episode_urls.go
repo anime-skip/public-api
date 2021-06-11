@@ -60,12 +60,17 @@ func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL stri
 	tx, commitOrRollback := utils.StartTransaction2(r.DB(ctx), &err)
 	defer commitOrRollback()
 
+	entity, err := repos.FindEpisodeURLByURL(tx, episodeURL)
+	if err != nil {
+		return nil, err
+	}
+
 	err = repos.DeleteEpisodeURL(tx, episodeURL)
 	if err != nil {
 		return nil, err
 	}
 
-	return episodeURLByURL(tx, episodeURL)
+	return mappers.EpisodeURLEntityToModel(entity), nil
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL models.InputEpisodeURL) (*models.EpisodeURL, error) {

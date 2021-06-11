@@ -33,7 +33,7 @@ func deletedUserByID(db *gorm.DB, userID *string) (*models.User, error) {
 // Query Resolvers
 
 func (r *queryResolver) FindUser(ctx context.Context, userID string) (*models.User, error) {
-	return userByID(r.DB(ctx), userID)
+	return userByID(r.DB(ctx).Unscoped(), userID)
 }
 
 func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*models.User, error) {

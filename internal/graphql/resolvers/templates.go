@@ -46,7 +46,7 @@ func templatesByShowID(db *gorm.DB, showID string) ([]*models.Template, error) {
 // Query Resolvers
 
 func (r *queryResolver) FindTemplate(ctx context.Context, templateID string) (*models.Template, error) {
-	return templateByID(r.DB(ctx), templateID)
+	return templateByID(r.DB(ctx).Unscoped(), templateID)
 }
 
 func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID string) ([]*models.Template, error) {
@@ -150,7 +150,7 @@ func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID string
 		return nil, err
 	}
 
-	return templateByID(tx, templateID)
+	return templateByID(tx.Unscoped(), templateID)
 }
 
 // Field Resolvers
