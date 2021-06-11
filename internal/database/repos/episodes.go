@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"fmt"
+	"errors"
 
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
@@ -18,7 +18,7 @@ func CreateEpisode(db *gorm.DB, showID string, episodeInput models.InputEpisode)
 	err := db.Model(&episode).Create(episode).Error
 	if err != nil {
 		log.E("Failed to create episode with [%+v]: %v", episodeInput, err)
-		return nil, fmt.Errorf("Failed to create episode: %v", err)
+		return nil, err
 	}
 	return episode, nil
 }
@@ -28,7 +28,7 @@ func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode 
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update episode for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update episode with id='%s'", data.ID)
+		return nil, err
 	}
 	return data, err
 }
@@ -36,40 +36,44 @@ func UpdateEpisode(db *gorm.DB, newEpisode models.InputEpisode, existingEpisode 
 func DeleteEpisode(tx *gorm.DB, episodeID string) error {
 	// Delete the episode
 	err := tx.Delete(entities.Episode{}, "id = ?", episodeID).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.E("Failed to delete episode for id='%s': %v", episodeID, err)
-		return fmt.Errorf("Failed to delete episode with id='%s'", episodeID)
+		return err
 	}
 
 	// Delete the template if it exists
 	template, err := FindTemplateBySourceEpisodeID(tx, episodeID)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
-	templateID := template.ID.String()
-	err = DeleteTemplate(tx, templateID)
-	if err != nil {
-		return err
+	if template != nil {
+		templateID := template.ID.String()
+		err = DeleteTemplate(tx, templateID)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
 	}
 
 	// Delete the timestamps for that episode
 	timestamps, err := FindTimestampsByEpisodeID(tx, episodeID)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	for _, timestamp := range timestamps {
-		if err = DeleteTimestamp(tx, timestamp.ID.String()); err != nil {
+		err = DeleteTimestamp(tx, timestamp.ID.String())
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	}
 
 	// Delete the urls for that episode
 	urls, err := FindEpisodeURLsByEpisodeID(tx, episodeID)
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		return err
 	}
 	for _, url := range urls {
-		if err = DeleteEpisodeURL(tx, url.URL); err != nil {
+		err = DeleteEpisodeURL(tx, url.URL)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 			return err
 		}
 	}
@@ -79,10 +83,10 @@ func DeleteEpisode(tx *gorm.DB, episodeID string) error {
 
 func FindEpisodeByID(db *gorm.DB, episodeID string) (*entities.Episode, error) {
 	episode := &entities.Episode{}
-	err := db.Unscoped().Where("id = ?", episodeID).Find(episode).Error
+	err := db.Where("id = ?", episodeID).Find(episode).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episode found with id='%s'", episodeID)
+		log.V("No episode found with id='%s': %v", episodeID, err)
+		return nil, err
 	}
 	return episode, nil
 }
@@ -91,8 +95,8 @@ func FindEpisodesByExactName(db *gorm.DB, name string) ([]*entities.Episode, err
 	episodes := []*entities.Episode{}
 	err := db.Where("name = ?", name).Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episode found with name='%s'", name)
+		log.V("No episode found with name='%s': %v", name, err)
+		return nil, err
 	}
 	return episodes, nil
 }
@@ -101,8 +105,8 @@ func FindEpisodesByShowID(db *gorm.DB, showID string) ([]*entities.Episode, erro
 	episodes := []*entities.Episode{}
 	err := db.Where("show_id = ?", showID).Order("season ASC, number ASC, absolute_number ASC").Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episodes found with show_id='%s'", showID)
+		log.V("No episodes found with show_id='%s': %v", showID, err)
+		return nil, err
 	}
 	return episodes, nil
 }
@@ -123,8 +127,7 @@ func SearchEpisodes(db *gorm.DB, search string, showID *string, offset int, limi
 	}
 	err := db.Where(queryString, searchVars...).Offset(offset).Limit(limit).Order(sortOrder).Find(&episodes).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No episodes found with name LIKE '%s'", search)
+		return nil, err
 	}
 	return episodes, nil
 }
@@ -150,8 +153,8 @@ func RecentlyAddedEpisodes(db *gorm.DB, limit, offset int) ([]*entities.Episode,
 	`, limit, offset).Scan(&episodes).Error
 
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("Failed to select recent episodes")
+		log.V("Failed to select recent episodes: %v", err)
+		return nil, err
 	}
 	return episodes, nil
 }

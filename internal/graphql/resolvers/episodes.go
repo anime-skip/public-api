@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"anime-skip.com/backend/internal/database/mappers"
@@ -65,7 +66,7 @@ func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, o
 }
 
 func (r *queryResolver) FindEpisode(ctx context.Context, episodeID string) (*models.Episode, error) {
-	return episodeByID(r.DB(ctx), episodeID)
+	return episodeByID(r.DB(ctx).Unscoped(), episodeID)
 }
 
 func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID string) ([]*models.Episode, error) {
@@ -140,7 +141,7 @@ func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID string) 
 		return nil, err
 	}
 
-	return episodeByID(tx, episodeID)
+	return episodeByID(tx.Unscoped(), episodeID)
 }
 
 // Field Resolvers
@@ -196,5 +197,13 @@ func (r *thirdPartyEpisodeResolver) Show(ctx context.Context, obj *models.ThirdP
 }
 
 func (r *episodeResolver) Template(ctx context.Context, obj *models.Episode) (*models.Template, error) {
-	return templateBySourceEpisodeID(r.DB(ctx), obj.ID)
+	template, err := templateBySourceEpisodeID(r.DB(ctx), obj.ID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		} else {
+			return nil, err
+		}
+	}
+	return template, nil
 }

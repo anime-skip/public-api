@@ -1,7 +1,7 @@
 package repos
 
 import (
-	"fmt"
+	"errors"
 
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
@@ -18,7 +18,7 @@ func CreateTimestamp(db *gorm.DB, episodeID string, timestampInput models.InputT
 	err := db.Model(&timestamp).Create(timestamp).Error
 	if err != nil {
 		log.E("Failed to create timestamp with [%+v]: %v", timestampInput, err)
-		return nil, fmt.Errorf("Failed to create timestamp: %v", err)
+		return nil, err
 	}
 	return timestamp, nil
 }
@@ -28,7 +28,7 @@ func UpdateTimestamp(db *gorm.DB, newTimestamp models.InputTimestamp, existingTi
 	err := db.Save(data).Error
 	if err != nil {
 		log.E("Failed to update timestamp for [%+v]: %v", data, err)
-		return nil, fmt.Errorf("Failed to update timestamp with id='%s'", data.ID)
+		return nil, err
 	}
 	return data, err
 }
@@ -36,19 +36,19 @@ func UpdateTimestamp(db *gorm.DB, newTimestamp models.InputTimestamp, existingTi
 func DeleteTimestamp(tx *gorm.DB, timestampID string) error {
 	// Delete the timestamp
 	err := tx.Delete(entities.Timestamp{}, "id = ?", timestampID).Error
-	if err != nil {
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
 		log.E("Failed to delete timestamp for id='%s': %v", timestampID, err)
-		return fmt.Errorf("Failed to delete timestamp with id='%s'", timestampID)
+		return err
 	}
 	return nil
 }
 
 func FindTimestampByID(db *gorm.DB, timestampID string) (*entities.Timestamp, error) {
 	timestamp := &entities.Timestamp{}
-	err := db.Unscoped().Where("id = ?", timestampID).Find(timestamp).Error
+	err := db.Where("id = ?", timestampID).Find(timestamp).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No timestamp found with id='%s'", timestampID)
+		log.V("No timestamp found with id='%s': %v", timestampID, err)
+		return nil, err
 	}
 	return timestamp, nil
 }
@@ -57,8 +57,8 @@ func FindTimestampsByEpisodeID(db *gorm.DB, showID string) ([]*entities.Timestam
 	timestamps := []*entities.Timestamp{}
 	err := db.Where("episode_id = ?", showID).Order("at ASC").Find(&timestamps).Error
 	if err != nil {
-		log.V("Failed query: %v", err)
-		return nil, fmt.Errorf("No timestamps found with episode_id='%s'", showID)
+		log.V("No timestamps found with episode_id='%s': %v", showID, err)
+		return nil, err
 	}
 	return timestamps, nil
 }

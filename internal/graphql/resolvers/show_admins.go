@@ -50,7 +50,7 @@ func showAdminsByShowID(db *gorm.DB, showID string) ([]*models.ShowAdmin, error)
 type showAdminResolver struct{ *Resolver }
 
 func (r *queryResolver) FindShowAdmin(ctx context.Context, showAdminID string) (*models.ShowAdmin, error) {
-	return showAdminByID(r.DB(ctx), showAdminID)
+	return showAdminByID(r.DB(ctx).Unscoped(), showAdminID)
 }
 
 func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID string) ([]*models.ShowAdmin, error) {

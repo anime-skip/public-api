@@ -25,7 +25,7 @@ func showByID(db *gorm.DB, showID string) (*models.Show, error) {
 type showResolver struct{ *Resolver }
 
 func (r *queryResolver) FindShow(ctx context.Context, showID string) (*models.Show, error) {
-	return showByID(r.DB(ctx), showID)
+	return showByID(r.DB(ctx).Unscoped(), showID)
 }
 
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*models.Show, error) {
@@ -95,7 +95,7 @@ func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*mode
 		return nil, err
 	}
 
-	return showByID(tx, showID)
+	return showByID(tx.Unscoped(), showID)
 }
 
 // Field Resolvers
