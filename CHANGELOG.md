@@ -1,3 +1,13 @@
+## [1.2.3](https://github.com/anime-skip/backend/compare/v1.2.2...v1.2.3) (2021-06-11)
+
+
+### Bug Fixes
+
+* allow skipping migrations so staging doesn't have to run them ([2efcb42](https://github.com/anime-skip/backend/commit/2efcb42b6d761ebdeb04b43811af32eaaf388863))
+* better error handling when entities are not found ([df75ce1](https://github.com/anime-skip/backend/commit/df75ce13d9a3d91693ff81a932bccafed4a544c0))
+
+
+
 ## [1.2.2](https://github.com/anime-skip/backend/compare/v1.2.1...v1.2.2) (2021-06-03)
 
 
