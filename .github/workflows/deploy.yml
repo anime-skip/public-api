@@ -108,42 +108,14 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.github_token }}
-          release-count: 0 # 0 = all
           version-file: ./meta.json
-          skip-commit: true
+          output-file: "false"
       - 
         name: Don't deploy
         if: ${{ steps.changelog.outputs.skipped == 'true' }}
         run: |
           echo "No changes found, stopping deployment"
           exit 1
-      - 
-        name: Checkout Repo's Wiki
-        uses: actions/checkout@v2
-        with:
-          repository: anime-skip/backend.wiki
-          path: wiki
-      - 
-        name: Append Old Changelog
-        run: |
-          OLD_CHANGELOG=$(cat $GITHUB_WORKSPACE/wiki/Pre-conventional-Commits-Changelog.md)
-          echo "$OLD_CHANGELOG" >> CHANGELOG.md
-          rm -rf $GITHUB_WORKSPACE/wiki
-      - 
-        name: Update meta.json
-        run: |
-          NEW_META=$(jq ".version=\"${TAG/v/}\"" meta.json)
-          echo $NEW_META > meta.json
-        env:
-          TAG: ${{ steps.changelog.outputs.tag }}
-      - 
-        name: Commit Version Change
-        run: |
-          git add meta.json CHANGELOG.md
-          git commit -m "chore(release): $TAG"
-          git push origin main
-        env:
-          TAG: ${{ steps.changelog.outputs.tag }}
       - 
         name: Create Release
         uses: actions/create-release@v1
