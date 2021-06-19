@@ -62,8 +62,10 @@ func (betterVRVService betterVRVServiceInterface) FetchEpisodesByName(episodeNam
 		return cachedResult.Episodes, nil
 	}
 
+	start := time.Now()
 	log.V("Fetching new episode from BetterVRV")
 	remoteResult, err := fetchRemoteEpisodesByName(episodeName)
+	log.V("Fetched in %s", time.Since(start).String())
 	if err != nil || remoteResult == nil {
 		return nil, err
 	}
