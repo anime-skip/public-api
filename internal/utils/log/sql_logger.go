@@ -56,7 +56,7 @@ func (logger Logger) Print(values ...interface{}) {
 		l += fmt.Sprintf("%v", line)
 		str = append(str, l)
 	}
-	fmt.Printf("%s%s%s", green, strings.Join(str, "\n"), reset)
+	fmt.Printf("%s%s%s\n", green, strings.Join(str, "\n"), reset)
 }
 
 var SQLLogger = Logger{}
