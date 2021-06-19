@@ -6,6 +6,7 @@ import (
 
 	database "anime-skip.com/backend/internal/database"
 	"anime-skip.com/backend/internal/server/handlers"
+	"anime-skip.com/backend/internal/utils/constants"
 	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 	"github.com/gin-gonic/gin"
@@ -16,12 +17,13 @@ const GRAPHQL_PATH = "/graphql"
 // Run the web server
 func Run(orm *database.ORM, startedAt time.Time) {
 	server := gin.New()
-	if env.IS_DEV {
-		server.Use(log.RequestLogger)
-	}
 	server.Use(gin.Recovery())
 
 	// Middleware
+	if env.LOG_LEVEL >= constants.LOG_LEVEL_VERBOSE {
+		server.Use(loggerMiddleware)
+	}
+	server.Use(banIPMiddleware)
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
 	server.Use(corsMiddleware)

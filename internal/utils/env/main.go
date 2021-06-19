@@ -15,6 +15,8 @@ var GIN_MODE string
 var PORT int
 var LOG_LEVEL int
 var JWT_SECRET string
+var BANNED_IP_ADDRESSES []string
+var SLEEP_BAN_IP bool
 
 // Feature Flags
 var LOG_SQL bool
@@ -48,6 +50,8 @@ func init() {
 	PORT = envIntOr("PORT", 8081)
 	LOG_LEVEL = envIntOr("LOG_LEVEL", 0)
 	JWT_SECRET = envString("JWT_SECRET")
+	BANNED_IP_ADDRESSES = envStringArray("BANNED_IP_ADDRESSES")
+	SLEEP_BAN_IP = envBoolOrFalse("SLEEP_BAN_IP")
 	LOG_SQL = envBoolOrFalse("LOG_SQL")
 	ENABLE_COLOR_LOGS = envBoolOrFalse("ENABLE_COLOR_LOGS")
 	ENABLE_INTROSPECTION = envBoolOrFalse("ENABLE_INTROSPECTION")
@@ -73,6 +77,7 @@ func init() {
 	log.V("PORT=%v", PORT)
 	log.V("LOG_LEVEL=%v", LOG_LEVEL)
 	log.V("LOG_SQL=%v", LOG_SQL)
+	log.V("BANNED_IP_ADDRESSES=%v", BANNED_IP_ADDRESSES)
 	log.V("ENABLE_COLOR_LOGS=%v", ENABLE_COLOR_LOGS)
 	log.V("ENABLE_INTROSPECTION=%v", ENABLE_INTROSPECTION)
 	log.V("ENABLE_PLAYGROUND=%v", ENABLE_PLAYGROUND)
@@ -87,7 +92,7 @@ func envString(k string) string {
 	if v == "" {
 		log.Panic("ENV missing, key: " + k)
 	}
-	return v
+	return strings.TrimSpace(v)
 }
 
 func envStringOr(k, defaultValue string) string {
@@ -96,11 +101,14 @@ func envStringOr(k, defaultValue string) string {
 		log.V("ENV missing (%s), defaulting to %v", k, defaultValue)
 		return defaultValue
 	}
-	return v
+	return strings.TrimSpace(v)
 }
 
 func envStringArray(k string) []string {
-	str := envString(k)
+	str := envStringOr(k, "")
+	if str == "" {
+		return []string{}
+	}
 	return strings.Split(str, ",")
 }
 
