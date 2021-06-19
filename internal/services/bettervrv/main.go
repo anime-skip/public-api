@@ -32,6 +32,10 @@ var API_KEY_VALUE = env.BETTER_VRV_API_KEY
 var UNKNOWN_EPISODE = &models.ThirdPartyEpisode{}
 var CACHE_DURATION = 30 * time.Minute
 
+var betterVRVClient = &http.Client{
+	Timeout: 1 * time.Second,
+}
+
 func createRequest(endpoint string, query map[string]string, headers map[string]string) (*http.Request, error) {
 	req, err := http.NewRequest("GET", BASE_URL+endpoint, nil)
 	if err != nil {
@@ -91,8 +95,9 @@ func fetchRemoteEpisodesByName(episodeName string) ([]*models.ThirdPartyEpisode,
 	if err != nil {
 		return nil, err
 	}
-	res, _ := http.DefaultClient.Do(req)
+	res, err := betterVRVClient.Do(req)
 	if err != nil {
+		log.W("Better VRV request failed: %v", err)
 		return nil, err
 	}
 	defer res.Body.Close()
@@ -127,8 +132,9 @@ func fetchRemoteShowsById(id string) (*models.ThirdPartyShow, error) {
 	if err != nil {
 		return nil, err
 	}
-	res, _ := http.DefaultClient.Do(req)
+	res, err := betterVRVClient.Do(req)
 	if err != nil {
+		log.W("Better VRV request failed: %v", err)
 		return nil, err
 	}
 	defer res.Body.Close()
