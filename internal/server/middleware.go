@@ -46,7 +46,7 @@ func corsMiddleware(c *gin.Context) {
 		c.Writer.Header().Set("Access-Control-Allow-Origin", "*") // TODO - Figure out origins for prod
 	}
 	c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, DELETE")
-	c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Client-ID")
 
 	if c.Request.Method == "OPTIONS" {
 		c.AbortWithStatus(200)
@@ -81,15 +81,16 @@ func loggerMiddleware(c *gin.Context) {
 	start := time.Now()
 	if c.Request.URL.Path == "/graphql" && env.LOG_LEVEL <= constants.LOG_LEVEL_VERBOSE {
 		bodyBytes, err := ioutil.ReadAll(c.Request.Body)
+		if err != nil {
+			log.W("Failed to read body: %v", err)
+		}
 		c.Request.Body.Close()
 		c.Request.Body = ioutil.NopCloser(bytes.NewBuffer(bodyBytes))
-		if err != nil {
-			log.W("Failed to read body")
-		} else {
+		if err == nil {
 			bodyJSON := map[string]interface{}{}
 			err = json.Unmarshal(bodyBytes, &bodyJSON)
 			if err != nil {
-				log.W("Failed to read body")
+				// Not JSON body
 			} else {
 				if str, ok := bodyJSON["operationName"].(string); ok {
 					log.V("Operation: %s", strings.TrimSpace(str))
