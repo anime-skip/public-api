@@ -24,8 +24,9 @@ func Run(orm *database.ORM, startedAt time.Time) {
 		server.Use(loggerMiddleware)
 	}
 	server.Use(corsMiddleware)
-	server.Use(logMissingClientIDs)
+	server.Use(clientID(orm))
 	server.Use(banIPMiddleware)
+	server.Use(rateLimit)
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
 
