@@ -1,12 +1,12 @@
 package tables
 
-var CreateClientsTable = migrateTable(
+var CreateAPIClientsTable = migrateTable(
 	"CREATE_CLIENTS_TABLE",
 	"api_clients",
 
 	`CREATE TABLE public.api_clients (
 		-- Soft Delete Entity
-		id uuid NOT NULL DEFAULT uuid_generate_v4(),
+		id text NOT NULL,
 		created_at timestamp with time zone NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		created_by_user_id uuid NOT NULL,
 		updated_at timestamp with time zone NOT NULL,
@@ -15,11 +15,14 @@ var CreateClientsTable = migrateTable(
 		deleted_by_user_id uuid,
 
 		-- Custom Fields
-		client_id uuid NOT NULL,
+		user_id uuid NOT NULL,
+		app_name text NOT NULL,
+		description text NOT NULL,
+		allowed_origins text[],
+		rate_limit_rpm integer,
 
 		-- Constraints
-		CONSTRAINT template_timestamps_pkey PRIMARY KEY (template_id, timestamp_id),
-		UNIQUE(timestamp_id) -- Timestamps can only be on a single template
+		CONSTRAINT shows_pkey PRIMARY KEY (id)
 	)
 	WITH (
 		OIDS = FALSE
