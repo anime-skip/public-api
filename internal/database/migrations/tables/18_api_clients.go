@@ -22,7 +22,7 @@ var CreateAPIClientsTable = migrateTable(
 		rate_limit_rpm integer,
 
 		-- Constraints
-		CONSTRAINT shows_pkey PRIMARY KEY (id)
+		CONSTRAINT api_clients_pkey PRIMARY KEY (id)
 	)
 	WITH (
 		OIDS = FALSE
