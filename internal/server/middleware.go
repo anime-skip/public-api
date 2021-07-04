@@ -76,10 +76,9 @@ func banIPMiddleware(c *gin.Context) {
 }
 
 func logMissingClientIDs(c *gin.Context) {
-	requestID := c.Request.Header.Get("x-request-id")
-	clientID := c.Request.Header.Get("x-client-id")
-	clientIP := c.ClientIP()
-	if clientID == "" {
+	if c.Request.Header.Get("x-client-id") == "" {
+		requestID := c.Request.Header.Get("x-request-id")
+		clientIP := c.ClientIP()
 		log.W("Request %s from %s is missing the 'X-Client-ID' header", requestID, clientIP)
 	}
 }
