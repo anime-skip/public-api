@@ -50,3 +50,13 @@ func FindTemplateTimestampsByTemplateID(db *gorm.DB, templateID string) ([]*enti
 	}
 	return templateTimestamps, nil
 }
+
+func FindTemplateTimestampByTimestampID(db *gorm.DB, timestampID string) (*entities.TemplateTimestamp, error) {
+	templateTimestamp := &entities.TemplateTimestamp{}
+	err := db.Where("timestamp_id = ?", timestampID).First(&templateTimestamp).Error
+	if err != nil {
+		log.V("No templateTimestamp was found with timestamp_id='%s': %v", timestampID, err)
+		return nil, err
+	}
+	return templateTimestamp, nil
+}
