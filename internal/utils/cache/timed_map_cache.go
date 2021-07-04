@@ -15,7 +15,10 @@ func NewTimedMapCache(duration time.Duration) *TimedMapCache {
 }
 
 func (cache *TimedMapCache) Get(key string) interface{} {
-	return cache.values[key].Get()
+	if timedCache, ok := cache.values[key]; ok {
+		return timedCache.Get()
+	}
+	return nil
 }
 
 func (cache *TimedMapCache) Set(key string, value interface{}) {

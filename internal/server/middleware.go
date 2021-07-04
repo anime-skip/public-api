@@ -87,8 +87,10 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 		var apiClient *entities.APIClient
 		apiClientInterface := apiClientCache.Get(clientID)
 		if apiClientInterface != nil {
+			log.V("Using cached api client")
 			apiClient = apiClientInterface.(*entities.APIClient)
 		} else {
+			log.V("No cache found, getting api client")
 			apiClient, _ = repos.FindAPIClientByID(orm.DB, clientID)
 		}
 
@@ -99,6 +101,8 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusForbidden, utils.GraphQLError("X-Client-ID header is not valid. See https://apk.rip/1p for more details"))
 			return
 		}
+
+		apiClientCache.Set(clientID, apiClient)
 
 		if apiClient.AllowedOrigins != nil && len(*apiClient.AllowedOrigins) > 0 {
 			// TODO: Limit clients to origins

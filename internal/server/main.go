@@ -24,9 +24,11 @@ func Run(orm *database.ORM, startedAt time.Time) {
 		server.Use(loggerMiddleware)
 	}
 	server.Use(corsMiddleware)
-	server.Use(clientID(orm))
 	server.Use(banIPMiddleware)
-	server.Use(rateLimit)
+	if !env.DISABLE_RATE_LIMITTING {
+		server.Use(clientID(orm))
+		server.Use(rateLimit)
+	}
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
 
