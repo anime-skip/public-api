@@ -54,7 +54,7 @@ func corsMiddleware(c *gin.Context) {
 	c.Writer.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Client-ID")
 
 	if c.Request.Method == "OPTIONS" {
-		c.AbortWithStatus(200)
+		c.AbortWithStatus(http.StatusOK)
 	} else {
 		c.Next()
 	}
@@ -81,7 +81,7 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 			requestID := c.Request.Header.Get("x-request-id")
 			clientIP := c.ClientIP()
 			log.W("Request %s from %s is missing the 'X-Client-ID' header", requestID, clientIP)
-			c.AbortWithStatusJSON(403, utils.GraphQLError("X-Client-ID header is required. See https://apk.rip/1p for more details"))
+			c.AbortWithStatusJSON(http.StatusForbidden, utils.GraphQLError("X-Client-ID header is required. See https://apk.rip/1p for more details"))
 			return
 		}
 		var apiClient *entities.APIClient
@@ -96,7 +96,7 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 			requestID := c.Request.Header.Get("x-request-id")
 			clientIP := c.ClientIP()
 			log.W("Request %s from %s used an unknown client id (%s)", requestID, clientIP, clientID)
-			c.AbortWithStatusJSON(403, utils.GraphQLError("X-Client-ID header is not valid. See https://apk.rip/1p for more details"))
+			c.AbortWithStatusJSON(http.StatusForbidden, utils.GraphQLError("X-Client-ID header is not valid. See https://apk.rip/1p for more details"))
 			return
 		}
 
@@ -112,19 +112,25 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 func rateLimit(c *gin.Context) {
 	apiClientInterface, ok := c.Get(constants.CTX_API_CLIENT)
 	if !ok {
-		c.AbortWithStatusJSON(500, utils.GraphQLError("Internal error: could not find API client details"))
+		c.AbortWithStatusJSON(
+			http.StatusInternalServerError,
+			utils.GraphQLError("Internal error: could not find API client details"),
+		)
 		return
 	}
 
 	apiClient, ok := apiClientInterface.(*entities.APIClient)
 	if !ok {
-		c.AbortWithStatusJSON(500, utils.GraphQLError("Internal error: API client details were not the correct data structure"))
+		c.AbortWithStatusJSON(
+			http.StatusInternalServerError,
+			utils.GraphQLError("Internal error: API client details were not the correct data structure"),
+		)
 		return
 	}
 
 	err := rate_limiter.Increment(*apiClient)
 	if err != nil {
-		c.AbortWithStatusJSON(403, utils.GraphQLError(err.Error()))
+		c.AbortWithStatusJSON(http.StatusForbidden, utils.GraphQLError(err.Error()))
 		return
 	}
 
