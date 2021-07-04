@@ -16,27 +16,26 @@ jobs:
     name: Verify Code
     runs-on: ubuntu-20.04
     steps:
-      - 
-        name: Install Go 1.13
+      - name: Install Go 1.13
         uses: actions/setup-go@v1
         with:
           go-version: 1.13
-      - 
-        name: Checkout Repo
+
+      - name: Checkout Repo
         uses: actions/checkout@v1
-      - 
-        name: Build
+
+      - name: Build
         run: make build
-      - 
-        name: Lint
+
+      - name: Lint
         run: echo "TODO" # make lint
-      - 
-        name: Run Tests
+
+      - name: Run Tests
         run: |
           ./.github/create-env.sh
           make test
-      - 
-        name: Run E2E Tests
+
+      - name: Run E2E Tests
         run: echo "TODO" # make e2e-test
 
   deploy-staged:
@@ -45,33 +44,32 @@ jobs:
     runs-on: ubuntu-20.04
     needs: verify
     steps:
-      - 
-        name: Checkout Repo
+      - name: Checkout Repo
         uses: actions/checkout@v1
-      - 
-        name: Log into Heroku CLI
+
+      - name: Log into Heroku CLI
         uses: akhileshns/heroku-deploy@v3.7.8
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ""
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
-      - 
-        name: Log into Heroku Docker Registry
+
+      - name: Log into Heroku Docker Registry
         uses: docker/login-action@v1
         with:
           registry: registry.heroku.com
           username: ${{ secrets.HEROKU_EMAIL }}
           password: ${{ secrets.HEROKU_API_KEY }}
-      - 
-        name: Log into Github Docker Registry
+
+      - name: Log into Github Docker Registry
         uses: docker/login-action@v1
         with:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - 
-        name: Build :staged
+
+      - name: Build :staged
         run: |
           VERSION="$(jq -r .version meta.json)"
           VERSION_SUFFIX="$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')"
@@ -80,13 +78,13 @@ jobs:
             --build-arg VERSION_SUFFIX=$VERSION_SUFFIX \
             -t docker.pkg.github.com/anime-skip/backend/api:staged \
             -t registry.heroku.com/staged-api-service/web
-      -
-        name: Push :staged
+
+      - name: Push :staged
         run: |
           docker push docker.pkg.github.com/anime-skip/backend/api:staged
           docker push registry.heroku.com/staged-api-service/web
-      -
-        name: Deploy :staged
+
+      - name: Deploy :staged
         run: |
           heroku container:release -a staged-api-service web
 
@@ -96,28 +94,27 @@ jobs:
     runs-on: ubuntu-20.04
     needs: verify
     steps:
-      - 
-        name: Checkout Repo
+      - name: Checkout Repo
         uses: actions/checkout@v1
         with:
           ref: main
           fetch-depth: 0
-      - 
-        name: Conventional Changelog
+
+      - name: Conventional Changelog
         id: changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.github_token }}
           version-file: ./meta.json
           output-file: "false"
-      - 
-        name: Don't deploy
+
+      - name: Don't deploy
         if: ${{ steps.changelog.outputs.skipped == 'true' }}
         run: |
           echo "No changes found, stopping deployment"
           exit 1
-      - 
-        name: Create Release
+
+      - name: Create Release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.github_token }}
@@ -131,50 +128,55 @@ jobs:
     runs-on: ubuntu-20.04
     needs: versioning
     steps:
-      - 
-        name: Checkout Repo
+      - name: Checkout Repo
         uses: actions/checkout@v1
-      - 
-        name: Log into Heroku CLI
+
+      - name: Pull in Version Change
+        run: git checkout main
+
+      - name: Log into Heroku CLI
         uses: akhileshns/heroku-deploy@v3.7.8
         with:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ""
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           justlogin: true
-      - 
-        name: Log into Heroku Docker Registry
+
+      - name: Log into Heroku Docker Registry
         uses: docker/login-action@v1
         with:
           registry: registry.heroku.com
           username: ${{ secrets.HEROKU_EMAIL }}
           password: ${{ secrets.HEROKU_API_KEY }}
-      - 
-        name: Log into Github Docker Registry
+
+      - name: Log into Github Docker Registry
         uses: docker/login-action@v1
         with:
           registry: docker.pkg.github.com
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      -
-        name: Build :prod
+
+      - name: Build :prod
         run: |
+          cat meta.json
           VERSION="$(jq -r .version meta.json)"
           VERSION_SUFFIX="$(TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')"
+          echo "VERSION: $VERSION"
+          echo "VERSION_SUFFIX: $VERSION_SUFFIX"
           docker build . \
             --build-arg VERSION=$VERSION \
             --build-arg VERSION_SUFFIX=$VERSION_SUFFIX \
             -t docker.pkg.github.com/anime-skip/backend/api:prod \
             -t registry.heroku.com/prod-api-service/web \
             -t registry.heroku.com/prod-api-test-service/web
-      -
-        name: Push :prod
+
+      - name: Push :prod
         run: |
           docker push docker.pkg.github.com/anime-skip/backend/api:prod
           docker push registry.heroku.com/prod-api-service/web
           docker push registry.heroku.com/prod-api-test-service/web
-      -
-        name: Deploy :prod
+
+      - name: Deploy :prod
         run: |
           heroku container:release -a prod-api-service web
           heroku container:release -a prod-api-test-service web
