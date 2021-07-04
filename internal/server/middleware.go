@@ -87,10 +87,8 @@ func clientID(orm *database.ORM) gin.HandlerFunc {
 		var apiClient *entities.APIClient
 		apiClientInterface := apiClientCache.Get(clientID)
 		if apiClientInterface != nil {
-			log.V("Using cached api client")
 			apiClient = apiClientInterface.(*entities.APIClient)
 		} else {
-			log.V("No cache found, getting api client")
 			apiClient, _ = repos.FindAPIClientByID(orm.DB, clientID)
 		}
 
