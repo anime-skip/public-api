@@ -23,11 +23,11 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	if env.LOG_LEVEL >= constants.LOG_LEVEL_VERBOSE {
 		server.Use(loggerMiddleware)
 	}
+	server.Use(corsMiddleware)
 	server.Use(logMissingClientIDs)
 	server.Use(banIPMiddleware)
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
-	server.Use(corsMiddleware)
 
 	// REST endpoints
 	server.GET("/status", handlers.Status())
