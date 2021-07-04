@@ -75,9 +75,18 @@ func banIPMiddleware(c *gin.Context) {
 	}
 }
 
+func logMissingClientIDs(c *gin.Context) {
+	requestID := c.Request.Header.Get("x-request-id")
+	clientID := c.Request.Header.Get("x-client-id")
+	clientIP := c.ClientIP()
+	if clientID == "" {
+		log.W("Request %s from %s is missing the 'X-Client-ID' header", requestID, clientIP)
+	}
+}
+
 func loggerMiddleware(c *gin.Context) {
 	requestId := c.Request.Header.Get("x-request-id")
-	log.V("<<< [request_id=%s] %s %s client_id=%s client_ip=%s", requestId, c.Request.Method, c.Request.URL, c.Request.Header.Get("X-Client-ID"), c.ClientIP())
+	log.V("<<< [request_id=%s] %s %s client_id=%s client_ip=%s", requestId, c.Request.Method, c.Request.URL, c.Request.Header.Get("x-client-id"), c.ClientIP())
 	start := time.Now()
 	if c.Request.URL.Path == "/graphql" && env.LOG_LEVEL <= constants.LOG_LEVEL_VERBOSE {
 		bodyBytes, err := ioutil.ReadAll(c.Request.Body)

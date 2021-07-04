@@ -23,6 +23,7 @@ func Run(orm *database.ORM, startedAt time.Time) {
 	if env.LOG_LEVEL >= constants.LOG_LEVEL_VERBOSE {
 		server.Use(loggerMiddleware)
 	}
+	server.Use(logMissingClientIDs)
 	server.Use(banIPMiddleware)
 	server.Use(headerMiddleware)
 	server.Use(ginContextToContextMiddleware)
