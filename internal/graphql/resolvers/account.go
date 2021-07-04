@@ -13,6 +13,7 @@ import (
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/auth"
 	"anime-skip.com/backend/internal/utils/log"
+	"anime-skip.com/backend/internal/utils/validation"
 )
 
 // Query Resolvers
@@ -101,6 +102,13 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
+	if err := validation.AccountUsername(username); err != nil {
+		return nil, err
+	}
+	if err := validation.AccountEmail(email); err != nil {
+		return nil, err
+	}
+
 	tx := r.DB(ctx).Begin()
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
