@@ -7,7 +7,7 @@ ENABLE_PLAYGROUND=true
 IS_DEV=true
 JWT_SECRET=1234
 
-DATABASE_URL=postgres://username:password@host:port/dbname
+AWS_DATABASE_URL=postgres://username:password@host:port/dbname
 DATABASE_DISABLE_SSL=true
 DATABASE_ENABLE_SEEDING=true
 
