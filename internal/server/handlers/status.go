@@ -11,11 +11,10 @@ import (
 // Status is the handler that can be easily reached to tell if the application is running
 func Status() gin.HandlerFunc {
 	isPlaygroundEnabled := env.ENABLE_PLAYGROUND
-	version := constants.VERSION + "-" + constants.VERSION_SUFFIX
 	return func(c *gin.Context) {
 		statusData := map[string]interface{}{
 			"status":        "RUNNING",
-			"version":       version,
+			"version":       constants.VERSION,
 			"playground":    isPlaygroundEnabled,
 			"introspection": env.ENABLE_INTROSPECTION,
 		}
