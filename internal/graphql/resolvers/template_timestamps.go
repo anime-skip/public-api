@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"sort"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
@@ -47,6 +48,11 @@ func timestampsByTemplateId(db *gorm.DB, templateID string) ([]*models.Timestamp
 			return nil, err
 		}
 	}
+
+	sort.Slice(timestamps, func(i, j int) bool {
+		return timestamps[i].At < timestamps[j].At
+	})
+
 	return timestamps, nil
 }
 
