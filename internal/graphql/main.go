@@ -211,11 +211,13 @@ type ComplexityRoot struct {
 		DeletedAt       func(childComplexity int) int
 		DeletedBy       func(childComplexity int) int
 		DeletedByUserID func(childComplexity int) int
+		EpisodeCount    func(childComplexity int) int
 		Episodes        func(childComplexity int) int
 		ID              func(childComplexity int) int
 		Image           func(childComplexity int) int
 		Name            func(childComplexity int) int
 		OriginalName    func(childComplexity int) int
+		SeasonCount     func(childComplexity int) int
 		Templates       func(childComplexity int) int
 		UpdatedAt       func(childComplexity int) int
 		UpdatedBy       func(childComplexity int) int
@@ -439,6 +441,8 @@ type ShowResolver interface {
 	Admins(ctx context.Context, obj *models.Show) ([]*models.ShowAdmin, error)
 	Episodes(ctx context.Context, obj *models.Show) ([]*models.Episode, error)
 	Templates(ctx context.Context, obj *models.Show) ([]*models.Template, error)
+	SeasonCount(ctx context.Context, obj *models.Show) (int, error)
+	EpisodeCount(ctx context.Context, obj *models.Show) (int, error)
 }
 type ShowAdminResolver interface {
 	CreatedBy(ctx context.Context, obj *models.ShowAdmin) (*models.User, error)
@@ -1660,6 +1664,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Show.DeletedByUserID(childComplexity), true
 
+	case "Show.episodeCount":
+		if e.complexity.Show.EpisodeCount == nil {
+			break
+		}
+
+		return e.complexity.Show.EpisodeCount(childComplexity), true
+
 	case "Show.episodes":
 		if e.complexity.Show.Episodes == nil {
 			break
@@ -1694,6 +1705,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Show.OriginalName(childComplexity), true
+
+	case "Show.seasonCount":
+		if e.complexity.Show.SeasonCount == nil {
+			break
+		}
+
+		return e.complexity.Show.SeasonCount(childComplexity), true
 
 	case "Show.templates":
 		if e.complexity.Show.Templates == nil {
@@ -2572,7 +2590,7 @@ type Episode implements BaseModel {
   "The id of the show that the episode blongs to"
   showId: ID!
   """
-  The list of current timestamps. 
+  The list of current timestamps.
 
   Timestamps are apart apart of the ` + "`" + `Episode` + "`" + ` instead of the ` + "`" + `EpisodeUrl` + "`" + ` so that they can be shared
   between urls and not need duplicate data
@@ -2628,7 +2646,7 @@ input InputEpisode {
 type EpisodeUrl {
   """
   The url that would take a user to watch the ` + "`" + `episode` + "`" + `.
-  
+
   This url should be stripped of all query params.
   """
   url: String!
@@ -2667,7 +2685,6 @@ input InputEpisodeUrl {
   timestampsOffset: Float
 }
 
-
 "Account info that should only be accessible by the authorised user"
 type Account {
   id: ID!
@@ -2681,7 +2698,7 @@ type Account {
   profileUrl: String!
   """
   The linking object that associates a user to the shows they are admins of.
-  
+
   > This data is also accessible on the ` + "`" + `User` + "`" + ` model. It has been added here for convienience
   """
   adminOfShows: [ShowAdmin!]!
@@ -2817,6 +2834,11 @@ type Show implements BaseModel {
   episodes: [Episode!]!
   "All the templates that belong to this show"
   templates: [Template!]!
+
+  "How many seasons are associated with this show"
+  seasonCount: Int!
+  "How many episodes are apart of this show"
+  episodeCount: Int!
 }
 
 type ThirdPartyShow {
@@ -2832,7 +2854,6 @@ input InputShow {
   website: String
   image: String
 }
-
 
 """
 A list of users that have elevated permissions when making changes to a show, it's episodes, and
@@ -2871,7 +2892,6 @@ input InputShowAdmin {
   showId: ID!
   userId: ID!
 }
-
 
 type Timestamp implements BaseModel {
   id: ID!
@@ -2918,7 +2938,6 @@ input InputTimestamp {
   source: TimestampSource
 }
 
-
 """
 The type a timestamp can be. This table rarely changes so the values fetched can either be hard
 coded or fetch occasionaly. Anime Skip website and web extension use hardcoded maps to store this
@@ -2949,7 +2968,6 @@ input InputTimestampType {
   description: String!
 }
 
-
 "Information about a user that is public. See ` + "`" + `Account` + "`" + ` for a description of each field"
 type User {
   id: ID!
@@ -2960,7 +2978,6 @@ type User {
   profileUrl: String!
   adminOfShows: [ShowAdmin!]!
 }
-
 
 """
 When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
@@ -2995,7 +3012,7 @@ type Template implements BaseModel {
   The list of timestamp ids that are apart of this template. Since this is a many-to-many
   relationship, this field will resolve quicker than ` + "`" + `timestamps` + "`" + ` since it doesn't have to do an
   extra join
-  
+
   This is useful when you already got the episode and timestamps, and you just need to know what
   timestamps are apart of the template
   """
@@ -9730,6 +9747,74 @@ func (ec *executionContext) _Show_templates(ctx context.Context, field graphql.C
 	return ec.marshalNTemplate2ᚕᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐTemplateᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Show_seasonCount(ctx context.Context, field graphql.CollectedField, obj *models.Show) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Show",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Show().SeasonCount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Show_episodeCount(ctx context.Context, field graphql.CollectedField, obj *models.Show) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Show",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Show().EpisodeCount(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _ShowAdmin_id(ctx context.Context, field graphql.CollectedField, obj *models.ShowAdmin) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -15373,6 +15458,34 @@ func (ec *executionContext) _Show(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "seasonCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_seasonCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "episodeCount":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Show_episodeCount(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16754,6 +16867,21 @@ func (ec *executionContext) unmarshalNInputTimestampOn2ᚖanimeᚑskipᚗcomᚋb
 func (ec *executionContext) unmarshalNInputTimestampType2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐInputTimestampType(ctx context.Context, v interface{}) (models.InputTimestampType, error) {
 	res, err := ec.unmarshalInputInputTimestampType(ctx, v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) unmarshalNInt2int(ctx context.Context, v interface{}) (int, error) {
+	res, err := graphql.UnmarshalInt(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalInt(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) marshalNPreferences2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐPreferences(ctx context.Context, sel ast.SelectionSet, v models.Preferences) graphql.Marshaler {

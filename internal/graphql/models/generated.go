@@ -318,6 +318,10 @@ type Show struct {
 	Episodes []*Episode `json:"episodes"`
 	// All the templates that belong to this show
 	Templates []*Template `json:"templates"`
+	// How many seasons are associated with this show
+	SeasonCount int `json:"seasonCount"`
+	// How many episodes are apart of this show
+	EpisodeCount int `json:"episodeCount"`
 }
 
 func (Show) IsBaseModel() {}
