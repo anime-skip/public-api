@@ -123,3 +123,11 @@ func (r *showResolver) Episodes(ctx context.Context, obj *models.Show) ([]*model
 func (r *showResolver) Templates(ctx context.Context, obj *models.Show) ([]*models.Template, error) {
 	return templatesByShowID(r.DB(ctx), obj.ID)
 }
+
+func (r *showResolver) SeasonCount(ctx context.Context, obj *models.Show) (int, error) {
+	return repos.GetSeasonCountForShowID(r.DB(ctx), obj.ID)
+}
+
+func (r *showResolver) EpisodeCount(ctx context.Context, obj *models.Show) (int, error) {
+	return repos.GetEpisodeCountForShowID(r.DB(ctx), obj.ID)
+}

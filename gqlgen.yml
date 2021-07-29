@@ -10,7 +10,7 @@ exec:
 model:
   filename: internal/graphql/models/generated.go
   package: models
-  
+
 resolver:
   filename: internal/graphql/resolvers/update_then_delete_me.go
   type: Resolver
@@ -53,9 +53,9 @@ models:
         resolver: true
   Account:
     fields:
-      adminOfShows: 
+      adminOfShows:
         resolver: true
-      preferences: 
+      preferences:
         resolver: true
   Preferences:
     fields:
@@ -80,6 +80,10 @@ models:
       episodes:
         resolver: true
       templates:
+        resolver: true
+      seasonCount:
+        resolver: true
+      episodeCount:
         resolver: true
   ShowAdmin:
     fields:
