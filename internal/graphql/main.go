@@ -3064,7 +3064,7 @@ input InputTemplateTimestamp {
   """
   deleteAccountRequest(passwordHash: String!): Account! @authorized
   "Handle a deleteToken from ` + "`" + `deleteAccountRequest` + "`" + ` and actually delete the user's account"
-  deleteAccount(deleteToken: String!): Account
+  deleteAccount(deleteToken: String!): Account!
 
   # Preferences
   "Update user preferences"
@@ -3240,7 +3240,7 @@ input InputTemplateTimestamp {
 	{Name: "internal/graphql/schemas/queries.graphql", Input: `type Query {
   # Account
   "Get the logged in user's private account information"
-  account: Account @authorized
+  account: Account! @authorized
   """
   Use either the username or email and an md5 hash of the user's password to get an access and
   refresh token
@@ -3318,7 +3318,7 @@ input InputTemplateTimestamp {
   Find an episode based on a URL. This is the primary method used to lookup data for a known service
   URL. See ` + "`" + `findEpisodeByName` + "`" + ` for looking up fallback data.
   """
-  findEpisodeUrl(episodeUrl: String!): EpisodeUrl
+  findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the ` + "`" + `EpisodeUrl` + "`" + `s for a given ` + "`" + `Episode.id` + "`" + `"
   findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
 
@@ -6360,11 +6360,14 @@ func (ec *executionContext) _Mutation_deleteAccount(ctx context.Context, field g
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.Account)
 	fc.Result = res
-	return ec.marshalOAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -8410,11 +8413,14 @@ func (ec *executionContext) _Query_account(ctx context.Context, field graphql.Co
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.Account)
 	fc.Result = res
-	return ec.marshalOAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
+	return ec.marshalNAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_login(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -9022,11 +9028,14 @@ func (ec *executionContext) _Query_findEpisodeUrl(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
 	res := resTmp.(*models.EpisodeURL)
 	fc.Result = res
-	return ec.marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
+	return ec.marshalNEpisodeUrl2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_findEpisodeUrlsByEpisodeId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15068,6 +15077,9 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			}
 		case "deleteAccount":
 			out.Values[i] = ec._Mutation_deleteAccount(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "savePreferences":
 			out.Values[i] = ec._Mutation_savePreferences(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -15366,6 +15378,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_account(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "login":
@@ -15573,6 +15588,9 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findEpisodeUrl(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "findEpisodeUrlsByEpisodeId":
@@ -17990,13 +18008,6 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx context.Context, sel ast.SelectionSet, v *models.Account) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._Account(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.WrapErrorWithInputPath(ctx, err)
@@ -18019,13 +18030,6 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
-}
-
-func (ec *executionContext) marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v *models.EpisodeURL) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._EpisodeUrl(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {

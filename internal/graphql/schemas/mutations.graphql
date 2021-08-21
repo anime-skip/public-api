@@ -23,7 +23,7 @@ type Mutation {
   """
   deleteAccountRequest(passwordHash: String!): Account! @authorized
   "Handle a deleteToken from `deleteAccountRequest` and actually delete the user's account"
-  deleteAccount(deleteToken: String!): Account
+  deleteAccount(deleteToken: String!): Account!
 
   # Preferences
   "Update user preferences"
