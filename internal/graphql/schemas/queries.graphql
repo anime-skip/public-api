@@ -1,7 +1,7 @@
 type Query {
   # Account
   "Get the logged in user's private account information"
-  account: Account @authorized
+  account: Account! @authorized
   """
   Use either the username or email and an md5 hash of the user's password to get an access and
   refresh token
@@ -79,7 +79,7 @@ type Query {
   Find an episode based on a URL. This is the primary method used to lookup data for a known service
   URL. See `findEpisodeByName` for looking up fallback data.
   """
-  findEpisodeUrl(episodeUrl: String!): EpisodeUrl
+  findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the `EpisodeUrl`s for a given `Episode.id`"
   findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
 
