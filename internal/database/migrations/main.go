@@ -86,6 +86,7 @@ func Run(db *gorm.DB) error {
 		seeders.SeedAdminUser,
 		seeders.SeedTimestampTypes,
 		seeders.SeedUnknownTimestampType,
+		seeders.SeedConstantClientIDs,
 	})
 	return m.Migrate()
 }
