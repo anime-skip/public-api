@@ -4,55 +4,60 @@ type Mutation {
   Create a user account. 3rd party applciations will not have access to this function because of
   `recaptchaResponse`. Redirect new users to create an account on <anime-skip.com>
   """
-  createAccount(username: String!, email: String!, passwordHash: String!, recaptchaResponse: String!): LoginData
+  createAccount(
+    username: String!
+    email: String!
+    passwordHash: String!
+    recaptchaResponse: String!
+  ): LoginData!
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail: Boolean @authorized
   """
   Callback to handle the verfification token included in the email sent using
   `resendVerificationEmail`
   """
-  verifyEmailAddress(validationToken: String!): Account
+  verifyEmailAddress(validationToken: String!): Account!
   """
   Request your account be deleted. The user will recieve an email with a link to confirm deleting
   their account
   """
-  deleteAccountRequest(passwordHash: String!): Account @authorized
+  deleteAccountRequest(passwordHash: String!): Account! @authorized
   "Handle a deleteToken from `deleteAccountRequest` and actually delete the user's account"
   deleteAccount(deleteToken: String!): Account
 
   # Preferences
   "Update user preferences"
-  savePreferences(preferences: InputPreferences!): Preferences @authorized
+  savePreferences(preferences: InputPreferences!): Preferences! @authorized
 
   # Shows
   "Create a show and optionally become an admin"
-  createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show @authorized
+  createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authorized
   """
   Update show data
-  
+
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
-  
+
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  deleteShow(showId: ID!): Show @hasRole(role: ADMIN)
+  deleteShow(showId: ID!): Show! @hasRole(role: ADMIN)
 
   # Show Admins
   """
   Give admin privilege to a user for a show.
-  
+
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin
+  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin!
   """
   Remove admin privileges from a user for a show.
-  
+
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin!
 
   # Episodes
   """
@@ -60,19 +65,22 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode
+  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode!
   """
   Update episode info
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateEpisode(episodeId: ID! @isShowAdmin, newEpisode: InputEpisode!): Episode
+  updateEpisode(
+    episodeId: ID! @isShowAdmin
+    newEpisode: InputEpisode!
+  ): Episode!
   """
   Delete an episode and all it's child data
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: ID! @isShowAdmin): Episode
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode!
 
   # Episode Urls
   """
@@ -80,19 +88,25 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createEpisodeUrl(episodeId: ID! @isShowAdmin, episodeUrlInput: InputEpisodeUrl!): EpisodeUrl
+  createEpisodeUrl(
+    episodeId: ID! @isShowAdmin
+    episodeUrlInput: InputEpisodeUrl!
+  ): EpisodeUrl!
   """
   Unlink an `Episode` to from service URL
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl!
   """
   Update episode url info
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateEpisodeUrl(episodeUrl: String! @isShowAdmin, newEpisodeUrl: InputEpisodeUrl!): EpisodeUrl
+  updateEpisodeUrl(
+    episodeUrl: String! @isShowAdmin
+    newEpisodeUrl: InputEpisodeUrl!
+  ): EpisodeUrl!
 
   # Timestamps
   """
@@ -100,29 +114,35 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createTimestamp(episodeId: ID! @isShowAdmin, timestampInput: InputTimestamp!): Timestamp
+  createTimestamp(
+    episodeId: ID! @isShowAdmin
+    timestampInput: InputTimestamp!
+  ): Timestamp!
   """
   Update timestamp data
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateTimestamp(timestampId: ID! @isShowAdmin, newTimestamp: InputTimestamp!): Timestamp
+  updateTimestamp(
+    timestampId: ID! @isShowAdmin
+    newTimestamp: InputTimestamp!
+  ): Timestamp!
   """
   Delete a timestamp
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp
+  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp!
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateTimestamps(
-    create: [InputTimestampOn!]!,
-    update: [InputExistingTimestamp!]!,
+    create: [InputTimestampOn!]!
+    update: [InputExistingTimestamp!]!
     delete: [ID!]!
-  ): UpdatedTimestamps
+  ): UpdatedTimestamps!
 
   # Timestamp Types
   """
@@ -130,32 +150,45 @@ type Mutation {
 
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType!
+    @hasRole(role: ADMIN)
   """
   Update a timestamp type
 
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  updateTimestampType(timestampTypeId: ID!, newTimestampType: InputTimestampType!): TimestampType @hasRole(role: ADMIN)
+  updateTimestampType(
+    timestampTypeId: ID!
+    newTimestampType: InputTimestampType!
+  ): TimestampType! @hasRole(role: ADMIN)
   """
   Delete a timestamp type
 
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  deleteTimestampType(timestampTypeId: ID!): TimestampType  @hasRole(role: ADMIN)
+  deleteTimestampType(timestampTypeId: ID!): TimestampType!
+    @hasRole(role: ADMIN)
 
   # Templates
   # TODO: Add case to isShowAdmin for `newTemplate` and `templateId`
   "Make changes to an existing template"
-  createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template @authorized
+  createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template!
+    @authorized
   "Make changes to an existing template"
-  updateTemplate(templateId: ID! @isShowAdmin, newTemplate: InputTemplate!): Template @authorized
+  updateTemplate(
+    templateId: ID! @isShowAdmin
+    newTemplate: InputTemplate!
+  ): Template! @authorized
   "Delete an existing template"
-  deleteTemplate(templateId: ID! @isShowAdmin): Template @authorized
+  deleteTemplate(templateId: ID! @isShowAdmin): Template! @authorized
   "Add a timestamp to an existing template"
-  addTimestampToTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
+  addTimestampToTemplate(
+    templateTimestamp: InputTemplateTimestamp!
+  ): TemplateTimestamp! @authorized
   "Remove a timestamp from an existing template"
-  removeTimestampFromTemplate(templateTimestamp: InputTemplateTimestamp!): TemplateTimestamp
+  removeTimestampFromTemplate(
+    templateTimestamp: InputTemplateTimestamp!
+  ): TemplateTimestamp! @authorized
   # """
   # Add and/or remove a set of timestamps from an existing template. Partial failures are completely
   # rolled back
