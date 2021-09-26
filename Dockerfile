@@ -9,12 +9,10 @@ RUN go mod download
 # Cached layer for source code
 ADD . .
 ARG VERSION
-ARG VERSION_SUFFIX
 RUN : "${VERSION:?Build argument needs to be passed and non-empty.}"
-RUN : "${VERSION_SUFFIX:?Build argument needs to be passed and non-empty.}"
 RUN \
   go build \
-    -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION -X anime-skip.com/backend/internal/utils/constants.VERSION_SUFFIX=$VERSION_SUFFIX" \
+    -ldflags "-X anime-skip.com/backend/internal/utils/constants.VERSION=$VERSION" \
     -o bin/api-service \
     cmd/api-service/main.go
 

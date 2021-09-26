@@ -6,6 +6,7 @@ const (
 	CTX_JWT_ERROR    = "ctx_jwt_error"
 	CTX_ROLE         = "ctx_role"
 	CTX_DATA_LOADERS = "ctx_data_loaders"
+	CTX_API_CLIENT   = "ctx_api_client"
 )
 
 const (

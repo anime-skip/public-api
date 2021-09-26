@@ -40,6 +40,22 @@ func DeleteTimestamp(tx *gorm.DB, timestampID string) error {
 		log.E("Failed to delete timestamp for id='%s': %v", timestampID, err)
 		return err
 	}
+
+	templateTimestamps, err := FindTemplateTimestampByTimestampID(tx, timestampID)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if templateTimestamps != nil {
+		err = DeleteTemplateTimestamp(
+			tx,
+			templateTimestamps.TemplateID.String(),
+			templateTimestamps.TimestampID.String(),
+		)
+		if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+	}
+
 	return nil
 }
 

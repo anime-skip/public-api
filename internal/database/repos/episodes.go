@@ -158,3 +158,21 @@ func RecentlyAddedEpisodes(db *gorm.DB, limit, offset int) ([]*entities.Episode,
 	}
 	return episodes, nil
 }
+
+func GetEpisodeCountForShowID(db *gorm.DB, showID string) (int, error) {
+	var count int
+	err := db.Model(&models.Episode{}).
+		Where("show_id = ?", showID).
+		Count(&count).
+		Error
+	return count, err
+}
+
+func GetSeasonCountForShowID(db *gorm.DB, showID string) (int, error) {
+	var count int
+	err := db.
+		Raw("SELECT COUNT(*) FROM (SELECT DISTINCT season FROM episodes WHERE show_id = ?) AS temp;", showID).
+		Count(&count).
+		Error
+	return count, err
+}

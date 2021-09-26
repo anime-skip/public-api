@@ -29,7 +29,7 @@ DISABLE_SHOW_ADMIN_DIRECTIVE=true
 
 # Database
 #
-DATABASE_URL=postgres://postgres:password@localhost:9000/anime_skip_local
+AWS_DATABASE_URL=postgres://postgres:password@localhost:9000/anime_skip_local
 DATABASE_DISABLE_SSL=true
 DATABASE_ENABLE_SEEDING=true
 # DATABASE_MIGRATION=

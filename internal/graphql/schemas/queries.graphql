@@ -1,101 +1,116 @@
 type Query {
   # Account
   "Get the logged in user's private account information"
-  account: Account @authorized
+  account: Account! @authorized
   """
   Use either the username or email and an md5 hash of the user's password to get an access and
   refresh token
   """
-  login(usernameEmail: String!, passwordHash: String!): LoginData
+  login(usernameEmail: String!, passwordHash: String!): LoginData!
   "Use a refresh token get a new access and refresh token"
-  loginRefresh(refreshToken: String!): LoginData
-  
+  loginRefresh(refreshToken: String!): LoginData!
+
   # Users
   "Find user with a matching `User.id`"
-  findUser(userId: ID!): User
+  findUser(userId: ID!): User!
   "Find user with a matching `User.username`"
-  findUserByUsername(username: String!): User
+  findUserByUsername(username: String!): User!
 
   # Shows
   "Find show with a matching `Show.id`"
-  findShow(showId: ID!): Show
+  findShow(showId: ID!): Show!
   """
   Search for shows that include the `search` in the `Show.name`. Results are sorted by `Show.name`
   as `ASC` or `DESC`
   """
-  searchShows(search: String = "", offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Show!]
+  searchShows(
+    search: String = ""
+    offset: Int = 0
+    limit: Int = 25
+    sort: String = "ASC"
+  ): [Show!]!
 
   # Show Admins
   "Find show admin with a matching `ShowAdmin.id`"
-  findShowAdmin(showAdminId: ID!): ShowAdmin
+  findShowAdmin(showAdminId: ID!): ShowAdmin!
   "Get a list of admins for a given `Show.id`"
-  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]!
   "Get a list of show admins for a given `User.id`"
-  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]!
 
   # Episodes
   """
   Get a list of recently added episodes that have timestamps.
-  
+
   > Since this is a rather intensive query, it is cached for 20 minutes before it will look for new
   > episodes again
   """
-  recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]
+  recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]!
   "Find episode with a matching `Episode.id`"
-  findEpisode(episodeId: ID!): Episode
+  findEpisode(episodeId: ID!): Episode!
   "Get a list of episodes for a given `Show.id`"
-  findEpisodesByShowId(showId: ID!): [Episode!]
+  findEpisodesByShowId(showId: ID!): [Episode!]!
   """
   Search for episodes that include the `search` in the `Episode.name`. Results are sorted by
   `Show.name`as `ASC` or `DESC`
 
   Results can be limited to a single show by passing `showId`
   """
-  searchEpisodes(search: String = "", showId: ID, offset: Int = 0, limit: Int = 25, sort: String = "ASC"): [Episode!]
+  searchEpisodes(
+    search: String = ""
+    showId: ID
+    offset: Int = 0
+    limit: Int = 25
+    sort: String = "ASC"
+  ): [Episode!]!
   """
   Get a list of third party episodes for a given `Episode.name`. Since this can return an array of
   multiple items, always use `findEpisodeUrl` first, then fallback to this query.
-  
+
   Current 3rd party timestamp providers include:
   - [BetterVRV](http://tuckerchap.in/BetterVRV/)
 
   > See `ThirdPartyEpisode` for more information about how to create data based on this type
   """
-  findEpisodeByName(name: String!): [ThirdPartyEpisode]
+  findEpisodeByName(name: String!): [ThirdPartyEpisode!]!
 
   # Episode Urls
   """
   Find an episode based on a URL. This is the primary method used to lookup data for a known service
   URL. See `findEpisodeByName` for looking up fallback data.
   """
-  findEpisodeUrl(episodeUrl: String!): EpisodeUrl
+  findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the `EpisodeUrl`s for a given `Episode.id`"
-  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]
+  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
 
   # Timestamps
   "Get timestamp info based on a `Timestamp.id`"
-  findTimestamp(timestampId: ID!): Timestamp
+  findTimestamp(timestampId: ID!): Timestamp!
   "Get all the timestamps for an episode"
-  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]
+  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]!
 
   # Timestamp Types
   "Get timestamp type info based on a `TimestampType.id`"
-  findTimestampType(timestampTypeId: ID!): TimestampType
+  findTimestampType(timestampTypeId: ID!): TimestampType!
   "List all the `TimestampType`s. Items come back in a random order"
-  allTimestampTypes: [TimestampType!]
+  allTimestampTypes: [TimestampType!]!
 
   # Templates
   "Get template info based on a `Template.id`"
-  findTemplate(templateId: ID!): Template
+  findTemplate(templateId: ID!): Template!
   "Get a list of templates based on the `Template.showId`"
   findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
-  
+
   1. Matching `sourceEpisodeID`
   2. Matching show name (case sensitive) and season (case sensitive)
   3. Matching show name (case sensitive)
   """
-  findTemplateByDetails(episodeId: ID, showName: String, season: String): Template
+  findTemplateByDetails(
+    episodeId: ID
+    showName: String
+    season: String
+  ): Template!
 }
