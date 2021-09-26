@@ -83,9 +83,10 @@ func Run(db *gorm.DB) error {
 	// Seed
 	log.D("Running seeders if necessary...")
 	m = gormigrate.New(db, gormigrate.DefaultOptions, []*gormigrate.Migration{
-		seeders.SeedAdminUser,
-		seeders.SeedTimestampTypes,
-		seeders.SeedUnknownTimestampType,
+		/* 0  */ seeders.SeedAdminUser,
+		/* 1  */ seeders.SeedTimestampTypes,
+		/* 2  */ seeders.SeedUnknownTimestampType,
+		/* 3  */ seeders.SeedKnownClientIDs,
 	})
 	return m.Migrate()
 }
