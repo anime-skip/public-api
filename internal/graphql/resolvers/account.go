@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
@@ -34,6 +35,7 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 }
 
 func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
+	usernameEmail = strings.TrimSpace(usernameEmail)
 	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
@@ -102,6 +104,10 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 // Mutation Resolvers
 
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
+	username = strings.TrimSpace(username)
+	email = strings.TrimSpace(email)
+	passwordHash = strings.TrimSpace(passwordHash)
+
 	if err := validation.AccountUsername(username); err != nil {
 		return nil, err
 	}
