@@ -2,6 +2,7 @@ package resolvers
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"anime-skip.com/backend/internal/database/mappers"
@@ -55,15 +56,15 @@ func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID string
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *string, showName *string, season *string) (*models.Template, error) {
 	db := r.DB(ctx)
+
 	// Lookup by episode ID first
 	if episodeID != nil {
 		log.D("Looking up template by id")
 		template, err := templateBySourceEpisodeID(db, *episodeID)
 		if template != nil {
 			return template, nil
-		} else if err != nil {
-			log.D("Failed to get template by episode id: %v", err)
 		}
+		log.D("Failed to get template by episode id: %v", err)
 	}
 
 	// Get templates by show name
@@ -74,7 +75,7 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *st
 			return nil, err
 		}
 		if len(show) < 1 {
-			return nil, nil
+			return nil, fmt.Errorf("Show name '%v' did not match any known shows", *showName)
 		}
 		templates, err := templatesByShowID(db, show[0].ID.String())
 		if err != nil {
@@ -82,20 +83,20 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *st
 		}
 
 		if season != nil {
-			log.V("Getting template by show name and season '%s'", *season)
+			log.V("Getting template by show name and season '%v'", *season)
 			// When season is passed, return the template that includes that season
 			for _, template := range templates {
 				if template.Type == models.TemplateTypeSeasons && template.Seasons != nil && utils.StringArrayIncludes(template.Seasons, *season) {
 					return template, nil
 				}
 			}
-		} else {
-			log.V("Getting template by just show name")
-			// When season is not passed, return the template for the show
-			for _, template := range templates {
-				if template.Type == models.TemplateTypeShow {
-					return template, nil
-				}
+		}
+
+		log.V("Getting template by just show name")
+		// When season is not passed, return the template for the show
+		for _, template := range templates {
+			if template.Type == models.TemplateTypeShow {
+				return template, nil
 			}
 		}
 	}
