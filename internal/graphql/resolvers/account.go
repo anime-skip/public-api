@@ -36,6 +36,8 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 
 func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
 	usernameEmail = strings.TrimSpace(usernameEmail)
+	passwordHash = strings.TrimSpace(passwordHash)
+
 	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
