@@ -34,6 +34,21 @@ func CreateUser(db *gorm.DB, username, email, encryptedPasswordHash string) (*en
 	return user, nil
 }
 
+func UpdatePasswordHash(db *gorm.DB, userID string, newPasswordHash string) (*entities.User, error) {
+	user, err := FindUserByID(db, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	user.PasswordHash = newPasswordHash
+	err = db.Save(user).Error
+	if err != nil {
+		log.E("Failed change password for [%+v]: %v", userID, err)
+		return nil, err
+	}
+	return user, nil
+}
+
 func VerifyUserEmail(db *gorm.DB, existingUser *entities.User) (*entities.User, error) {
 	existingUser.EmailVerified = true
 	err := db.Model(existingUser).Update(*existingUser).Error
