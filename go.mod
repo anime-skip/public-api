@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/99designs/gqlgen v0.12.2
+	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.6.3
