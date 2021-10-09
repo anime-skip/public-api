@@ -15,7 +15,7 @@ var recaptcha_secret = env.RECAPTCHA_SECRET
 var recaptcha_response_allowlist = env.RECAPTCHA_RESPONSE_ALLOWLIST
 
 const recaptchaURL = "https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s"
-const errorMessage = "Recaptacha validation failed"
+const errorMessage = "Recaptcha validation failed"
 
 func Verify(response, ipAddress string) error {
 	if contains(recaptcha_response_allowlist, response) {

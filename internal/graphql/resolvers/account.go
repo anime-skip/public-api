@@ -14,6 +14,7 @@ import (
 	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/auth"
 	"anime-skip.com/backend/internal/utils/log"
+	"anime-skip.com/backend/internal/utils/validation"
 )
 
 // Query Resolvers
@@ -35,6 +36,8 @@ func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
 
 func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
 	usernameEmail = strings.TrimSpace(usernameEmail)
+	passwordHash = strings.TrimSpace(passwordHash)
+
 	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
@@ -106,6 +109,14 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	username = strings.TrimSpace(username)
 	email = strings.TrimSpace(email)
 	passwordHash = strings.TrimSpace(passwordHash)
+
+	if err := validation.AccountUsername(username); err != nil {
+		return nil, err
+	}
+	if err := validation.AccountEmail(email); err != nil {
+		return nil, err
+	}
+
 	tx := r.DB(ctx).Begin()
 
 	existingUser, _ := repos.FindUserByUsername(tx, username)
