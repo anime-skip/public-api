@@ -120,6 +120,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddTimestampToTemplate      func(childComplexity int, templateTimestamp models.InputTemplateTimestamp) int
+		ChangePassword              func(childComplexity int, oldPassword string, confirmPassword string, newPassword string) int
 		CreateAccount               func(childComplexity int, username string, email string, passwordHash string, recaptchaResponse string) int
 		CreateEpisode               func(childComplexity int, showID string, episodeInput models.InputEpisode) int
 		CreateEpisodeURL            func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
@@ -373,6 +374,7 @@ type EpisodeUrlResolver interface {
 }
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error)
+	ChangePassword(ctx context.Context, oldPassword string, confirmPassword string, newPassword string) (*models.LoginData, error)
 	ResendVerificationEmail(ctx context.Context) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error)
@@ -844,6 +846,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.AddTimestampToTemplate(childComplexity, args["templateTimestamp"].(models.InputTemplateTimestamp)), true
+
+	case "Mutation.changePassword":
+		if e.complexity.Mutation.ChangePassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_changePassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ChangePassword(childComplexity, args["oldPassword"].(string), args["confirmPassword"].(string), args["newPassword"].(string)), true
 
 	case "Mutation.createAccount":
 		if e.complexity.Mutation.CreateAccount == nil {
@@ -3051,6 +3065,16 @@ input InputTemplateTimestamp {
     passwordHash: String!
     recaptchaResponse: String!
   ): LoginData!
+  """
+  Change a user's password by first confirming the old one. This is not a forgot password flow
+
+  > Note the passwords aren't md5 hashes. The regular login will be moving to this as well eventually
+  """
+  changePassword(
+    oldPassword: String!
+    confirmPassword: String!
+    newPassword: String!
+  ): LoginData!
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail: Boolean @authorized
   """
@@ -3417,6 +3441,39 @@ func (ec *executionContext) field_Mutation_addTimestampToTemplate_args(ctx conte
 		}
 	}
 	args["templateTimestamp"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_changePassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["oldPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("oldPassword"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oldPassword"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["confirmPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("confirmPassword"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["confirmPassword"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["newPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newPassword"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newPassword"] = arg2
 	return args, nil
 }
 
@@ -6160,6 +6217,47 @@ func (ec *executionContext) _Mutation_createAccount(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return ec.resolvers.Mutation().CreateAccount(rctx, args["username"].(string), args["email"].(string), args["passwordHash"].(string), args["recaptchaResponse"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.LoginData)
+	fc.Result = res
+	return ec.marshalNLoginData2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐLoginData(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_changePassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_changePassword_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ChangePassword(rctx, args["oldPassword"].(string), args["confirmPassword"].(string), args["newPassword"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15060,6 +15158,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = graphql.MarshalString("Mutation")
 		case "createAccount":
 			out.Values[i] = ec._Mutation_createAccount(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "changePassword":
+			out.Values[i] = ec._Mutation_changePassword(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
