@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:alpine
@@ -9,7 +7,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
-      POSTGRES_DB: anime_skip_local
+      POSTGRES_DB: local_timestamps
   db_ui:
     image: sosedoff/pgweb
     depends_on:
@@ -19,4 +17,4 @@ services:
     links:
       - db
     environment:
-      - DATABASE_URL=postgres://postgres:password@db:9000/anime_skip_local?sslmode=disable
+      - DATABASE_URL=postgres://postgres:password@db:9000/local_timestamps?sslmode=disable
