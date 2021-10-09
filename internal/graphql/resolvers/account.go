@@ -196,6 +196,60 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	}, nil
 }
 
+func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, confirmPassword string, newPassword string) (*models.LoginData, error) {
+	if oldPassword != confirmPassword {
+		return nil, errors.New("Passwords do not match")
+	}
+	if newPassword == "" {
+		return nil, errors.New("New password is not valid, it cannot be empty")
+	}
+
+	userID, err := utils.UserIDFromContext(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	db := r.DB(ctx).Unscoped()
+	user, err := repos.FindUserByID(db, userID)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPasswordHash := auth.GetMD5Hash(oldPassword)
+	if err = auth.ValidatePassword(oldPasswordHash, user.PasswordHash); err != nil {
+		return nil, fmt.Errorf("Old password is not correct")
+	}
+
+	newPasswordHash := auth.GetMD5Hash(newPassword)
+	newEncryptedPasswordHash, err := auth.GenerateEncryptedPassword(newPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	newUser, err := repos.UpdatePasswordHash(db, userID, newEncryptedPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	authToken, err := auth.GenerateAuthToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token for %v: %v", userID, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	refreshToken, err := auth.GenerateRefreshToken(user)
+	if err != nil {
+		log.V("Failed to generate auth token for %v: %v", userID, err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: refreshToken,
+		Account:      mappers.UserEntityToAccountModel(newUser),
+	}, nil
+}
+
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context) (*bool, error) {
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {

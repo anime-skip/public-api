@@ -10,6 +10,16 @@ type Mutation {
     passwordHash: String!
     recaptchaResponse: String!
   ): LoginData!
+  """
+  Change a user's password by first confirming the old one. This is not a forgot password flow
+
+  > Note the passwords aren't md5 hashes. The regular login will be moving to this as well eventually
+  """
+  changePassword(
+    oldPassword: String!
+    confirmPassword: String!
+    newPassword: String!
+  ): LoginData!
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail: Boolean @authorized
   """
