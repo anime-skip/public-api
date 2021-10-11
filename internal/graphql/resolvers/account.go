@@ -117,36 +117,31 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		return nil, err
 	}
 
-	tx := r.DB(ctx).Begin()
+	ipAddress, err := utils.GetIP(ctx)
+	if err != nil {
+		return nil, errors.New("Could not get ip address from request")
+	}
+	err = recaptcha.Verify(recaptchaResponse, ipAddress)
+	if err != nil {
+		return nil, err
+	}
 
-	existingUser, _ := repos.FindUserByUsername(tx, username)
+	existingUser, _ := repos.FindUserByUsername(r.DB(ctx), username)
 	if existingUser != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
 	}
 
-	existingUser, _ = repos.FindUserByEmail(tx, email)
+	existingUser, _ = repos.FindUserByEmail(r.DB(ctx), email)
 	if existingUser != nil {
-		tx.Rollback()
 		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
 	}
 
 	encryptedPasswordHash, err := auth.GenerateEncryptedPassword(passwordHash)
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
-	ipAddress, err := utils.GetIP(ctx)
-	if err != nil {
-		tx.Rollback()
-		return nil, errors.New("Could not get ip address from request")
-	}
-	err = recaptcha.Verify(recaptchaResponse, ipAddress)
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
+	tx := r.DB(ctx).Begin()
 
 	user, err := repos.CreateUser(tx, username, email, encryptedPasswordHash)
 	if err != nil {
