@@ -1,7 +1,7 @@
 type Mutation {
   # Account
   """
-  Create a user account. 3rd party applciations will not have access to this function because of
+  Create a user account. 3rd party applications will not have access to this function because of
   `recaptchaResponse`. Redirect new users to create an account on <anime-skip.com>
   """
   createAccount(
@@ -23,12 +23,12 @@ type Mutation {
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail: Boolean @authorized
   """
-  Callback to handle the verfification token included in the email sent using
+  Callback to handle the verification token included in the email sent using
   `resendVerificationEmail`
   """
   verifyEmailAddress(validationToken: String!): Account!
   """
-  Request your account be deleted. The user will recieve an email with a link to confirm deleting
+  Request your account be deleted. The user will receive an email with a link to confirm deleting
   their account
   """
   deleteAccountRequest(passwordHash: String!): Account! @authorized
