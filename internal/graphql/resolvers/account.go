@@ -245,17 +245,24 @@ func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword strin
 	}, nil
 }
 
-func (r *mutationResolver) ResendVerificationEmail(ctx context.Context) (*bool, error) {
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error) {
+	ipAddress, err := utils.GetIP(ctx)
+	if err != nil {
+		return nil, errors.New("Could not get ip address from request")
+	}
+	err = recaptcha.Verify(recaptchaResponse, ipAddress)
+	if err != nil {
+		return nil, err
+	}
+
 	userID, err := utils.UserIDFromContext(ctx)
 	if err != nil {
 		return nil, err
 	}
-
 	user, err := repos.FindUserByID(r.DB(ctx), userID)
 	if err != nil {
 		return nil, err
 	}
-
 	token, err := auth.GenerateVerifyEmailToken(user)
 	if err != nil {
 		return nil, err

@@ -139,7 +139,7 @@ type ComplexityRoot struct {
 		DeleteTimestamp             func(childComplexity int, timestampID string) int
 		DeleteTimestampType         func(childComplexity int, timestampTypeID string) int
 		RemoveTimestampFromTemplate func(childComplexity int, templateTimestamp models.InputTemplateTimestamp) int
-		ResendVerificationEmail     func(childComplexity int) int
+		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		SavePreferences             func(childComplexity int, preferences models.InputPreferences) int
 		UpdateEpisode               func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL models.InputEpisodeURL) int
@@ -375,7 +375,7 @@ type EpisodeUrlResolver interface {
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error)
 	ChangePassword(ctx context.Context, oldPassword string, confirmPassword string, newPassword string) (*models.LoginData, error)
-	ResendVerificationEmail(ctx context.Context) (*bool, error)
+	ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error)
 	DeleteAccount(ctx context.Context, deleteToken string) (*models.Account, error)
@@ -1080,7 +1080,12 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Mutation.ResendVerificationEmail(childComplexity), true
+		args, err := ec.field_Mutation_resendVerificationEmail_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResendVerificationEmail(childComplexity, args["recaptchaResponse"].(string)), true
 
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
@@ -3076,7 +3081,7 @@ input InputTemplateTimestamp {
     newPassword: String!
   ): LoginData!
   "Resend the verification email for the account of the authenticated user"
-  resendVerificationEmail: Boolean @authorized
+  resendVerificationEmail(recaptchaResponse: String!): Boolean @authorized
   """
   Callback to handle the verification token included in the email sent using
   ` + "`" + `resendVerificationEmail` + "`" + `
@@ -3941,6 +3946,21 @@ func (ec *executionContext) field_Mutation_removeTimestampFromTemplate_args(ctx 
 		}
 	}
 	args["templateTimestamp"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resendVerificationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["recaptchaResponse"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("recaptchaResponse"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["recaptchaResponse"] = arg0
 	return args, nil
 }
 
@@ -6289,10 +6309,17 @@ func (ec *executionContext) _Mutation_resendVerificationEmail(ctx context.Contex
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_resendVerificationEmail_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ResendVerificationEmail(rctx)
+			return ec.resolvers.Mutation().ResendVerificationEmail(rctx, args["recaptchaResponse"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authorized == nil {
