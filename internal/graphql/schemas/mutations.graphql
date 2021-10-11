@@ -21,7 +21,7 @@ type Mutation {
     newPassword: String!
   ): LoginData!
   "Resend the verification email for the account of the authenticated user"
-  resendVerificationEmail: Boolean @authorized
+  resendVerificationEmail(recaptchaResponse: String!): Boolean @authorized
   """
   Callback to handle the verification token included in the email sent using
   `resendVerificationEmail`
