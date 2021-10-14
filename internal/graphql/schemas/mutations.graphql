@@ -17,8 +17,8 @@ type Mutation {
   """
   changePassword(
     oldPassword: String!
-    confirmPassword: String!
     newPassword: String!
+    confirmNewPassword: String!
   ): LoginData!
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail(recaptchaResponse: String!): Boolean @authorized
