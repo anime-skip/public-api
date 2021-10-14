@@ -139,7 +139,9 @@ type ComplexityRoot struct {
 		DeleteTimestamp             func(childComplexity int, timestampID string) int
 		DeleteTimestampType         func(childComplexity int, timestampTypeID string) int
 		RemoveTimestampFromTemplate func(childComplexity int, templateTimestamp models.InputTemplateTimestamp) int
+		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
+		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
 		SavePreferences             func(childComplexity int, preferences models.InputPreferences) int
 		UpdateEpisode               func(childComplexity int, episodeID string, newEpisode models.InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL models.InputEpisodeURL) int
@@ -377,6 +379,8 @@ type MutationResolver interface {
 	ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*models.LoginData, error)
 	ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
+	RequestPasswordReset(ctx context.Context, recaptchaResponse string, email string) (bool, error)
+	ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*models.LoginData, error)
 	DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error)
 	DeleteAccount(ctx context.Context, deleteToken string) (*models.Account, error)
 	SavePreferences(ctx context.Context, preferences models.InputPreferences) (*models.Preferences, error)
@@ -1075,6 +1079,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.RemoveTimestampFromTemplate(childComplexity, args["templateTimestamp"].(models.InputTemplateTimestamp)), true
 
+	case "Mutation.requestPasswordReset":
+		if e.complexity.Mutation.RequestPasswordReset == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_requestPasswordReset_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RequestPasswordReset(childComplexity, args["recaptchaResponse"].(string), args["email"].(string)), true
+
 	case "Mutation.resendVerificationEmail":
 		if e.complexity.Mutation.ResendVerificationEmail == nil {
 			break
@@ -1086,6 +1102,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResendVerificationEmail(childComplexity, args["recaptchaResponse"].(string)), true
+
+	case "Mutation.resetPassword":
+		if e.complexity.Mutation.ResetPassword == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resetPassword_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResetPassword(childComplexity, args["passwordResetToken"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string)), true
 
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
@@ -3088,6 +3116,25 @@ input InputTemplateTimestamp {
   """
   verifyEmailAddress(validationToken: String!): Account!
   """
+  The first step in the password reset process
+
+  It sends an email containing a link to reset your password with. That link includes a token, the
+  ` + "`" + `passwordResetToken` + "`" + `, that can be passed into the ` + "`" + `resetPassword` + "`" + ` mutation.
+
+  > Because the ` + "`" + `recaptchaResponse` + "`" + ` is required, this can not be performed by 3rd parties
+  """
+  requestPasswordReset(recaptchaResponse: String!, email: String!): Boolean!
+  """
+  The second step in the password reset process, coming after ` + "`" + `requestPasswordReset` + "`" + `
+
+  This step is pretty self explanatory, this is when the password is actually reset for a user
+  """
+  resetPassword(
+    passwordResetToken: String!
+    newPassword: String!
+    confirmNewPassword: String!
+  ): LoginData!
+  """
   Request your account be deleted. The user will receive an email with a link to confirm deleting
   their account
   """
@@ -3949,6 +3996,30 @@ func (ec *executionContext) field_Mutation_removeTimestampFromTemplate_args(ctx 
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_requestPasswordReset_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["recaptchaResponse"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("recaptchaResponse"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["recaptchaResponse"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["email"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("email"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_resendVerificationEmail_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3961,6 +4032,39 @@ func (ec *executionContext) field_Mutation_resendVerificationEmail_args(ctx cont
 		}
 	}
 	args["recaptchaResponse"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resetPassword_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["passwordResetToken"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("passwordResetToken"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["passwordResetToken"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["newPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newPassword"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newPassword"] = arg1
+	var arg2 string
+	if tmp, ok := rawArgs["confirmNewPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("confirmNewPassword"))
+		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["confirmNewPassword"] = arg2
 	return args, nil
 }
 
@@ -6391,6 +6495,88 @@ func (ec *executionContext) _Mutation_verifyEmailAddress(ctx context.Context, fi
 	res := resTmp.(*models.Account)
 	fc.Result = res
 	return ec.marshalNAccount2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐAccount(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_requestPasswordReset(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_requestPasswordReset_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().RequestPasswordReset(rctx, args["recaptchaResponse"].(string), args["email"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_resetPassword(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_resetPassword_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().ResetPassword(rctx, args["passwordResetToken"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*models.LoginData)
+	fc.Result = res
+	return ec.marshalNLoginData2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐLoginData(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_deleteAccountRequest(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -15197,6 +15383,16 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			out.Values[i] = ec._Mutation_resendVerificationEmail(ctx, field)
 		case "verifyEmailAddress":
 			out.Values[i] = ec._Mutation_verifyEmailAddress(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "requestPasswordReset":
+			out.Values[i] = ec._Mutation_requestPasswordReset(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "resetPassword":
+			out.Values[i] = ec._Mutation_resetPassword(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}

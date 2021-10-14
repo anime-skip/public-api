@@ -61,10 +61,9 @@ func SendVerification(account *entities.User, token string) error {
 	})
 }
 
-func SendChangePassword(account *entities.User, token string) error {
-	return sendEmail("change_password", map[string]interface{}{
-		"emails":   []string{account.Email},
-		"username": account.Username,
-		"token":    token,
+func SendResetPassword(account *entities.User, token string) error {
+	return sendEmail("reset-password", map[string]interface{}{
+		"emails": []string{account.Email},
+		"token":  token,
 	})
 }

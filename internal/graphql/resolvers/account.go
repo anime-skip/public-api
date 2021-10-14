@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/database/mappers"
 	"anime-skip.com/backend/internal/database/repos"
 	"anime-skip.com/backend/internal/graphql/models"
@@ -15,7 +16,30 @@ import (
 	"anime-skip.com/backend/internal/utils/auth"
 	"anime-skip.com/backend/internal/utils/log"
 	"anime-skip.com/backend/internal/utils/validation"
+	"github.com/jinzhu/gorm"
 )
+
+// Utils
+
+func loginDataForUser(db *gorm.DB, user *entities.User) (*models.LoginData, error) {
+	authToken, err := auth.GenerateAuthToken(user)
+	if err != nil {
+		log.E("Failed to generate an auth token: %v", err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	refreshToken, err := auth.GenerateRefreshToken(user)
+	if err != nil {
+		log.E("Failed to generate a refresh token: %v", err)
+		return nil, fmt.Errorf("Failed to login")
+	}
+
+	return &models.LoginData{
+		AuthToken:    authToken,
+		RefreshToken: refreshToken,
+		Account:      mappers.UserEntityToAccountModel(user),
+	}, nil
+}
 
 // Query Resolvers
 
@@ -38,7 +62,8 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 	usernameEmail = strings.TrimSpace(usernameEmail)
 	passwordHash = strings.TrimSpace(passwordHash)
 
-	user, err := repos.FindUserByUsernameOrEmail(r.DB(ctx), usernameEmail)
+	db := r.DB(ctx)
+	user, err := repos.FindUserByUsernameOrEmail(db, usernameEmail)
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
 		auth.LoginRetryTimer.Failure(usernameEmail)
@@ -51,24 +76,13 @@ func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwor
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
-	authToken, err := auth.GenerateAuthToken(user)
+	loginData, err := loginDataForUser(db, user)
 	if err != nil {
-		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
-		return nil, fmt.Errorf("Failed to login")
+		log.V("Failed to build login data for %v: %v", usernameEmail, err)
+		return nil, err
 	}
-
-	refreshToken, err := auth.GenerateRefreshToken(user)
-	if err != nil {
-		log.V("Failed to generate auth token for %v: %v", usernameEmail, err)
-		return nil, fmt.Errorf("Failed to login")
-	}
-
 	defer auth.LoginRetryTimer.Success(usernameEmail)
-	return &models.LoginData{
-		AuthToken:    authToken,
-		RefreshToken: refreshToken,
-		Account:      mappers.UserEntityToAccountModel(user),
-	}, nil
+	return loginData, nil
 }
 
 func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*models.LoginData, error) {
@@ -77,30 +91,20 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 		return nil, fmt.Errorf("Invalid refresh token")
 	}
 
+	db := r.DB(ctx)
 	userID := claims["userId"].(string)
-	user, err := repos.FindUserByID(r.DB(ctx), userID)
+	user, err := repos.FindUserByID(db, userID)
 	if err != nil {
 		log.V("Failed to get user with id='%s': %v", userID, err)
 		return nil, fmt.Errorf("Bad login credentials")
 	}
 
-	authToken, err := auth.GenerateAuthToken(user)
+	loginData, err := loginDataForUser(db, user)
 	if err != nil {
-		log.V("Failed to generate auth token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
+		log.V("Failed to build login data for %v: %v", user.Username, err)
+		return nil, err
 	}
-
-	newRefreshToken, err := auth.GenerateRefreshToken(user)
-	if err != nil {
-		log.V("Failed to generate auth token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
-	}
-
-	return &models.LoginData{
-		AuthToken:    authToken,
-		RefreshToken: newRefreshToken,
-		Account:      mappers.UserEntityToAccountModel(user),
-	}, nil
+	return loginData, nil
 }
 
 // Mutation Resolvers
@@ -117,11 +121,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		return nil, err
 	}
 
-	ipAddress, err := utils.GetIP(ctx)
-	if err != nil {
-		return nil, errors.New("Could not get ip address from request")
-	}
-	err = recaptcha.Verify(recaptchaResponse, ipAddress)
+	err := recaptcha.Verify(ctx, recaptchaResponse)
 	if err != nil {
 		return nil, err
 	}
@@ -226,31 +226,84 @@ func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword strin
 		return nil, err
 	}
 
-	authToken, err := auth.GenerateAuthToken(user)
+	loginData, err := loginDataForUser(db, newUser)
 	if err != nil {
-		log.V("Failed to generate auth token for %v: %v", userID, err)
-		return nil, fmt.Errorf("Failed to login")
+		log.V("Failed to build login data for %v: %v", newUser.Username, err)
+		return nil, err
+	}
+	return loginData, nil
+}
+
+func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaResponse string, email string) (bool, error) {
+	email = strings.TrimSpace(email)
+	err := validation.AccountEmail(email)
+	if err != nil {
+		return false, err
+	}
+	err = recaptcha.Verify(ctx, recaptchaResponse)
+	if err != nil {
+		return false, err
 	}
 
-	refreshToken, err := auth.GenerateRefreshToken(user)
+	db := r.DB(ctx)
+	user, err := repos.FindUserByEmail(db, email)
 	if err != nil {
-		log.V("Failed to generate auth token for %v: %v", userID, err)
-		return nil, fmt.Errorf("Failed to login")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// Don't provide hints to if a user has an account or not
+			return true, nil
+		} else {
+			return false, err
+		}
 	}
 
-	return &models.LoginData{
-		AuthToken:    authToken,
-		RefreshToken: refreshToken,
-		Account:      mappers.UserEntityToAccountModel(newUser),
-	}, nil
+	token, err := auth.GenerateResetPasswordToken(user)
+	if err != nil {
+		return false, err
+	}
+	err = emailService.SendResetPassword(user, token)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*models.LoginData, error) {
+	if newPassword != confirmNewPassword {
+		return nil, errors.New("New passwords don't match")
+	}
+
+	claims, err := auth.ValidateResetPasswordToken(passwordResetToken)
+	if err != nil {
+		return nil, err
+	}
+	userID, ok := claims["userId"].(string)
+	if !ok {
+		return nil, errors.New("Invalid token")
+	}
+
+	newPasswordHash := auth.GetMD5Hash(newPassword)
+	newEncryptedPasswordHash, err := auth.GenerateEncryptedPassword(newPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	db := r.DB(ctx).Unscoped()
+	newUser, err := repos.UpdatePasswordHash(db, userID, newEncryptedPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	loginData, err := loginDataForUser(db, newUser)
+	if err != nil {
+		log.V("Failed to build login data for %v: %v", newUser.Username, err)
+		return nil, err
+	}
+	return loginData, nil
 }
 
 func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error) {
-	ipAddress, err := utils.GetIP(ctx)
-	if err != nil {
-		return nil, errors.New("Could not get ip address from request")
-	}
-	err = recaptcha.Verify(recaptchaResponse, ipAddress)
+	err := recaptcha.Verify(ctx, recaptchaResponse)
 	if err != nil {
 		return nil, err
 	}
