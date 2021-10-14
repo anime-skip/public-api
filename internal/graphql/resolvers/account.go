@@ -191,9 +191,9 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	}, nil
 }
 
-func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, confirmPassword string, newPassword string) (*models.LoginData, error) {
-	if oldPassword != confirmPassword {
-		return nil, errors.New("Passwords do not match")
+func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*models.LoginData, error) {
+	if newPassword != confirmNewPassword {
+		return nil, errors.New("New passwords do not match")
 	}
 	if newPassword == "" {
 		return nil, errors.New("New password is not valid, it cannot be empty")

@@ -120,7 +120,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		AddTimestampToTemplate      func(childComplexity int, templateTimestamp models.InputTemplateTimestamp) int
-		ChangePassword              func(childComplexity int, oldPassword string, confirmPassword string, newPassword string) int
+		ChangePassword              func(childComplexity int, oldPassword string, newPassword string, confirmNewPassword string) int
 		CreateAccount               func(childComplexity int, username string, email string, passwordHash string, recaptchaResponse string) int
 		CreateEpisode               func(childComplexity int, showID string, episodeInput models.InputEpisode) int
 		CreateEpisodeURL            func(childComplexity int, episodeID string, episodeURLInput models.InputEpisodeURL) int
@@ -374,7 +374,7 @@ type EpisodeUrlResolver interface {
 }
 type MutationResolver interface {
 	CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error)
-	ChangePassword(ctx context.Context, oldPassword string, confirmPassword string, newPassword string) (*models.LoginData, error)
+	ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*models.LoginData, error)
 	ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error)
 	VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error)
 	DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error)
@@ -857,7 +857,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ChangePassword(childComplexity, args["oldPassword"].(string), args["confirmPassword"].(string), args["newPassword"].(string)), true
+		return e.complexity.Mutation.ChangePassword(childComplexity, args["oldPassword"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string)), true
 
 	case "Mutation.createAccount":
 		if e.complexity.Mutation.CreateAccount == nil {
@@ -3077,8 +3077,8 @@ input InputTemplateTimestamp {
   """
   changePassword(
     oldPassword: String!
-    confirmPassword: String!
     newPassword: String!
+    confirmNewPassword: String!
   ): LoginData!
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail(recaptchaResponse: String!): Boolean @authorized
@@ -3462,23 +3462,23 @@ func (ec *executionContext) field_Mutation_changePassword_args(ctx context.Conte
 	}
 	args["oldPassword"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["confirmPassword"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("confirmPassword"))
+	if tmp, ok := rawArgs["newPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newPassword"))
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["confirmPassword"] = arg1
+	args["newPassword"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["newPassword"]; ok {
-		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("newPassword"))
+	if tmp, ok := rawArgs["confirmNewPassword"]; ok {
+		ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("confirmNewPassword"))
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["newPassword"] = arg2
+	args["confirmNewPassword"] = arg2
 	return args, nil
 }
 
@@ -6277,7 +6277,7 @@ func (ec *executionContext) _Mutation_changePassword(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangePassword(rctx, args["oldPassword"].(string), args["confirmPassword"].(string), args["newPassword"].(string))
+		return ec.resolvers.Mutation().ChangePassword(rctx, args["oldPassword"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
