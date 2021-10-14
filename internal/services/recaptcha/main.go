@@ -1,12 +1,14 @@
 package recaptcha
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
+	"anime-skip.com/backend/internal/utils"
 	"anime-skip.com/backend/internal/utils/env"
 	log "anime-skip.com/backend/internal/utils/log"
 )
@@ -17,7 +19,12 @@ var recaptcha_response_allowlist = env.RECAPTCHA_RESPONSE_ALLOWLIST
 const recaptchaURL = "https://www.google.com/recaptcha/api/siteverify?secret=%s&response=%s&remoteip=%s"
 const errorMessage = "Recaptcha validation failed"
 
-func Verify(response, ipAddress string) error {
+func Verify(ctx context.Context, response string) error {
+	ipAddress, err := utils.GetIP(ctx)
+	if err != nil {
+		return errors.New("Could not get ip address from request")
+	}
+
 	if contains(recaptcha_response_allowlist, response) {
 		return nil
 	}

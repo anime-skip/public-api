@@ -28,6 +28,25 @@ type Mutation {
   """
   verifyEmailAddress(validationToken: String!): Account!
   """
+  The first step in the password reset process
+
+  It sends an email containing a link to reset your password with. That link includes a token, the
+  `passwordResetToken`, that can be passed into the `resetPassword` mutation.
+
+  > Because the `recaptchaResponse` is required, this can not be performed by 3rd parties
+  """
+  requestPasswordReset(recaptchaResponse: String!, email: String!): Boolean!
+  """
+  The second step in the password reset process, coming after `requestPasswordReset`
+
+  This step is pretty self explanatory, this is when the password is actually reset for a user
+  """
+  resetPassword(
+    passwordResetToken: String!
+    newPassword: String!
+    confirmNewPassword: String!
+  ): LoginData!
+  """
   Request your account be deleted. The user will receive an email with a link to confirm deleting
   their account
   """

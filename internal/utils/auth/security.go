@@ -3,6 +3,7 @@ package auth
 import (
 	"fmt"
 	"regexp"
+	"time"
 
 	"anime-skip.com/backend/internal/database/entities"
 	log "anime-skip.com/backend/internal/utils/log"
@@ -10,10 +11,24 @@ import (
 	"golang.org/x/crypto/bcrypt"
 
 	"anime-skip.com/backend/internal/utils/env"
-	timeUtils "anime-skip.com/backend/internal/utils/time"
 )
 
 var jwtSecret = []byte(env.JWT_SECRET)
+
+var day time.Duration = 24 * time.Hour
+var week time.Duration = 7 * day
+
+// TODO: simplify audiences, switch to including permissions in the token instead
+// We need to make sure refreshing is working in web and web-ext first
+
+const (
+	AUD_AUTH_TOKEN               = "anime-skip.com"                      // TODO: Change to api.anime-skip.com
+	AUD_REFRESH_TOKEN            = "anime-skip.com/graphql?loginRefresh" // TODO: Change to api.anime-skip.com
+	AUD_EMAIL_VERIFICATION_TOKEN = "anime-skip.com/verify-email-address"
+	AUD_RESET_PASSWORD_TOKEN     = "anime-skip.com/forgot-password"
+)
+
+const ISSUER = "anime-skip.com" // TODO: Change to api.anime-skip.com
 
 // ValidateAuthHeader parses the authorization header and decides whether or not the token is valid.
 func ValidateAuthHeader(authHeader string) (jwt.MapClaims, error) {
@@ -46,7 +61,7 @@ func validateToken(tokenString string) (jwt.MapClaims, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid claims")
 	}
-	if isValidExpiresAt := payload.VerifyIssuedAt(timeUtils.CurrentTimeSec(), true); !isValidExpiresAt {
+	if isValidExpiresAt := payload.VerifyIssuedAt(time.Now().Unix(), true); !isValidExpiresAt {
 		return nil, fmt.Errorf("Token is expired")
 	}
 	if isValidIssuer := payload.VerifyIssuer("anime-skip.com", true); !isValidIssuer {
@@ -67,78 +82,73 @@ func validateTokenWithAud(token, aud string) (jwt.MapClaims, error) {
 }
 
 func ValidateAuthToken(token string) (jwt.MapClaims, error) {
-	return validateTokenWithAud(token, "anime-skip.com")
+	return validateTokenWithAud(token, AUD_AUTH_TOKEN)
 }
 
 func ValidateRefreshToken(token string) (jwt.MapClaims, error) {
-	return validateTokenWithAud(token, "anime-skip.com/graphql?loginRefresh")
+	return validateTokenWithAud(token, AUD_REFRESH_TOKEN)
 }
 
 func ValidateEmailVerificationToken(token string) (jwt.MapClaims, error) {
-	return validateTokenWithAud(token, "anime-skip.com/verify-email-address")
+	return validateTokenWithAud(token, AUD_EMAIL_VERIFICATION_TOKEN)
 }
 
-// GenerateAuthToken creates a jwt token for the specified user
-func GenerateAuthToken(user *entities.User) (string, error) {
-	now := timeUtils.CurrentTimeSec()
-	token := jwt.NewWithClaims(
-		jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"aud":    "anime-skip.com",
-			"exp":    now + 43200, // 12hrs in seconds = 12*60*60
-			"iat":    now,
-			"iss":    "anime-skip.com",
-			"userId": user.ID,
-			"role":   user.Role,
-		},
-	)
+func ValidateResetPasswordToken(token string) (jwt.MapClaims, error) {
+	return validateTokenWithAud(token, AUD_RESET_PASSWORD_TOKEN)
+}
+
+func generateGeneralToken(
+	label string,
+	duration time.Duration,
+	customClaims jwt.MapClaims,
+) (string, error) {
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"exp": now.Add(duration).Unix(),
+		"iat": now.Unix(),
+		"iss": ISSUER,
+	}
+	for key, value := range customClaims {
+		claims[key] = value
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	tokenString, err := token.SignedString(jwtSecret)
 	if err != nil {
 		log.E("%v", err)
-		return "", fmt.Errorf("Internal error: failed to generate auth token")
+		return "", fmt.Errorf("Internal error: failed to generate %s token", label)
 	}
 	return tokenString, nil
 }
 
+// GenerateAuthToken creates a jwt token for the specified user
+func GenerateAuthToken(user *entities.User) (string, error) {
+	return generateGeneralToken("auth", 12*time.Hour, jwt.MapClaims{
+		"aud":    AUD_AUTH_TOKEN,
+		"userId": user.ID,
+		"role":   user.Role,
+	})
+}
+
 // GenerateRefreshToken creates a refresh token to be used with the login query
 func GenerateRefreshToken(user *entities.User) (string, error) {
-	now := timeUtils.CurrentTimeSec()
-	token := jwt.NewWithClaims(
-		jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"aud":    "anime-skip.com/graphql?loginRefresh",
-			"exp":    now + 604800, // 7 days in seconds = 7*24*60*60
-			"iat":    now,
-			"iss":    "anime-skip.com",
-			"userId": user.ID,
-		},
-	)
-	refreshTokenString, err := token.SignedString(jwtSecret)
-	if err != nil {
-		log.E("%v", err)
-		return "", fmt.Errorf("Internal error: failed to generate refresh token")
-	}
-	return refreshTokenString, nil
+	return generateGeneralToken("refresh", 1*week, jwt.MapClaims{
+		"aud":    AUD_REFRESH_TOKEN,
+		"userId": user.ID,
+	})
 }
 
 func GenerateVerifyEmailToken(user *entities.User) (string, error) {
-	now := timeUtils.CurrentTimeSec()
-	token := jwt.NewWithClaims(
-		jwt.SigningMethodHS256,
-		jwt.MapClaims{
-			"aud":    "anime-skip.com/verify-email-address",
-			"exp":    now + 172800, // 2 days in seconds = 2*24*60*60
-			"iat":    now,
-			"iss":    "anime-skip.com",
-			"userId": user.ID,
-		},
-	)
-	verifyEmailTokenString, err := token.SignedString(jwtSecret)
-	if err != nil {
-		log.E("%v", err)
-		return "", fmt.Errorf("Internal error: failed to generate verify email token")
-	}
-	return verifyEmailTokenString, nil
+	return generateGeneralToken("verify_email_address", 2*day, jwt.MapClaims{
+		"aud":    AUD_EMAIL_VERIFICATION_TOKEN,
+		"userId": user.ID,
+	})
+}
+
+func GenerateResetPasswordToken(user *entities.User) (string, error) {
+	return generateGeneralToken("reset_password", 10*time.Minute, jwt.MapClaims{
+		"aud":    AUD_RESET_PASSWORD_TOKEN,
+		"userId": user.ID,
+	})
 }
 
 // ValidatePassword checks the password is valid against the bcyrpted hash in the database
