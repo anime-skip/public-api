@@ -41,6 +41,9 @@ func main() {
 		fmt.Print("\nEnter a requests per minute: (60) ")
 		rateLimit, _ = reader.ReadString('\n')
 		rateLimit = strings.TrimSpace(rateLimit)
+		if rateLimit == "" {
+			rateLimit = "60"
+		}
 	}
 
 	fmt.Printf(`
