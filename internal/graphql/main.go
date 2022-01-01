@@ -154,6 +154,7 @@ type ComplexityRoot struct {
 	}
 
 	Preferences struct {
+		ColorTheme                 func(childComplexity int) int
 		CreatedAt                  func(childComplexity int) int
 		DeletedAt                  func(childComplexity int) int
 		EnableAutoPlay             func(childComplexity int) int
@@ -1222,6 +1223,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.VerifyEmailAddress(childComplexity, args["validationToken"].(string)), true
+
+	case "Preferences.colorTheme":
+		if e.complexity.Preferences.ColorTheme == nil {
+			break
+		}
+
+		return e.complexity.Preferences.ColorTheme(childComplexity), true
 
 	case "Preferences.createdAt":
 		if e.complexity.Preferences.CreatedAt == nil {
@@ -2551,6 +2559,16 @@ enum TemplateType {
   "The template is loaded for episodes of a given show where their season is included in ` + "`" + `Template.seasons` + "`" + `"
   SEASONS
 }
+
+"Color theme the user prefers"
+enum ColorTheme {
+  "Change to match where you're watching"
+  PER_SERVICE
+  ANIME_SKIP_BLUE
+  VRV_YELLOW
+  FUNIMATION_PURPLE
+  CRUNCHYROLL_ORANGE
+}
 `, BuiltIn: false},
 	{Name: "internal/graphql/schemas/models.graphql", Input: `"""
 The base model has all the fields you would expect a fully fleshed out item in the database would
@@ -2786,6 +2804,7 @@ type Preferences {
   hidden completely
   """
   hideTimelineWhenMinimized: Boolean!
+  colorTheme: ColorTheme!
 
   "Whether or not the user whats to skip branding timestamps. Default: ` + "`" + `true` + "`" + `"
   skipBranding: Boolean!
@@ -2824,6 +2843,7 @@ input InputPreferences {
   enableAutoPlay: Boolean
   minimizeToolbarWhenEditing: Boolean
   hideTimelineWhenMinimized: Boolean
+  colorTheme: ColorTheme
 
   skipBranding: Boolean
   skipIntros: Boolean
@@ -8236,6 +8256,40 @@ func (ec *executionContext) _Preferences_hideTimelineWhenMinimized(ctx context.C
 	res := resTmp.(bool)
 	fc.Result = res
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Preferences_colorTheme(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Preferences",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ColorTheme, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(models.ColorTheme)
+	fc.Result = res
+	return ec.marshalNColorTheme2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_skipBranding(ctx context.Context, field graphql.CollectedField, obj *models.Preferences) (ret graphql.Marshaler) {
@@ -14564,6 +14618,14 @@ func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, 
 			if err != nil {
 				return it, err
 			}
+		case "colorTheme":
+			var err error
+
+			ctx := graphql.WithFieldInputContext(ctx, graphql.NewFieldInputWithField("colorTheme"))
+			it.ColorTheme, err = ec.unmarshalOColorTheme2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx, v)
+			if err != nil {
+				return it, err
+			}
 		case "skipBranding":
 			var err error
 
@@ -15601,6 +15663,11 @@ func (ec *executionContext) _Preferences(ctx context.Context, sel ast.SelectionS
 			}
 		case "hideTimelineWhenMinimized":
 			out.Values[i] = ec._Preferences_hideTimelineWhenMinimized(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "colorTheme":
+			out.Values[i] = ec._Preferences_colorTheme(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -17323,6 +17390,16 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNColorTheme2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx context.Context, v interface{}) (models.ColorTheme, error) {
+	var res models.ColorTheme
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNColorTheme2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx context.Context, sel ast.SelectionSet, v models.ColorTheme) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) marshalNEpisode2animeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐEpisode(ctx context.Context, sel ast.SelectionSet, v models.Episode) graphql.Marshaler {
 	return ec._Episode(ctx, sel, &v)
 }
@@ -18356,6 +18433,22 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 		return graphql.Null
 	}
 	return graphql.MarshalBoolean(*v)
+}
+
+func (ec *executionContext) unmarshalOColorTheme2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx context.Context, v interface{}) (*models.ColorTheme, error) {
+	if v == nil {
+		return nil, nil
+	}
+	var res = new(models.ColorTheme)
+	err := res.UnmarshalGQL(v)
+	return res, graphql.WrapErrorWithInputPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOColorTheme2ᚖanimeᚑskipᚗcomᚋbackendᚋinternalᚋgraphqlᚋmodelsᚐColorTheme(ctx context.Context, sel ast.SelectionSet, v *models.ColorTheme) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return v
 }
 
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {

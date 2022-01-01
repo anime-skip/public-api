@@ -6,6 +6,11 @@ import (
 	"anime-skip.com/backend/internal/utils/log"
 )
 
+type enumPair struct {
+	enum  interface{}
+	value int
+}
+
 func RoleEnumToInt(role models.Role) int {
 	switch role {
 	case models.RoleDev:
@@ -90,4 +95,38 @@ func TemplateTypeIntToEnum(value int) models.TemplateType {
 	}
 	log.E("Invalid template type int: %d", value)
 	return models.TemplateTypeShow
+}
+
+func ThemeEnumToInt(theme models.ColorTheme) int {
+	switch theme {
+	case models.ColorThemePerService:
+		return constants.THEME_PER_SERVICE
+	case models.ColorThemeAnimeSkipBlue:
+		return constants.THEME_ANIME_SKIP_BLUE
+	case models.ColorThemeVrvYellow:
+		return constants.THEME_VRV_YELLOW
+	case models.ColorThemeFunimationPurple:
+		return constants.THEME_FUNIMATION_PURPLE
+	case models.ColorThemeCrunchyrollOrange:
+		return constants.THEME_CRUNCHYROLL_ORANGE
+	}
+	log.E("Invalid template type enum: %v", theme)
+	return -1
+}
+
+func ThemeIntToEnum(value int) models.ColorTheme {
+	switch value {
+	case constants.THEME_PER_SERVICE:
+		return models.ColorThemePerService
+	case constants.THEME_ANIME_SKIP_BLUE:
+		return models.ColorThemeAnimeSkipBlue
+	case constants.THEME_VRV_YELLOW:
+		return models.ColorThemeVrvYellow
+	case constants.THEME_FUNIMATION_PURPLE:
+		return models.ColorThemeFunimationPurple
+	case constants.THEME_CRUNCHYROLL_ORANGE:
+		return models.ColorThemeCrunchyrollOrange
+	}
+	log.E("Invalid template type int: %d", value)
+	return models.ColorThemeAnimeSkipBlue
 }

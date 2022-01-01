@@ -55,6 +55,7 @@ func Run(db *gorm.DB) error {
 		/* 16 */ tables.CreateTemplatesTable,
 		/* 17 */ tables.CreateTemplateTimestampsTable,
 		/* 18 */ tables.CreateAPIClientsTable,
+		/* 19 */ tables.AddColorThemePreference,
 	}
 	currentMigration := getCurrentMigration(migrations)
 	currentMigrationId := migrations[currentMigration].ID
