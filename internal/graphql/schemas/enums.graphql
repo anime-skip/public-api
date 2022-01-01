@@ -37,3 +37,13 @@ enum TemplateType {
   "The template is loaded for episodes of a given show where their season is included in `Template.seasons`"
   SEASONS
 }
+
+"Color theme the user prefers"
+enum ColorTheme {
+  "Change to match where you're watching"
+  PER_SERVICE
+  ANIME_SKIP_BLUE
+  VRV_YELLOW
+  FUNIMATION_PURPLE
+  CRUNCHYROLL_ORANGE
+}

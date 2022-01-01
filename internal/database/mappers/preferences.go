@@ -3,6 +3,7 @@ package mappers
 import (
 	"anime-skip.com/backend/internal/database/entities"
 	"anime-skip.com/backend/internal/graphql/models"
+	"anime-skip.com/backend/internal/utils/constants"
 	"github.com/gofrs/uuid"
 )
 
@@ -14,6 +15,7 @@ func DefaultPreferences(userId uuid.UUID) *entities.Preferences {
 		EnableAutoPlay:             true,
 		MinimizeToolbarWhenEditing: false,
 		HideTimelineWhenMinimized:  false,
+		ColorTheme:                 constants.THEME_ANIME_SKIP_BLUE,
 
 		SkipBranding:     true,
 		SkipIntros:       true,
@@ -47,6 +49,7 @@ func PreferencesEntityToModel(entity *entities.Preferences) *models.Preferences 
 		EnableAutoPlay:             entity.EnableAutoPlay,
 		MinimizeToolbarWhenEditing: entity.MinimizeToolbarWhenEditing,
 		HideTimelineWhenMinimized:  entity.HideTimelineWhenMinimized,
+		ColorTheme:                 ThemeIntToEnum(entity.ColorTheme),
 
 		SkipBranding:     entity.SkipBranding,
 		SkipIntros:       entity.SkipIntros,
@@ -80,6 +83,9 @@ func PreferencesInputModelToEntity(model models.InputPreferences, entity *entiti
 	}
 	if model.HideTimelineWhenMinimized != nil {
 		entity.HideTimelineWhenMinimized = *model.HideTimelineWhenMinimized
+	}
+	if model.ColorTheme != nil {
+		entity.ColorTheme = ThemeEnumToInt(*model.ColorTheme)
 	}
 
 	if model.SkipBranding != nil {

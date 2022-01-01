@@ -18,6 +18,7 @@ type Preferences struct {
 	EnableAutoPlay             bool
 	MinimizeToolbarWhenEditing bool
 	HideTimelineWhenMinimized  bool
+	ColorTheme                 int `gorm:"not null"`
 
 	SkipBranding     bool
 	SkipIntros       bool

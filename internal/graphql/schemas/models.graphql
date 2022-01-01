@@ -232,6 +232,7 @@ type Preferences {
   hidden completely
   """
   hideTimelineWhenMinimized: Boolean!
+  colorTheme: ColorTheme!
 
   "Whether or not the user whats to skip branding timestamps. Default: `true`"
   skipBranding: Boolean!
@@ -270,6 +271,7 @@ input InputPreferences {
   enableAutoPlay: Boolean
   minimizeToolbarWhenEditing: Boolean
   hideTimelineWhenMinimized: Boolean
+  colorTheme: ColorTheme
 
   skipBranding: Boolean
   skipIntros: Boolean
