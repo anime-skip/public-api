@@ -1,0 +1,47 @@
+services:
+  # Dependencies
+  postgres:
+    image: postgres:13
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: timestamps
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 0.5s
+      timeout: 0s
+      retries: 10
+      
+  postgres_ui:
+    image: sosedoff/pgweb
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+    ports:
+      - 9001:8081
+    environment:
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps?sslmode=disable
+
+  # Timestamps Service
+  timestamps_service:
+    build:
+      context: .
+      args:
+        VERSION: local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    links:
+      - postgres
+    ports:
+      - 8081:8081
+    environment:
+      - PORT=8081
+      - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps
+      - DATABASE_SSL_DISABLED=true
+      - ENABLE_INTROSPECTION=true
+      - ENABLE_PLAYGROUND=true

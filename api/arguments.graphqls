@@ -1,0 +1,13 @@
+input InputExistingTimestamp {
+  "The id of the timestamp you want to modify"
+  id: ID!
+  "The new values for the timestamp"
+  timestamp: InputTimestamp!
+}
+
+input InputTimestampOn {
+  "The episode id the timestamp will be created on"
+  episodeId: ID!
+  "The new values for the timestamp"
+  timestamp: InputTimestamp!
+}

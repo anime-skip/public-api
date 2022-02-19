@@ -1,0 +1,49 @@
+"""
+A user's role in the system. Higher roles allow a user write access to certain data that a normal
+user would not. Some queries and mutations are only alloed by certain roles
+"""
+enum Role {
+  "Highest role. Has super user access to all queries and mutations"
+  DEV
+  "Administrator role. Has some elevated permissions"
+  ADMIN
+  "Basic role. Has no elevated permissions"
+  USER
+}
+
+"""
+Which of the supported services the `EpisodeUrl` was created for. This is a simple enum that allows
+for simple checks, but this data can also be pulled from the url in the case of UNKNOWN
+"""
+enum EpisodeSource {
+  "Data came from an external source"
+  UNKNOWN
+  "Data is from <vrv.co>"
+  VRV
+  "Data is from <funimation.com>"
+  FUNIMATION
+}
+
+"Where a timestamp originated from"
+enum TimestampSource {
+  ANIME_SKIP
+  BETTER_VRV
+}
+
+"The scope that a template applies to"
+enum TemplateType {
+  "The template is loaded for all episodes of a given show"
+  SHOW
+  "The template is loaded for episodes of a given show where their season is included in `Template.seasons`"
+  SEASONS
+}
+
+"Color theme the user prefers"
+enum ColorTheme {
+  "Change to match where you're watching"
+  PER_SERVICE
+  ANIME_SKIP_BLUE
+  VRV_YELLOW
+  FUNIMATION_PURPLE
+  CRUNCHYROLL_ORANGE
+}

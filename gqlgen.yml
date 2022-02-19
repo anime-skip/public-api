@@ -1,0 +1,147 @@
+schema:
+  - api/*.graphqls
+
+exec:
+  layout: single-file
+  dir: internal/graphql/server
+  package: graphql
+  filename: internal/graphql/server.generated.go
+
+model:
+  filename: internal/graphql/models.generated.go
+  package: graphql
+
+resolver:
+  dir: internal/graphql/server
+  package: graphql
+  filename: internal/graphql/resolvers.go
+
+models:
+  Episode:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      show:
+        resolver: true
+      timestamps:
+        resolver: true
+      urls:
+        resolver: true
+      template:
+        resolver: true
+  ThirdPartyEpisode:
+    fields:
+      timestamps:
+        resolver: true
+      show:
+        resolver: true
+  EpisodeUrl:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      episode:
+        resolver: true
+  Account:
+    fields:
+      adminOfShows:
+        resolver: true
+      preferences:
+        resolver: true
+  Preferences:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      user:
+        resolver: true
+  Show:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      admins:
+        resolver: true
+      episodes:
+        resolver: true
+      templates:
+        resolver: true
+      seasonCount:
+        resolver: true
+      episodeCount:
+        resolver: true
+  ShowAdmin:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      show:
+        resolver: true
+      user:
+        resolver: true
+  Timestamp:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      type:
+        resolver: true
+      episode:
+        resolver: true
+  ThirdPartyTimestamp:
+    fields:
+      type:
+        resolver: true
+  TimestampType:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+  User:
+    fields:
+      adminOfShows:
+        resolver: true
+  Template:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      show:
+        resolver: true
+      sourceEpisode:
+        resolver: true
+      timestamps:
+        resolver: true
+      timestampIds:
+        resolver: true
+  TemplateTimestamp:
+    fields:
+      template:
+        resolver: true
+      timestamp:
+        resolver: true
