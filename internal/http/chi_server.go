@@ -12,6 +12,7 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/config"
 	"anime-skip.com/timestamps-service/internal/context"
+	"anime-skip.com/timestamps-service/internal/log"
 )
 
 type chiServer struct {
@@ -29,7 +30,7 @@ func NewChiServer(
 	graphqlHandler internal.GraphQLHandler,
 	authenticator internal.Authenticator,
 ) internal.Server {
-	println("Using Chi for routing...")
+	log.D("Using Chi for routing...")
 	return &chiServer{
 		port:             port,
 		enablePlayground: enablePlayground,
@@ -54,7 +55,7 @@ func (s *chiServer) Start() error {
 		r.Handle("/", s.graphqlHandler.Handler)
 	})
 
-	fmt.Printf("Started server @ :%d\n", s.port)
+	log.I("Started server @ :%d", s.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
 }
 
@@ -93,7 +94,8 @@ func writeJson(rw http.ResponseWriter, data interface{}, status int) {
 	rw.Header().Add("Content-Type", "application/json")
 	body, err := json.Marshal(data)
 	if err != nil {
-		panic(err)
+		log.Panic(err)
+		return
 	}
 	rw.Write(body)
 	rw.WriteHeader(status)

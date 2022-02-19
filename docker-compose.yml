@@ -19,6 +19,7 @@ services:
       - DATABASE_VERSION=19
       - ENABLE_INTROSPECTION=true
       - ENABLE_PLAYGROUND=true
+      - LOG_LEVEL=0
 
   # Dependencies
   postgres:

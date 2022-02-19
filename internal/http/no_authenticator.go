@@ -1,11 +1,14 @@
 package http
 
-import "anime-skip.com/timestamps-service/internal"
+import (
+	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/timestamps-service/internal/log"
+)
 
 type noAuthenticator struct{}
 
 func NewNoAuthenticator() internal.Authenticator {
-	println("Using no authentication...")
+	log.W("Using no authentication...")
 	return &noAuthenticator{}
 }
 

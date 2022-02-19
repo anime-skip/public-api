@@ -5,10 +5,13 @@ import (
 	"anime-skip.com/timestamps-service/internal/config"
 	"anime-skip.com/timestamps-service/internal/graphql/handler"
 	"anime-skip.com/timestamps-service/internal/http"
+	"anime-skip.com/timestamps-service/internal/log"
 	"anime-skip.com/timestamps-service/internal/postgres"
 )
 
 func main() {
+	log.I("Starting anime-skip/timestamps-service")
+
 	db := postgres.Open(
 		config.RequireEnvString("DATABASE_URL"),
 		config.EnvBool("DATABASE_DISABLE_SSL"),
@@ -35,6 +38,6 @@ func main() {
 
 	err := server.Start()
 	if err != nil {
-		panic(err)
+		log.Panic(err)
 	}
 }

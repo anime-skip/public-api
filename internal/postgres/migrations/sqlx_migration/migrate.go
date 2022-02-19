@@ -1,8 +1,7 @@
 package sqlx_migration
 
 import (
-	"fmt"
-
+	"anime-skip.com/timestamps-service/internal/log"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -31,18 +30,17 @@ func RunMigrations(tx *sqlx.Tx, name string, migrations []*Migration, targetVers
 	}
 
 	if len(upgrades) == 0 && len(downgrades) == 0 {
-		fmt.Printf("No %s to run\n", name)
+		log.D("No %s to run", name)
 		return nil
 	}
 	if len(upgrades) > 0 {
-		fmt.Printf("Upgrading database to %d...\n", targetVersion)
+		log.I("Upgrading database to %d...", targetVersion)
 		for _, migration := range upgrades {
-			fmt.Printf("%s... ", migration.ID)
+			log.I(migration.ID)
 			err = migration.Up(tx)
 			if err != nil {
 				return err
 			}
-			println("Done!")
 			err = insertMigration(tx, migration.ID)
 			if err != nil {
 				return err
@@ -50,14 +48,13 @@ func RunMigrations(tx *sqlx.Tx, name string, migrations []*Migration, targetVers
 		}
 	}
 	if len(downgrades) > 0 {
-		fmt.Printf("Downgrading database to %d...\n", targetVersion)
+		log.I("Downgrading database to %d...", targetVersion)
 		for _, migration := range downgrades {
-			fmt.Printf("%s... ", migration.ID)
+			log.I(migration.ID)
 			err = migration.Down(tx)
 			if err != nil {
 				return err
 			}
-			println("Done!")
 			err = deleteMigration(tx, migration.ID)
 			if err != nil {
 				return err

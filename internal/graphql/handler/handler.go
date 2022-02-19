@@ -7,13 +7,14 @@ import (
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/directives"
 	"anime-skip.com/timestamps-service/internal/graphql/resolvers"
+	"anime-skip.com/timestamps-service/internal/log"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
 func NewGraphqlHandler(services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
-	println("Defining GraphQL Server...")
+	log.D("Building GraphQL Server...")
 	config := graphql.Config{
 		Resolvers: &resolvers.Resolver{
 			Services: &services,
