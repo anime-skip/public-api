@@ -13,7 +13,7 @@ func (a *noAuthenticator) Authenticate(token string) (*internal.AuthenticationDe
 	return &internal.AuthenticationDetails{
 		IsAdmin:  true,
 		IsDev:    true,
-		ID:       "00000000-0000-0000-000000000000",
+		UserID:   "00000000-0000-0000-000000000000",
 		ClientId: "00000000-0000-0000-000000000000",
 	}, nil
 }

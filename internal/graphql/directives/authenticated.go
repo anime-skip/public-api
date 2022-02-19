@@ -1,4 +1,4 @@
-package graphql
+package directives
 
 import (
 	ctx "context"
@@ -8,7 +8,7 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func authenticated(ctx ctx.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+func Authenticated(ctx ctx.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
 	if !context.GetAlreadyAuthenticated(ctx) {
 		authenticator := context.GetAuthenticator(ctx)
 		token := context.GetAuthToken(ctx)
@@ -23,12 +23,4 @@ func authenticated(ctx ctx.Context, obj interface{}, next graphql.Resolver) (int
 		ctx = context.WithAlreadyAuthenticated(ctx, true)
 	}
 	return next(ctx)
-}
-
-func hasRole(ctx ctx.Context, obj interface{}, next graphql.Resolver, role Role) (interface{}, error) {
-	panic("Not implemented")
-}
-
-func isShowAdmin(ctx ctx.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	panic("Not implemented")
 }

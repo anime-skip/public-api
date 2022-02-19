@@ -1,27 +1,30 @@
-package graphql
+package handler
 
 import (
 	"time"
 
 	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/directives"
+	"anime-skip.com/timestamps-service/internal/graphql/resolvers"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
-func NewGraphqlHandler(db internal.Database, enableIntrospection bool) internal.GraphQLHandler {
+func NewGraphqlHandler(services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
 	println("Defining GraphQL Server...")
-	config := Config{
-		Resolvers: &Resolver{
-			db: db,
+	config := graphql.Config{
+		Resolvers: &resolvers.Resolver{
+			Services: &services,
 		},
-		Directives: DirectiveRoot{
-			Authenticated: authenticated,
-			HasRole:       hasRole,
-			IsShowAdmin:   isShowAdmin,
+		Directives: graphql.DirectiveRoot{
+			Authenticated: directives.Authenticated,
+			HasRole:       directives.HasRole,
+			IsShowAdmin:   directives.IsShowAdmin,
 		},
 	}
-	srv := handler.New(NewExecutableSchema(config))
+	srv := handler.New(graphql.NewExecutableSchema(config))
 	srv.AddTransport(transport.Websocket{
 		KeepAlivePingInterval: 10 * time.Second,
 	})

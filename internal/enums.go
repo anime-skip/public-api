@@ -1,0 +1,15 @@
+package internal
+
+const (
+	ROLE_DEV   = 0
+	ROLE_ADMIN = 1
+	ROLE_USER  = 2
+)
+
+const (
+	THEME_PER_SERVICE        = 0
+	THEME_ANIME_SKIP_BLUE    = 1
+	THEME_VRV_YELLOW         = 2
+	THEME_FUNIMATION_PURPLE  = 3
+	THEME_CRUNCHYROLL_ORANGE = 4
+)

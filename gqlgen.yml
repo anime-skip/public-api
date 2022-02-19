@@ -3,7 +3,6 @@ schema:
 
 exec:
   layout: single-file
-  dir: internal/graphql/server
   package: graphql
   filename: internal/graphql/server.generated.go
 
@@ -12,9 +11,8 @@ model:
   package: graphql
 
 resolver:
-  dir: internal/graphql/server
-  package: graphql
-  filename: internal/graphql/resolvers.go
+  package: resolvers
+  filename: internal/graphql/resolvers/interfaces.go
 
 models:
   Episode:

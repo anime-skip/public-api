@@ -1,0 +1,10 @@
+.git
+.gitignore
+.gitattributes
+docker-compose
+Dockerfile
+Makefile
+api
+meta.json
+modd.conf
+gqlgen.yml

@@ -7,8 +7,8 @@ build:
 	@echo
 run: 
 	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service
-docker-clean:
-	docker-compose up -V 
+run-clean:
+	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service -V
 watch:
 	modd
 gen:
