@@ -13,6 +13,5 @@ func NewJWTAuthenticator() internal.Authenticator {
 }
 
 func (a *jwtAuthenticator) Authenticate(token string) (*internal.AuthenticationDetails, error) {
-	log.Panic("Not implemented")
-	return nil, nil
+	panic("Not implemented")
 }

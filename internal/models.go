@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 )
@@ -22,113 +23,111 @@ type GraphQLHandler struct {
 	EnableIntrospection bool
 }
 
-type UUID = string
-
 // BaseEntity defines the common columns that all db structs should hold
 type BaseEntity struct {
-	ID              UUID       `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	CreatedAt       time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	CreatedByUserID UUID       `gorm:"not null;type:uuid"`
-	UpdatedAt       time.Time  `gorm:"not null"`
-	UpdatedByUserID UUID       `gorm:"not null;type:uuid"`
-	DeletedAt       *time.Time `gorm:""`
-	DeletedByUserID *UUID      `gorm:"type:uuid"`
+	ID              uuid.UUID
+	CreatedAt       time.Time  `db:"created_at"`
+	CreatedByUserID uuid.UUID  `db:"created_by_user_id"`
+	UpdatedAt       time.Time  `db:"updated_at"`
+	UpdatedByUserID uuid.UUID  `db:"updated_by_user_id"`
+	DeletedAt       *time.Time `db:"deleted_at"`
+	DeletedByUserID *uuid.UUID `db:"deleted_by_user_id"`
 }
 
 type APIClient struct {
 	// Custom Soft Delete, not BaseModel
-	ID              string     `gorm:"primary_key"`
-	CreatedAt       time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	CreatedByUserID UUID       `gorm:"not null;type:uuid"`
-	UpdatedAt       time.Time  `gorm:"not null"`
-	UpdatedByUserID UUID       `gorm:"not null;type:uuid"`
-	DeletedAt       *time.Time `gorm:""`
-	DeletedByUserID *UUID      `gorm:"type:uuid"`
+	ID              string
+	CreatedAt       time.Time  `db:"created_at"`
+	CreatedByUserID uuid.UUID  `db:"created_by_user_id"`
+	UpdatedAt       time.Time  `db:"updated_at"`
+	UpdatedByUserID uuid.UUID  `db:"updated_by_user_id"`
+	DeletedAt       *time.Time `db:"deleted_at"`
+	DeletedByUserID *uuid.UUID `db:"deleted_by_user_id"`
 
 	// Fields
-	UserID         UUID
-	AppName        string
+	UserID         uuid.UUID `db:"user_id"`
+	AppName        string    `db:"app_name"`
 	Description    string
-	AllowedOrigins *string
-	RateLimitRPM   *uint
+	AllowedOrigins *string `db:"allowed_origins"`
+	RateLimitRPM   *uint   `db:"rate_limit_rpm"`
 }
 
 type EpisodeURL struct {
-	URL             string    `gorm:"primary_key"`
-	CreatedAt       time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	CreatedByUserID UUID      `gorm:"not null;type:uuid"`
-	UpdatedAt       time.Time `gorm:"not null"`
-	UpdatedByUserID UUID      `gorm:"not null;type:uuid"`
+	URL             string
+	CreatedAt       time.Time `db:"created_at"`
+	CreatedByUserID uuid.UUID `db:"created_by_user_id"`
+	UpdatedAt       time.Time `db:"updated_at"`
+	UpdatedByUserID uuid.UUID `db:"updated_by_user_id"`
 
-	Source           int      `gorm:"not null"`
-	Duration         *float64 `gorm:"type:decimal"`
-	TimestampsOffset *float64 `gorm:"type:decimal"`
-	EpisodeID        UUID     `gorm:"not null;type:uuid"`
+	Source           int
+	Duration         *float64
+	TimestampsOffset *float64  `db:"timestamps_offset"`
+	EpisodeID        uuid.UUID `db:"episode_id"`
 }
 
 type Episode struct {
 	BaseEntity
 	Season         *string
 	Number         *string
-	AbsoluteNumber *string
+	AbsoluteNumber *string `db:"absolute_number"`
 	Name           *string
-	BaseDuration   *float64 `gorm:"type:decimal"`
-	ShowID         UUID     `gorm:"not null;type:uuid"`
+	BaseDuration   *float64  `db:"base_duration"`
+	ShowID         uuid.UUID `db:"show_id"`
 }
 
 type Preferences struct {
-	ID        UUID      `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	CreatedAt time.Time `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	UpdatedAt time.Time `gorm:"not null"`
-	DeletedAt *time.Time
+	ID        uuid.UUID
+	CreatedAt time.Time  `db:"created_at"`
+	UpdatedAt time.Time  `db:"updated_at"`
+	DeletedAt *time.Time `db:"deleted_at"`
 
-	UserID                     UUID `gorm:"not null;type:uuid"`
-	EnableAutoSkip             bool
-	EnableAutoPlay             bool
-	MinimizeToolbarWhenEditing bool
-	HideTimelineWhenMinimized  bool
-	ColorTheme                 int `gorm:"not null"`
+	UserID                     uuid.UUID `db:"user_id"`
+	EnableAutoSkip             bool      `db:"enable_auto_skip"`
+	EnableAutoPlay             bool      `db:"enable_auto_play"`
+	MinimizeToolbarWhenEditing bool      `db:"minimize_toolbar_when_editing"`
+	HideTimelineWhenMinimized  bool      `db:"hide_timeline_when_minimized"`
+	ColorTheme                 int       `db:"color_theme"`
 
-	SkipBranding     bool
-	SkipIntros       bool
-	SkipNewIntros    bool
-	SkipMixedIntros  bool
-	SkipRecaps       bool
-	SkipFiller       bool
-	SkipCanon        bool
-	SkipTransitions  bool
-	SkipCredits      bool
-	SkipNewCredits   bool
-	SkipMixedCredits bool
-	SkipPreview      bool
-	SkipTitleCard    bool
+	SkipBranding     bool `db:"skip_branding"`
+	SkipIntros       bool `db:"skip_intros"`
+	SkipNewIntros    bool `db:"skip_new_intros"`
+	SkipMixedIntros  bool `db:"skip_mixed_intros"`
+	SkipRecaps       bool `db:"skip_recaps"`
+	SkipFiller       bool `db:"skip_filler"`
+	SkipCanon        bool `db:"skip_canon"`
+	SkipTransitions  bool `db:"skip_transitions"`
+	SkipCredits      bool `db:"skip_credits"`
+	SkipNewCredits   bool `db:"skip_new_credits"`
+	SkipMixedCredits bool `db:"skip_mixed_credits"`
+	SkipPreview      bool `db:"skip_preview"`
+	SkipTitleCard    bool `db:"skip_title_card"`
 }
 
 type ShowAdmin struct {
 	BaseEntity
-	ShowID UUID `gorm:"not null;type:uuid"`
-	UserID UUID `gorm:"not null;type:uuid"`
+	ShowID uuid.UUID `db:"show_id"`
+	UserID uuid.UUID `db:"user_id"`
 }
 
 type Show struct {
 	BaseEntity
 	Name         string
-	OriginalName *string
+	OriginalName *string `db:"original_name"`
 	Website      *string
 	Image        *string
 }
 
 type TemplateTimestamp struct {
-	TemplateID  UUID `gorm:"not null;type:uuid"`
-	TimestampID UUID `gorm:"not null;type:uuid"`
+	TemplateID  uuid.UUID `db:"template_id"`
+	TimestampID uuid.UUID `db:"timestamp_id"`
 }
 
 type Template struct {
 	BaseEntity
-	ShowID          UUID `gorm:"not null;type:uuid"`
+	ShowID          uuid.UUID `db:"show_id"`
 	Type            int
-	Seasons         pq.StringArray `gorm:"type:text[]"`
-	SourceEpisodeID UUID           `gorm:"not null;type:uuid"`
+	Seasons         pq.StringArray
+	SourceEpisodeID uuid.UUID `db:"source_episode_id"`
 }
 
 type TimestampType struct {
@@ -140,19 +139,19 @@ type TimestampType struct {
 type Timestamp struct {
 	BaseEntity
 	At        float64
-	Source    int  `gorm:"not null"`
-	TypeID    UUID `gorm:"not null;type:uuid"`
-	EpisodeID UUID `gorm:"not null;type:uuid"`
+	Source    int
+	TypeID    uuid.UUID `db:"type_id"`
+	EpisodeID uuid.UUID `db:"episode_id"`
 }
 
 type User struct {
-	ID            UUID       `gorm:"primary_key;type:uuid;default:uuid_generate_v4()"`
-	CreatedAt     time.Time  `gorm:"not null;default:CURRENT_TIMESTAMP"`
-	DeletedAt     *time.Time `gorm:""`
+	ID            uuid.UUID
+	CreatedAt     time.Time  `db:"created_at"`
+	DeletedAt     *time.Time `db:"deleted_at"`
 	Username      string
 	Email         string
-	PasswordHash  string
-	ProfileURL    string
-	EmailVerified bool
+	PasswordHash  string `db:"password_hash"`
+	ProfileURL    string `db:"profile_url"`
+	EmailVerified bool   `db:"email_verified"`
 	Role          int
 }

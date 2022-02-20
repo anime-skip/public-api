@@ -1,7 +1,7 @@
 package resolvers
 
 import (
-	ctx "context"
+	go_context "context"
 
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/context"
@@ -9,7 +9,7 @@ import (
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 )
 
-func (r *queryResolver) Account(ctx ctx.Context) (*graphql.Account, error) {
+func (r *queryResolver) Account(ctx go_context.Context) (*graphql.Account, error) {
 	auth, err := context.GetAuthenticationDetails(ctx)
 	if err != nil {
 		return nil, err
@@ -20,6 +20,21 @@ func (r *queryResolver) Account(ctx ctx.Context) (*graphql.Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	account := mappers.InternalUserToAccount(user)
+	account := mappers.ToGraphqlAccount(user)
 	return &account, nil
+}
+
+func (r *accountResolver) Preferences(ctx go_context.Context, obj *graphql.Account) (*graphql.Preferences, error) {
+	prefs, err := r.PreferencesService.GetPreferencesByUserID(ctx, internal.GetPreferencesByUserIDParams{
+		UserID: *obj.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	gqlPrefs := mappers.ToGraphqlPreferences(prefs)
+	return &gqlPrefs, nil
+}
+
+func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {
+	panic("not implemented")
 }

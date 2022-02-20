@@ -4,14 +4,15 @@ import (
 	"time"
 
 	"anime-skip.com/timestamps-service/internal"
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
 var now = time.Now()
 
-func basicEntity(id internal.UUID) internal.BaseEntity {
+func basicEntity(id string) internal.BaseEntity {
 	return internal.BaseEntity{
-		ID:              id,
+		ID:              uuid.FromStringOrNil(id),
 		CreatedAt:       now,
 		CreatedByUserID: adminUUID,
 		UpdatedAt:       now,
@@ -40,7 +41,7 @@ func insertUser(tx *sqlx.Tx, user internal.User, createdAt string) error {
 	return err
 }
 
-func insertPreferences(tx *sqlx.Tx, userID string, createdAt string) error {
+func insertPreferences(tx *sqlx.Tx, userID uuid.UUID, createdAt string) error {
 	_, err := tx.Exec(
 		"INSERT INTO preferences(id, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4)",
 		userID,
@@ -79,7 +80,7 @@ func insertTimestampType(tx *sqlx.Tx, timestampType internal.TimestampType) erro
 	return err
 }
 
-func deleteTimestampType(tx *sqlx.Tx, timestampTypeID string) error {
+func deleteTimestampType(tx *sqlx.Tx, timestampTypeID uuid.UUID) error {
 	_, err := tx.Exec("DELETE FROM timestamp_types WHERE id=$1", timestampTypeID)
 	return err
 }
@@ -118,7 +119,7 @@ func insertAPIClient(tx *sqlx.Tx, client internal.APIClient) error {
 	return err
 }
 
-func deleteAPIClient(tx *sqlx.Tx, clientID string) error {
+func deleteAPIClient(tx *sqlx.Tx, clientID uuid.UUID) error {
 	_, err := tx.Exec("DELETE FROM api_clients WHERE id=$1", clientID)
 	return err
 }

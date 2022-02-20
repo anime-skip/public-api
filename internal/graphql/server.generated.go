@@ -12,8 +12,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"anime-skip.com/timestamps-service/internal/graphql/scalars"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
+	"github.com/gofrs/uuid"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -472,7 +474,7 @@ type TemplateResolver interface {
 
 	SourceEpisode(ctx context.Context, obj *Template) (*Episode, error)
 	Timestamps(ctx context.Context, obj *Template) ([]*Timestamp, error)
-	TimestampIds(ctx context.Context, obj *Template) ([]string, error)
+	TimestampIds(ctx context.Context, obj *Template) ([]*uuid.UUID, error)
 }
 type TemplateTimestampResolver interface {
 	Template(ctx context.Context, obj *TemplateTimestamp) (*Template, error)
@@ -2575,23 +2577,23 @@ have. It is used to track who create, updated, and deleted items
 """
 interface BaseModel {
   "Unique, v4 UUID. When asked for an ` + "`" + `id` + "`" + ` of an object, use this field"
-  id: ID!
+  id: UUID!
   "Time that the item was created at"
   createdAt: Time!
   "The user's ` + "`" + `id` + "`" + ` that created the item"
-  createdByUserId: ID!
+  createdByUserId: UUID!
   "The entire user that created the item"
   createdBy: User!
   "Time that the item was updated at"
   updatedAt: Time!
   "The user's ` + "`" + `id` + "`" + ` that last updated the item"
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   "The entire user that last updated the item"
   updatedBy: User!
   "Time that the item was updated at. If this value is present, the item is considered deleted"
   deletedAt: Time
   "The user's ` + "`" + `id` + "`" + ` that deleted the item"
-  deletedByUserId: ID
+  deletedByUserId: UUID
   "The entire user that deleted the item"
   deletedBy: User
 }
@@ -2601,15 +2603,15 @@ Basic information about an episode, including season, numbers, a list of timesta
 it can be watched at
 """
 type Episode implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   """
@@ -2652,7 +2654,7 @@ type Episode implements BaseModel {
   "The show that the episode belongs to"
   show: Show!
   "The id of the show that the episode blongs to"
-  showId: ID!
+  showId: UUID!
   """
   The list of current timestamps.
 
@@ -2679,7 +2681,7 @@ have muliple timestamp sources.
 """
 type ThirdPartyEpisode {
   "The Anime Skip ` + "`" + `Episode.id` + "`" + ` when the ` + "`" + `source` + "`" + ` is ` + "`" + `ANIME_SKIP` + "`" + `, otherwise this is null"
-  id: ID
+  id: UUID
   season: String
   number: String
   absoluteNumber: String
@@ -2715,10 +2717,10 @@ type EpisodeUrl {
   """
   url: String!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
 
   """
@@ -2735,7 +2737,7 @@ type EpisodeUrl {
   """
   timestampsOffset: Float
   "The ` + "`" + `Episode.id` + "`" + ` that this url belongs to"
-  episodeId: ID!
+  episodeId: UUID!
   "The ` + "`" + `Episode` + "`" + ` that this url belongs to"
   episode: Episode!
   "What service this url points to. This is computed when the ` + "`" + `EpisodeUrl` + "`" + ` is created"
@@ -2751,7 +2753,7 @@ input InputEpisodeUrl {
 
 "Account info that should only be accessible by the authorised user"
 type Account {
-  id: ID!
+  id: UUID!
   createdAt: Time!
   deletedAt: Time
 
@@ -2780,13 +2782,13 @@ Where all the user preferences are stored. This includes what timestamps the use
 watch
 """
 type Preferences {
-  id: ID!
+  id: UUID!
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time
 
   "The ` + "`" + `User.id` + "`" + ` that this preferences object belongs to"
-  userId: ID!
+  userId: UUID!
   "The ` + "`" + `User` + "`" + ` that the preferences belong to"
   user: User!
   "Whether or not the user wants to automatically skip section. Default: ` + "`" + `true` + "`" + `"
@@ -2861,15 +2863,15 @@ input InputPreferences {
 
 "A show containing a list of episodes and relevate links"
 type Show implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   """
@@ -2932,75 +2934,75 @@ show/episode will have temporary access to editing the data until someone become
 Admins can be created using the API and will soon come to the Anime Skip player/website.
 """
 type ShowAdmin implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   "The ` + "`" + `Show.id` + "`" + ` that the admin has elevated privileges for"
-  showId: ID!
+  showId: UUID!
   "The ` + "`" + `Show` + "`" + ` that the admin has elevated privileges for"
   show: Show!
   "The ` + "`" + `User.id` + "`" + ` that the admin privileges belong to"
-  userId: ID!
+  userId: UUID!
   "The ` + "`" + `User` + "`" + ` that the admin privileges belong to"
   user: User!
 }
 
 "Data required to create a new ` + "`" + `ShowAdmin` + "`" + `. See ` + "`" + `ShowAdmin` + "`" + ` for a description of each field"
 input InputShowAdmin {
-  showId: ID!
-  userId: ID!
+  showId: UUID!
+  userId: UUID!
 }
 
 type Timestamp implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   "The actual time the timestamp is at"
   at: Float!
   source: TimestampSource!
   "The id specifying the type the timestamp is"
-  typeId: ID!
+  typeId: UUID!
   """
   The type the timestamp is. Thid field is a constant string so including it has no effect on
   performance or query complexity.
   """
   type: TimestampType!
   "The ` + "`" + `Episode.id` + "`" + ` that the timestamp belongs to"
-  episodeId: ID!
+  episodeId: UUID!
   "The ` + "`" + `Episode` + "`" + ` that the timestamp belongs to"
   episode: Episode!
 }
 
 type ThirdPartyTimestamp {
   "The Anime Skip ` + "`" + `Timestamp.id` + "`" + ` when the ` + "`" + `Episode.source` + "`" + ` is ` + "`" + `ANIME_SKIP` + "`" + `, otherwise this is null"
-  id: ID
+  id: UUID
   "The actual time the timestamp is at"
   at: Float!
   "The id specifying the type the timestamp is"
-  typeId: ID!
+  typeId: UUID!
   type: TimestampType!
 }
 
 "Data required to create a new ` + "`" + `Timestamp` + "`" + `. See ` + "`" + `Timestamp` + "`" + ` for a description of each field"
 input InputTimestamp {
   at: Float!
-  typeId: ID!
+  typeId: UUID!
   source: TimestampSource
 }
 
@@ -3011,15 +3013,15 @@ data, but a third party might want to fetch and cache this instead since you won
 Skip adds timestamps
 """
 type TimestampType implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   "The name of the timestamp type"
@@ -3036,7 +3038,7 @@ input InputTimestampType {
 
 "Information about a user that is public. See ` + "`" + `Account` + "`" + ` for a description of each field"
 type User {
-  id: ID!
+  id: UUID!
   createdAt: Time!
   deletedAt: Time
 
@@ -3049,19 +3051,19 @@ type User {
 When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
 """
 type Template implements BaseModel {
-  id: ID!
+  id: UUID!
   createdAt: Time!
-  createdByUserId: ID!
+  createdByUserId: UUID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: ID!
+  updatedByUserId: UUID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: ID
+  deletedByUserId: UUID
   deletedBy: User
 
   "The id of the show that this template is for"
-  showId: ID!
+  showId: UUID!
   "The show that this template is for"
   show: Show!
   "Specify the scope of the template, if it's for the entire show, or just for a set of seasons"
@@ -3069,7 +3071,7 @@ type Template implements BaseModel {
   "When the template is for a set of seasons, this is the set of seasons it is applied to"
   seasons: [String!]
   "The id of the episode used to create the template. All the timestamps are from this episode"
-  sourceEpisodeId: ID!
+  sourceEpisodeId: UUID!
   "The episode used to create the template. All the timestamps are from this episode"
   sourceEpisode: Episode!
   "The list of timestamps that are apart of this template"
@@ -3082,27 +3084,27 @@ type Template implements BaseModel {
   This is useful when you already got the episode and timestamps, and you just need to know what
   timestamps are apart of the template
   """
-  timestampIds: [ID!]!
+  timestampIds: [UUID!]!
 }
 "Data required to create a new template. See ` + "`" + `Template` + "`" + ` for a description of each field"
 input InputTemplate {
-  showId: ID!
+  showId: UUID!
   type: TemplateType!
   seasons: [String!]
-  sourceEpisodeId: ID!
+  sourceEpisodeId: UUID!
 }
 
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
-  templateId: ID!
+  templateId: UUID!
   template: Template!
-  timestampId: ID!
+  timestampId: UUID!
   timestamp: Timestamp!
 }
 "Data required to modify the timestamps on a template"
 input InputTemplateTimestamp {
-  templateId: ID!
-  timestampId: ID!
+  templateId: UUID!
+  timestampId: UUID!
 }
 `, BuiltIn: false},
 	{Name: "api/mutations.graphqls", Input: `type Mutation {
@@ -3470,13 +3472,24 @@ type UpdatedTimestamps {
 	{Name: "api/scalars.graphqls", Input: `"""
 Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
 
-### Example 
+### Example
 
 ` + "`" + `` + "`" + `` + "`" + `
 2020-08-04T23:43:27Z
 ` + "`" + `` + "`" + `` + "`" + `
 """
 scalar Time
+
+"""
+A [v4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random))
+
+### Example
+
+` + "`" + `` + "`" + `` + "`" + `
+"6c4ade53-4fee-447f-89e4-3bb29184e87a"
+` + "`" + `` + "`" + `` + "`" + `
+"""
+scalar UUID
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -4871,9 +4884,9 @@ func (ec *executionContext) _Account_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Account_createdAt(ctx context.Context, field graphql.CollectedField, obj *Account) (ret graphql.Marshaler) {
@@ -5218,9 +5231,9 @@ func (ec *executionContext) _Episode_id(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_createdAt(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5288,9 +5301,9 @@ func (ec *executionContext) _Episode_createdByUserId(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_createdBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5393,9 +5406,9 @@ func (ec *executionContext) _Episode_updatedByUserId(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5492,9 +5505,9 @@ func (ec *executionContext) _Episode_deletedByUserId(ctx context.Context, field 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5754,9 +5767,9 @@ func (ec *executionContext) _Episode_showId(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_timestamps(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5961,9 +5974,9 @@ func (ec *executionContext) _EpisodeUrl_createdByUserId(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_createdBy(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -6066,9 +6079,9 @@ func (ec *executionContext) _EpisodeUrl_updatedByUserId(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -6200,9 +6213,9 @@ func (ec *executionContext) _EpisodeUrl_episodeId(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_episode(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -8027,9 +8040,9 @@ func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.C
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_createdAt(ctx context.Context, field graphql.CollectedField, obj *Preferences) (ret graphql.Marshaler) {
@@ -8164,9 +8177,9 @@ func (ec *executionContext) _Preferences_userId(ctx context.Context, field graph
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_user(ctx context.Context, field graphql.CollectedField, obj *Preferences) (ret graphql.Marshaler) {
@@ -9949,9 +9962,9 @@ func (ec *executionContext) _Show_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_createdAt(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10019,9 +10032,9 @@ func (ec *executionContext) _Show_createdByUserId(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_createdBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10124,9 +10137,9 @@ func (ec *executionContext) _Show_updatedByUserId(ctx context.Context, field gra
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10223,9 +10236,9 @@ func (ec *executionContext) _Show_deletedByUserId(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10596,9 +10609,9 @@ func (ec *executionContext) _ShowAdmin_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_createdAt(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -10666,9 +10679,9 @@ func (ec *executionContext) _ShowAdmin_createdByUserId(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_createdBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -10771,9 +10784,9 @@ func (ec *executionContext) _ShowAdmin_updatedByUserId(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_updatedBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -10870,9 +10883,9 @@ func (ec *executionContext) _ShowAdmin_deletedByUserId(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_deletedBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -10937,9 +10950,9 @@ func (ec *executionContext) _ShowAdmin_showId(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_show(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11007,9 +11020,9 @@ func (ec *executionContext) _ShowAdmin_userId(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_user(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11077,9 +11090,9 @@ func (ec *executionContext) _Template_id(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_createdAt(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11147,9 +11160,9 @@ func (ec *executionContext) _Template_createdByUserId(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_createdBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11252,9 +11265,9 @@ func (ec *executionContext) _Template_updatedByUserId(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11351,9 +11364,9 @@ func (ec *executionContext) _Template_deletedByUserId(ctx context.Context, field
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11418,9 +11431,9 @@ func (ec *executionContext) _Template_showId(ctx context.Context, field graphql.
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_show(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11555,9 +11568,9 @@ func (ec *executionContext) _Template_sourceEpisodeId(ctx context.Context, field
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_sourceEpisode(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11660,9 +11673,9 @@ func (ec *executionContext) _Template_timestampIds(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]string)
+	res := resTmp.([]*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2ᚕstringᚄ(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_templateId(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -11695,9 +11708,9 @@ func (ec *executionContext) _TemplateTimestamp_templateId(ctx context.Context, f
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_template(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -11765,9 +11778,9 @@ func (ec *executionContext) _TemplateTimestamp_timestampId(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_timestamp(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -11832,9 +11845,9 @@ func (ec *executionContext) _ThirdPartyEpisode_id(ctx context.Context, field gra
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyEpisode_season(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyEpisode) (ret graphql.Marshaler) {
@@ -12260,9 +12273,9 @@ func (ec *executionContext) _ThirdPartyTimestamp_id(ctx context.Context, field g
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyTimestamp_at(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyTimestamp) (ret graphql.Marshaler) {
@@ -12330,9 +12343,9 @@ func (ec *executionContext) _ThirdPartyTimestamp_typeId(ctx context.Context, fie
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyTimestamp_type(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyTimestamp) (ret graphql.Marshaler) {
@@ -12400,9 +12413,9 @@ func (ec *executionContext) _Timestamp_id(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_createdAt(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12470,9 +12483,9 @@ func (ec *executionContext) _Timestamp_createdByUserId(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_createdBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12575,9 +12588,9 @@ func (ec *executionContext) _Timestamp_updatedByUserId(ctx context.Context, fiel
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12674,9 +12687,9 @@ func (ec *executionContext) _Timestamp_deletedByUserId(ctx context.Context, fiel
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12811,9 +12824,9 @@ func (ec *executionContext) _Timestamp_typeId(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_type(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12881,9 +12894,9 @@ func (ec *executionContext) _Timestamp_episodeId(ctx context.Context, field grap
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_episode(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12951,9 +12964,9 @@ func (ec *executionContext) _TimestampType_id(ctx context.Context, field graphql
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_createdAt(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13021,9 +13034,9 @@ func (ec *executionContext) _TimestampType_createdByUserId(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_createdBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13126,9 +13139,9 @@ func (ec *executionContext) _TimestampType_updatedByUserId(ctx context.Context, 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_updatedBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13225,9 +13238,9 @@ func (ec *executionContext) _TimestampType_deletedByUserId(ctx context.Context, 
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOID2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_deletedBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13467,9 +13480,9 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
@@ -15110,7 +15123,7 @@ func (ec *executionContext) unmarshalInputInputShowAdmin(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-			it.ShowID, err = ec.unmarshalNID2string(ctx, v)
+			it.ShowID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15118,7 +15131,7 @@ func (ec *executionContext) unmarshalInputInputShowAdmin(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-			it.UserID, err = ec.unmarshalNID2string(ctx, v)
+			it.UserID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15141,7 +15154,7 @@ func (ec *executionContext) unmarshalInputInputTemplate(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-			it.ShowID, err = ec.unmarshalNID2string(ctx, v)
+			it.ShowID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15165,7 +15178,7 @@ func (ec *executionContext) unmarshalInputInputTemplate(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceEpisodeId"))
-			it.SourceEpisodeID, err = ec.unmarshalNID2string(ctx, v)
+			it.SourceEpisodeID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15188,7 +15201,7 @@ func (ec *executionContext) unmarshalInputInputTemplateTimestamp(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-			it.TemplateID, err = ec.unmarshalNID2string(ctx, v)
+			it.TemplateID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15196,7 +15209,7 @@ func (ec *executionContext) unmarshalInputInputTemplateTimestamp(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-			it.TimestampID, err = ec.unmarshalNID2string(ctx, v)
+			it.TimestampID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15227,7 +15240,7 @@ func (ec *executionContext) unmarshalInputInputTimestamp(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeId"))
-			it.TypeID, err = ec.unmarshalNID2string(ctx, v)
+			it.TypeID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -20025,6 +20038,59 @@ func (ec *executionContext) marshalNTimestampType2ᚖanimeᚑskipᚗcomᚋtimest
 	return ec._TimestampType(ctx, sel, v)
 }
 
+func (ec *executionContext) unmarshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]*uuid.UUID, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*uuid.UUID, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []*uuid.UUID) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	res, err := scalars.UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := scalars.MarshalUUID(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNUpdatedTimestamps2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐUpdatedTimestamps(ctx context.Context, sel ast.SelectionSet, v UpdatedTimestamps) graphql.Marshaler {
 	return ec._UpdatedTimestamps(ctx, sel, &v)
 }
@@ -20497,6 +20563,22 @@ func (ec *executionContext) marshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋtime
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := scalars.UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := scalars.MarshalUUID(v)
+	return res
 }
 
 func (ec *executionContext) marshalOUser2ᚖanimeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {

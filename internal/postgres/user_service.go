@@ -14,21 +14,21 @@ func getUserByID(ctx context.Context, tx *sqlx.Tx, params internal.GetUserByIDPa
 	return user, err
 }
 
-type postgresUserService struct {
+type userService struct {
 	db internal.Database
 }
 
 func NewUserService(db internal.Database) internal.UserService {
-	return &postgresUserService{db}
+	return &userService{db}
 }
 
-func (s *postgresUserService) GetUserByID(ctx context.Context, params internal.GetUserByIDParams) (internal.User, error) {
+func (s *userService) GetUserByID(ctx context.Context, params internal.GetUserByIDParams) (internal.User, error) {
 	tx := s.db.MustBeginTx(ctx, &sql.TxOptions{ReadOnly: true})
 	defer tx.Rollback()
 
 	user, err := getUserByID(ctx, tx, params)
 	if err != nil {
-		return user, err
+		return internal.User{}, err
 	}
 
 	tx.Commit()

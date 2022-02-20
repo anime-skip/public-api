@@ -3,6 +3,7 @@ package http
 import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/log"
+	"github.com/gofrs/uuid"
 )
 
 type noAuthenticator struct{}
@@ -16,7 +17,7 @@ func (a *noAuthenticator) Authenticate(token string) (*internal.AuthenticationDe
 	return &internal.AuthenticationDetails{
 		IsAdmin:  true,
 		IsDev:    true,
-		UserID:   "00000000-0000-0000-000000000000",
-		ClientId: "00000000-0000-0000-000000000000",
+		UserID:   uuid.FromStringOrNil("00000000-0000-0000-000000000000"),
+		ClientId: uuid.FromStringOrNil("00000000-0000-0000-000000000000"),
 	}, nil
 }

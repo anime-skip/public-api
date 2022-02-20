@@ -2,7 +2,6 @@ package log
 
 import (
 	"fmt"
-	"os"
 
 	"anime-skip.com/timestamps-service/internal/config"
 	"github.com/davecgh/go-spew/spew"
@@ -91,14 +90,6 @@ func E(format string, a ...interface{}) {
 // Spew will pretty-print object deeply (along with their types), making it useful for debugging
 func Spew(obj ...interface{}) {
 	spew.Dump(obj...)
-}
-
-// Panic will print an error than exit with a code of 1
-func Panic(a ...interface{}) {
-	fmt.Printf("%s%s\n---------\n! PANIC !\n---------%s\n", red, bold, reset)
-	fmt.Println(a...)
-	fmt.Println()
-	os.Exit(1)
 }
 
 func printColored(color string, logType string, format string, a ...interface{}) {

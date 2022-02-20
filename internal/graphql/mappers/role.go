@@ -7,7 +7,7 @@ import (
 	"anime-skip.com/timestamps-service/internal/graphql"
 )
 
-func mapRoleIntToEnum(i int) graphql.Role {
+func ToRoleEnum(i int) graphql.Role {
 	switch i {
 	case internal.ROLE_DEV:
 		return graphql.RoleDev
@@ -19,7 +19,7 @@ func mapRoleIntToEnum(i int) graphql.Role {
 	panic(fmt.Errorf("Unknown role integer: %d", i))
 }
 
-func mapRoleEnumToInt(role graphql.Role) int {
+func ToRoleInt(role graphql.Role) int {
 	switch role {
 	case graphql.RoleDev:
 		return internal.ROLE_DEV

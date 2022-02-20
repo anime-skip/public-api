@@ -2,6 +2,8 @@ package internal
 
 import (
 	"context"
+
+	"github.com/gofrs/uuid"
 )
 
 type Server interface {
@@ -11,8 +13,8 @@ type Server interface {
 type AuthenticationDetails struct {
 	IsAdmin  bool
 	IsDev    bool
-	UserID   string
-	ClientId string
+	UserID   uuid.UUID
+	ClientId uuid.UUID
 }
 type Authenticator interface {
 	// Authenticate returns AuthenticationDetails or errors out if the token is invalid
@@ -20,12 +22,20 @@ type Authenticator interface {
 }
 
 type GetUserByIDParams struct {
-	UserID string
+	UserID uuid.UUID
 }
 type UserService interface {
 	GetUserByID(ctx context.Context, params GetUserByIDParams) (User, error)
 }
 
+type GetPreferencesByUserIDParams struct {
+	UserID uuid.UUID
+}
+type PreferencesService interface {
+	GetPreferencesByUserID(ctx context.Context, params GetPreferencesByUserIDParams) (Preferences, error)
+}
+
 type Services struct {
-	UserService UserService
+	UserService        UserService
+	PreferencesService PreferencesService
 }

@@ -7,6 +7,8 @@ import (
 	"io"
 	"strconv"
 	"time"
+
+	"github.com/gofrs/uuid"
 )
 
 // The base model has all the fields you would expect a fully fleshed out item in the database would
@@ -17,7 +19,7 @@ type BaseModel interface {
 
 // Account info that should only be accessible by the authorised user
 type Account struct {
-	ID        string     `json:"id"`
+	ID        *uuid.UUID `json:"id"`
 	CreatedAt time.Time  `json:"createdAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
 	// Unique string slug that is the easy to remember identifier
@@ -40,15 +42,15 @@ type Account struct {
 // Basic information about an episode, including season, numbers, a list of timestamps, and urls that
 // it can be watched at
 type Episode struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The season number that this episode belongs to
 	//
@@ -82,7 +84,7 @@ type Episode struct {
 	// The show that the episode belongs to
 	Show *Show `json:"show"`
 	// The id of the show that the episode blongs to
-	ShowID string `json:"showId"`
+	ShowID *uuid.UUID `json:"showId"`
 	// The list of current timestamps.
 	//
 	// Timestamps are apart apart of the `Episode` instead of the `EpisodeUrl` so that they can be shared
@@ -101,13 +103,13 @@ type EpisodeURL struct {
 	// The url that would take a user to watch the `episode`.
 	//
 	// This url should be stripped of all query params.
-	URL             string    `json:"url"`
-	CreatedAt       time.Time `json:"createdAt"`
-	CreatedByUserID string    `json:"createdByUserId"`
-	CreatedBy       *User     `json:"createdBy"`
-	UpdatedAt       time.Time `json:"updatedAt"`
-	UpdatedByUserID string    `json:"updatedByUserId"`
-	UpdatedBy       *User     `json:"updatedBy"`
+	URL             string     `json:"url"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
 	// The length of the episode at this url. For more information on why this field exists, check out
 	// the `Episode.baseDuration`. If an `Episode` does not have a duration, that `Episode` and this
 	// `EpisodeUrl` should be given the same value, and the `EpisodeUrl.timestampsOffset` should be set to 0
@@ -118,7 +120,7 @@ type EpisodeURL struct {
 	// It can be positive or negative.
 	TimestampsOffset *float64 `json:"timestampsOffset"`
 	// The `Episode.id` that this url belongs to
-	EpisodeID string `json:"episodeId"`
+	EpisodeID *uuid.UUID `json:"episodeId"`
 	// The `Episode` that this url belongs to
 	Episode *Episode `json:"episode"`
 	// What service this url points to. This is computed when the `EpisodeUrl` is created
@@ -186,28 +188,28 @@ type InputShow struct {
 
 // Data required to create a new `ShowAdmin`. See `ShowAdmin` for a description of each field
 type InputShowAdmin struct {
-	ShowID string `json:"showId"`
-	UserID string `json:"userId"`
+	ShowID *uuid.UUID `json:"showId"`
+	UserID *uuid.UUID `json:"userId"`
 }
 
 // Data required to create a new template. See `Template` for a description of each field
 type InputTemplate struct {
-	ShowID          string       `json:"showId"`
+	ShowID          *uuid.UUID   `json:"showId"`
 	Type            TemplateType `json:"type"`
 	Seasons         []string     `json:"seasons"`
-	SourceEpisodeID string       `json:"sourceEpisodeId"`
+	SourceEpisodeID *uuid.UUID   `json:"sourceEpisodeId"`
 }
 
 // Data required to modify the timestamps on a template
 type InputTemplateTimestamp struct {
-	TemplateID  string `json:"templateId"`
-	TimestampID string `json:"timestampId"`
+	TemplateID  *uuid.UUID `json:"templateId"`
+	TimestampID *uuid.UUID `json:"timestampId"`
 }
 
 // Data required to create a new `Timestamp`. See `Timestamp` for a description of each field
 type InputTimestamp struct {
 	At     float64          `json:"at"`
-	TypeID string           `json:"typeId"`
+	TypeID *uuid.UUID       `json:"typeId"`
 	Source *TimestampSource `json:"source"`
 }
 
@@ -237,12 +239,12 @@ type LoginData struct {
 // Where all the user preferences are stored. This includes what timestamps the user doesn't want to
 // watch
 type Preferences struct {
-	ID        string     `json:"id"`
+	ID        *uuid.UUID `json:"id"`
 	CreatedAt time.Time  `json:"createdAt"`
 	UpdatedAt time.Time  `json:"updatedAt"`
 	DeletedAt *time.Time `json:"deletedAt"`
 	// The `User.id` that this preferences object belongs to
-	UserID string `json:"userId"`
+	UserID *uuid.UUID `json:"userId"`
 	// The `User` that the preferences belong to
 	User *User `json:"user"`
 	// Whether or not the user wants to automatically skip section. Default: `true`
@@ -286,15 +288,15 @@ type Preferences struct {
 
 // A show containing a list of episodes and relevate links
 type Show struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The show name
 	//
@@ -337,22 +339,22 @@ func (Show) IsBaseModel() {}
 //
 // Admins can be created using the API and will soon come to the Anime Skip player/website.
 type ShowAdmin struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The `Show.id` that the admin has elevated privileges for
-	ShowID string `json:"showId"`
+	ShowID *uuid.UUID `json:"showId"`
 	// The `Show` that the admin has elevated privileges for
 	Show *Show `json:"show"`
 	// The `User.id` that the admin privileges belong to
-	UserID string `json:"userId"`
+	UserID *uuid.UUID `json:"userId"`
 	// The `User` that the admin privileges belong to
 	User *User `json:"user"`
 }
@@ -361,18 +363,18 @@ func (ShowAdmin) IsBaseModel() {}
 
 // When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
 type Template struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The id of the show that this template is for
-	ShowID string `json:"showId"`
+	ShowID *uuid.UUID `json:"showId"`
 	// The show that this template is for
 	Show *Show `json:"show"`
 	// Specify the scope of the template, if it's for the entire show, or just for a set of seasons
@@ -380,7 +382,7 @@ type Template struct {
 	// When the template is for a set of seasons, this is the set of seasons it is applied to
 	Seasons []string `json:"seasons"`
 	// The id of the episode used to create the template. All the timestamps are from this episode
-	SourceEpisodeID string `json:"sourceEpisodeId"`
+	SourceEpisodeID *uuid.UUID `json:"sourceEpisodeId"`
 	// The episode used to create the template. All the timestamps are from this episode
 	SourceEpisode *Episode `json:"sourceEpisode"`
 	// The list of timestamps that are apart of this template
@@ -391,16 +393,16 @@ type Template struct {
 	//
 	// This is useful when you already got the episode and timestamps, and you just need to know what
 	// timestamps are apart of the template
-	TimestampIds []string `json:"timestampIds"`
+	TimestampIds []*uuid.UUID `json:"timestampIds"`
 }
 
 func (Template) IsBaseModel() {}
 
 // The many to many object that links a timestamp to a template
 type TemplateTimestamp struct {
-	TemplateID  string     `json:"templateId"`
+	TemplateID  *uuid.UUID `json:"templateId"`
 	Template    *Template  `json:"template"`
-	TimestampID string     `json:"timestampId"`
+	TimestampID *uuid.UUID `json:"timestampId"`
 	Timestamp   *Timestamp `json:"timestamp"`
 }
 
@@ -415,7 +417,7 @@ type TemplateTimestamp struct {
 // > Make sure to fill out the `source` field so that original owner of the timestamp is maintained
 type ThirdPartyEpisode struct {
 	// The Anime Skip `Episode.id` when the `source` is `ANIME_SKIP`, otherwise this is null
-	ID             *string                `json:"id"`
+	ID             *uuid.UUID             `json:"id"`
 	Season         *string                `json:"season"`
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
@@ -436,35 +438,35 @@ type ThirdPartyShow struct {
 
 type ThirdPartyTimestamp struct {
 	// The Anime Skip `Timestamp.id` when the `Episode.source` is `ANIME_SKIP`, otherwise this is null
-	ID *string `json:"id"`
+	ID *uuid.UUID `json:"id"`
 	// The actual time the timestamp is at
 	At float64 `json:"at"`
 	// The id specifying the type the timestamp is
-	TypeID string         `json:"typeId"`
+	TypeID *uuid.UUID     `json:"typeId"`
 	Type   *TimestampType `json:"type"`
 }
 
 type Timestamp struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The actual time the timestamp is at
 	At     float64         `json:"at"`
 	Source TimestampSource `json:"source"`
 	// The id specifying the type the timestamp is
-	TypeID string `json:"typeId"`
+	TypeID *uuid.UUID `json:"typeId"`
 	// The type the timestamp is. Thid field is a constant string so including it has no effect on
 	// performance or query complexity.
 	Type *TimestampType `json:"type"`
 	// The `Episode.id` that the timestamp belongs to
-	EpisodeID string `json:"episodeId"`
+	EpisodeID *uuid.UUID `json:"episodeId"`
 	// The `Episode` that the timestamp belongs to
 	Episode *Episode `json:"episode"`
 }
@@ -476,15 +478,15 @@ func (Timestamp) IsBaseModel() {}
 // data, but a third party might want to fetch and cache this instead since you won't know when Anime
 // Skip adds timestamps
 type TimestampType struct {
-	ID              string     `json:"id"`
+	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`
-	CreatedByUserID string     `json:"createdByUserId"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
 	CreatedBy       *User      `json:"createdBy"`
 	UpdatedAt       time.Time  `json:"updatedAt"`
-	UpdatedByUserID string     `json:"updatedByUserId"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
 	UpdatedBy       *User      `json:"updatedBy"`
 	DeletedAt       *time.Time `json:"deletedAt"`
-	DeletedByUserID *string    `json:"deletedByUserId"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
 	DeletedBy       *User      `json:"deletedBy"`
 	// The name of the timestamp type
 	Name string `json:"name"`
@@ -502,7 +504,7 @@ type UpdatedTimestamps struct {
 
 // Information about a user that is public. See `Account` for a description of each field
 type User struct {
-	ID           string       `json:"id"`
+	ID           *uuid.UUID   `json:"id"`
 	CreatedAt    time.Time    `json:"createdAt"`
 	DeletedAt    *time.Time   `json:"deletedAt"`
 	Username     string       `json:"username"`

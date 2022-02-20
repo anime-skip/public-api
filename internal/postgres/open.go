@@ -18,16 +18,14 @@ func Open(url string, disableSsl bool, targetVersion int) internal.Database {
 	connectionString := fmt.Sprintf("%s?sslmode=%s", url, sslmode)
 	db, err := sqlx.Open("postgres", connectionString)
 	if err != nil {
-		log.Panic(err)
-		return nil
+		panic(err)
 	}
 	db.SetMaxIdleConns(5)
 	db.SetMaxOpenConns(10)
 
 	err = migrate(db, targetVersion)
 	if err != nil {
-		log.Panic(err)
-		return nil
+		panic(err)
 	}
 
 	return db

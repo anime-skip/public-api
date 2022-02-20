@@ -19,7 +19,8 @@ func main() {
 	)
 
 	services := internal.Services{
-		UserService: postgres.NewUserService(db),
+		UserService:        postgres.NewUserService(db),
+		PreferencesService: postgres.NewPreferencesService(db),
 	}
 
 	graphqlHandler := handler.NewGraphqlHandler(
@@ -38,6 +39,6 @@ func main() {
 
 	err := server.Start()
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 }

@@ -7,19 +7,12 @@ import (
 
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"github.com/gofrs/uuid"
 )
 
 type Resolver struct {
 	// Give resolvers access to all the services
 	*internal.Services
-}
-
-func (r *accountResolver) AdminOfShows(ctx context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {
-	panic("not implemented")
-}
-
-func (r *accountResolver) Preferences(ctx context.Context, obj *graphql.Account) (*graphql.Preferences, error) {
-	panic("not implemented")
 }
 
 func (r *episodeResolver) CreatedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
@@ -187,10 +180,6 @@ func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateT
 }
 
 func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {
-	panic("not implemented")
-}
-
-func (r *preferencesResolver) User(ctx context.Context, obj *graphql.Preferences) (*graphql.User, error) {
 	panic("not implemented")
 }
 
@@ -362,7 +351,7 @@ func (r *templateResolver) Timestamps(ctx context.Context, obj *graphql.Template
 	panic("not implemented")
 }
 
-func (r *templateResolver) TimestampIds(ctx context.Context, obj *graphql.Template) ([]string, error) {
+func (r *templateResolver) TimestampIds(ctx context.Context, obj *graphql.Template) ([]*uuid.UUID, error) {
 	panic("not implemented")
 }
 

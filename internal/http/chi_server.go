@@ -94,8 +94,7 @@ func writeJson(rw http.ResponseWriter, data interface{}, status int) {
 	rw.Header().Add("Content-Type", "application/json")
 	body, err := json.Marshal(data)
 	if err != nil {
-		log.Panic(err)
-		return
+		panic(err)
 	}
 	rw.Write(body)
 	rw.WriteHeader(status)

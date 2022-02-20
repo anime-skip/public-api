@@ -34,7 +34,7 @@ func RunMigrations(tx *sqlx.Tx, name string, migrations []*Migration, targetVers
 		return nil
 	}
 	if len(upgrades) > 0 {
-		log.I("Upgrading database to %d...", targetVersion)
+		log.I("Targeting database version %d...", targetVersion)
 		for _, migration := range upgrades {
 			log.I(migration.ID)
 			err = migration.Up(tx)

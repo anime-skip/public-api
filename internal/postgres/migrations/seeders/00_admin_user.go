@@ -5,10 +5,11 @@ import (
 
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
+	"github.com/gofrs/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
-var adminUUID = "00000000-0000-0000-0000-000000000000"
+var adminUUID = uuid.FromStringOrNil("00000000-0000-0000-0000-000000000000")
 var adminUser = &internal.User{
 	ID:            adminUUID,
 	CreatedAt:     time.Now(),
