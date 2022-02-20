@@ -18,7 +18,6 @@ func getTimestampByID(ctx context.Context, db internal.Database, id uuid.UUID) (
 	return timestamp, err
 }
 
-// Inserts a Timestamp, filling out it's created at and updated at metadata
 func insertTimestampInTx(ctx context.Context, tx *sqlx.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
 	newTimestamp := timestamp
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -47,4 +46,62 @@ func insertTimestampInTx(ctx context.Context, tx *sqlx.Tx, timestamp internal.Ti
 		return internal.Timestamp{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newTimestamp, err
+}
+
+func insertTimestamp(ctx context.Context, db internal.Database, timestamp internal.Timestamp) (internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	defer tx.Rollback()
+
+	newTimestamp, err := insertTimestampInTx(ctx, tx, timestamp)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	tx.Commit()
+	return newTimestamp, nil
+}
+
+func updateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
+	updatedTimestamp := newTimestamp
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	updatedTimestamp.UpdatedAt = time.Now()
+	updatedTimestamp.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE timestamps SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, at=$8, source=$9, type_id=$10, episode_id=$11",
+		updatedTimestamp.ID, updatedTimestamp.CreatedAt, updatedTimestamp.CreatedByUserID, updatedTimestamp.UpdatedAt, updatedTimestamp.UpdatedByUserID, updatedTimestamp.DeletedAt, updatedTimestamp.DeletedByUserID, updatedTimestamp.At, updatedTimestamp.Source, updatedTimestamp.TypeID, updatedTimestamp.EpisodeID,
+	)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	if changedRows != 1 {
+		return internal.Timestamp{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedTimestamp, err
+}
+
+func updateTimestamp(ctx context.Context, db internal.Database, timestamp internal.Timestamp) (internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	defer tx.Rollback()
+
+	newTimestamp, err := updateTimestampInTx(ctx, tx, timestamp)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	tx.Commit()
+	return newTimestamp, nil
 }

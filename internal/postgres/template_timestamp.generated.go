@@ -48,7 +48,6 @@ func getTemplateTimestampsByTimestampID(ctx context.Context, db internal.Databas
 	return templateTimestamps, nil
 }
 
-// Inserts a TemplateTimestamp, filling out it's created at and updated at metadata
 func insertTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	newTemplateTimestamp := templateTimestamp
 	result, err := tx.ExecContext(
@@ -67,4 +66,56 @@ func insertTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, templateTimes
 		return internal.TemplateTimestamp{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newTemplateTimestamp, err
+}
+
+func insertTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	defer tx.Rollback()
+
+	newTemplateTimestamp, err := insertTemplateTimestampInTx(ctx, tx, templateTimestamp)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+
+	tx.Commit()
+	return newTemplateTimestamp, nil
+}
+
+func updateTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	updatedTemplateTimestamp := newTemplateTimestamp
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE template_timestamps SET template_id=$1, timestamp_id=$2",
+		updatedTemplateTimestamp.TemplateID, updatedTemplateTimestamp.TimestampID,
+	)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	if changedRows != 1 {
+		return internal.TemplateTimestamp{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedTemplateTimestamp, err
+}
+
+func updateTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	defer tx.Rollback()
+
+	newTemplateTimestamp, err := updateTemplateTimestampInTx(ctx, tx, templateTimestamp)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+
+	tx.Commit()
+	return newTemplateTimestamp, nil
 }

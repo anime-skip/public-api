@@ -56,7 +56,6 @@ func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, show
 	return episodes, nil
 }
 
-// Inserts a Episode, filling out it's created at and updated at metadata
 func insertEpisodeInTx(ctx context.Context, tx *sqlx.Tx, episode internal.Episode) (internal.Episode, error) {
 	newEpisode := episode
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -85,4 +84,62 @@ func insertEpisodeInTx(ctx context.Context, tx *sqlx.Tx, episode internal.Episod
 		return internal.Episode{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newEpisode, err
+}
+
+func insertEpisode(ctx context.Context, db internal.Database, episode internal.Episode) (internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	defer tx.Rollback()
+
+	newEpisode, err := insertEpisodeInTx(ctx, tx, episode)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	tx.Commit()
+	return newEpisode, nil
+}
+
+func updateEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Episode) (internal.Episode, error) {
+	updatedEpisode := newEpisode
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	updatedEpisode.UpdatedAt = time.Now()
+	updatedEpisode.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE episodes SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, season=$8, number=$9, absolute_number=$10, name=$11, base_duration=$12, show_id=$13",
+		updatedEpisode.ID, updatedEpisode.CreatedAt, updatedEpisode.CreatedByUserID, updatedEpisode.UpdatedAt, updatedEpisode.UpdatedByUserID, updatedEpisode.DeletedAt, updatedEpisode.DeletedByUserID, updatedEpisode.Season, updatedEpisode.Number, updatedEpisode.AbsoluteNumber, updatedEpisode.Name, updatedEpisode.BaseDuration, updatedEpisode.ShowID,
+	)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	if changedRows != 1 {
+		return internal.Episode{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedEpisode, err
+}
+
+func updateEpisode(ctx context.Context, db internal.Database, episode internal.Episode) (internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	defer tx.Rollback()
+
+	newEpisode, err := updateEpisodeInTx(ctx, tx, episode)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	tx.Commit()
+	return newEpisode, nil
 }

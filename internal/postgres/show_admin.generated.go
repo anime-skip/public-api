@@ -94,7 +94,6 @@ func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, us
 	return showAdmins, nil
 }
 
-// Inserts a ShowAdmin, filling out it's created at and updated at metadata
 func insertShowAdminInTx(ctx context.Context, tx *sqlx.Tx, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
 	newShowAdmin := showAdmin
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -123,4 +122,62 @@ func insertShowAdminInTx(ctx context.Context, tx *sqlx.Tx, showAdmin internal.Sh
 		return internal.ShowAdmin{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newShowAdmin, err
+}
+
+func insertShowAdmin(ctx context.Context, db internal.Database, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	defer tx.Rollback()
+
+	newShowAdmin, err := insertShowAdminInTx(ctx, tx, showAdmin)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+
+	tx.Commit()
+	return newShowAdmin, nil
+}
+
+func updateShowAdminInTx(ctx context.Context, tx *sqlx.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	updatedShowAdmin := newShowAdmin
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	updatedShowAdmin.UpdatedAt = time.Now()
+	updatedShowAdmin.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE show_admins SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, show_id=$8, user_id=$9",
+		updatedShowAdmin.ID, updatedShowAdmin.CreatedAt, updatedShowAdmin.CreatedByUserID, updatedShowAdmin.UpdatedAt, updatedShowAdmin.UpdatedByUserID, updatedShowAdmin.DeletedAt, updatedShowAdmin.DeletedByUserID, updatedShowAdmin.ShowID, updatedShowAdmin.UserID,
+	)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	if changedRows != 1 {
+		return internal.ShowAdmin{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedShowAdmin, err
+}
+
+func updateShowAdmin(ctx context.Context, db internal.Database, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	defer tx.Rollback()
+
+	newShowAdmin, err := updateShowAdminInTx(ctx, tx, showAdmin)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+
+	tx.Commit()
+	return newShowAdmin, nil
 }

@@ -18,7 +18,6 @@ func getShowByID(ctx context.Context, db internal.Database, id uuid.UUID) (inter
 	return show, err
 }
 
-// Inserts a Show, filling out it's created at and updated at metadata
 func insertShowInTx(ctx context.Context, tx *sqlx.Tx, show internal.Show) (internal.Show, error) {
 	newShow := show
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -47,4 +46,62 @@ func insertShowInTx(ctx context.Context, tx *sqlx.Tx, show internal.Show) (inter
 		return internal.Show{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newShow, err
+}
+
+func insertShow(ctx context.Context, db internal.Database, show internal.Show) (internal.Show, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	defer tx.Rollback()
+
+	newShow, err := insertShowInTx(ctx, tx, show)
+	if err != nil {
+		return internal.Show{}, err
+	}
+
+	tx.Commit()
+	return newShow, nil
+}
+
+func updateShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (internal.Show, error) {
+	updatedShow := newShow
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	updatedShow.UpdatedAt = time.Now()
+	updatedShow.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE shows SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, original_name=$9, website=$10, image=$11",
+		updatedShow.ID, updatedShow.CreatedAt, updatedShow.CreatedByUserID, updatedShow.UpdatedAt, updatedShow.UpdatedByUserID, updatedShow.DeletedAt, updatedShow.DeletedByUserID, updatedShow.Name, updatedShow.OriginalName, updatedShow.Website, updatedShow.Image,
+	)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Show{}, err
+	}
+	if changedRows != 1 {
+		return internal.Show{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedShow, err
+}
+
+func updateShow(ctx context.Context, db internal.Database, show internal.Show) (internal.Show, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	defer tx.Rollback()
+
+	newShow, err := updateShowInTx(ctx, tx, show)
+	if err != nil {
+		return internal.Show{}, err
+	}
+
+	tx.Commit()
+	return newShow, nil
 }

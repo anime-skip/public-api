@@ -37,7 +37,6 @@ func getEpisodeURLsByEpisodeID(ctx context.Context, db internal.Database, episod
 	return episodeURLs, nil
 }
 
-// Inserts a EpisodeURL, filling out it's created at and updated at metadata
 func insertEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
 	newEpisodeURL := episodeURL
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -64,4 +63,62 @@ func insertEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, episodeURL internal.
 		return internal.EpisodeURL{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newEpisodeURL, err
+}
+
+func insertEpisodeURL(ctx context.Context, db internal.Database, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	defer tx.Rollback()
+
+	newEpisodeURL, err := insertEpisodeURLInTx(ctx, tx, episodeURL)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+
+	tx.Commit()
+	return newEpisodeURL, nil
+}
+
+func updateEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	updatedEpisodeURL := newEpisodeURL
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	updatedEpisodeURL.UpdatedAt = time.Now()
+	updatedEpisodeURL.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE episode_urls SET url=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, source=$6, duration=$7, timestamps_offset=$8, episode_id=$9",
+		updatedEpisodeURL.URL, updatedEpisodeURL.CreatedAt, updatedEpisodeURL.CreatedByUserID, updatedEpisodeURL.UpdatedAt, updatedEpisodeURL.UpdatedByUserID, updatedEpisodeURL.Source, updatedEpisodeURL.Duration, updatedEpisodeURL.TimestampsOffset, updatedEpisodeURL.EpisodeID,
+	)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	if changedRows != 1 {
+		return internal.EpisodeURL{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedEpisodeURL, err
+}
+
+func updateEpisodeURL(ctx context.Context, db internal.Database, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	defer tx.Rollback()
+
+	newEpisodeURL, err := updateEpisodeURLInTx(ctx, tx, episodeURL)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+
+	tx.Commit()
+	return newEpisodeURL, nil
 }

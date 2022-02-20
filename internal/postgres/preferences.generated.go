@@ -29,7 +29,6 @@ func getUnscopedPreferencesByUserID(ctx context.Context, db internal.Database, u
 	return preferences, err
 }
 
-// Inserts a Preferences, filling out it's created at and updated at metadata
 func insertPreferencesInTx(ctx context.Context, tx *sqlx.Tx, preferences internal.Preferences) (internal.Preferences, error) {
 	newPreferences := preferences
 	newPreferences.CreatedAt = time.Now()
@@ -51,4 +50,57 @@ func insertPreferencesInTx(ctx context.Context, tx *sqlx.Tx, preferences interna
 		return internal.Preferences{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newPreferences, err
+}
+
+func insertPreferences(ctx context.Context, db internal.Database, preferences internal.Preferences) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	newPreferences, err := insertPreferencesInTx(ctx, tx, preferences)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return newPreferences, nil
+}
+
+func updatePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
+	updatedPreferences := newPreferences
+	updatedPreferences.UpdatedAt = time.Now()
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE preferences SET id=$1, created_at=$2, updated_at=$3, deleted_at=$4, user_id=$5, enable_auto_skip=$6, enable_auto_play=$7, minimize_toolbar_when_editing=$8, hide_timeline_when_minimized=$9, color_theme=$10, skip_branding=$11, skip_intros=$12, skip_new_intros=$13, skip_mixed_intros=$14, skip_recaps=$15, skip_filler=$16, skip_canon=$17, skip_transitions=$18, skip_credits=$19, skip_new_credits=$20, skip_mixed_credits=$21, skip_preview=$22, skip_title_card=$23",
+		updatedPreferences.ID, updatedPreferences.CreatedAt, updatedPreferences.UpdatedAt, updatedPreferences.DeletedAt, updatedPreferences.UserID, updatedPreferences.EnableAutoSkip, updatedPreferences.EnableAutoPlay, updatedPreferences.MinimizeToolbarWhenEditing, updatedPreferences.HideTimelineWhenMinimized, updatedPreferences.ColorTheme, updatedPreferences.SkipBranding, updatedPreferences.SkipIntros, updatedPreferences.SkipNewIntros, updatedPreferences.SkipMixedIntros, updatedPreferences.SkipRecaps, updatedPreferences.SkipFiller, updatedPreferences.SkipCanon, updatedPreferences.SkipTransitions, updatedPreferences.SkipCredits, updatedPreferences.SkipNewCredits, updatedPreferences.SkipMixedCredits, updatedPreferences.SkipPreview, updatedPreferences.SkipTitleCard,
+	)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	if changedRows != 1 {
+		return internal.Preferences{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedPreferences, err
+}
+
+func updatePreferences(ctx context.Context, db internal.Database, preferences internal.Preferences) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	newPreferences, err := updatePreferencesInTx(ctx, tx, preferences)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return newPreferences, nil
 }

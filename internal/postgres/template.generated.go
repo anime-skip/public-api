@@ -56,7 +56,6 @@ func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, sho
 	return templates, nil
 }
 
-// Inserts a Template, filling out it's created at and updated at metadata
 func insertTemplateInTx(ctx context.Context, tx *sqlx.Tx, template internal.Template) (internal.Template, error) {
 	newTemplate := template
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -85,4 +84,62 @@ func insertTemplateInTx(ctx context.Context, tx *sqlx.Tx, template internal.Temp
 		return internal.Template{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newTemplate, err
+}
+
+func insertTemplate(ctx context.Context, db internal.Database, template internal.Template) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	newTemplate, err := insertTemplateInTx(ctx, tx, template)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return newTemplate, nil
+}
+
+func updateTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.Template) (internal.Template, error) {
+	updatedTemplate := newTemplate
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	updatedTemplate.UpdatedAt = time.Now()
+	updatedTemplate.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE templates SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, show_id=$8, type=$9, seasons=$10, source_episode_id=$11",
+		updatedTemplate.ID, updatedTemplate.CreatedAt, updatedTemplate.CreatedByUserID, updatedTemplate.UpdatedAt, updatedTemplate.UpdatedByUserID, updatedTemplate.DeletedAt, updatedTemplate.DeletedByUserID, updatedTemplate.ShowID, updatedTemplate.Type, updatedTemplate.Seasons, updatedTemplate.SourceEpisodeID,
+	)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Template{}, err
+	}
+	if changedRows != 1 {
+		return internal.Template{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedTemplate, err
+}
+
+func updateTemplate(ctx context.Context, db internal.Database, template internal.Template) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	newTemplate, err := updateTemplateInTx(ctx, tx, template)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return newTemplate, nil
 }

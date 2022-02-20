@@ -56,7 +56,6 @@ func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, us
 	return apiClients, nil
 }
 
-// Inserts a APIClient, filling out it's created at and updated at metadata
 func insertAPIClientInTx(ctx context.Context, tx *sqlx.Tx, apiClient internal.APIClient) (internal.APIClient, error) {
 	newAPIClient := apiClient
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -85,4 +84,62 @@ func insertAPIClientInTx(ctx context.Context, tx *sqlx.Tx, apiClient internal.AP
 		return internal.APIClient{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newAPIClient, err
+}
+
+func insertAPIClient(ctx context.Context, db internal.Database, apiClient internal.APIClient) (internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	defer tx.Rollback()
+
+	newAPIClient, err := insertAPIClientInTx(ctx, tx, apiClient)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+
+	tx.Commit()
+	return newAPIClient, nil
+}
+
+func updateAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
+	updatedAPIClient := newAPIClient
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	updatedAPIClient.UpdatedAt = time.Now()
+	updatedAPIClient.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE api_clients SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, user_id=$8, app_name=$9, description=$10, allowed_origins=$11, rate_limit_rpm=$12",
+		updatedAPIClient.ID, updatedAPIClient.CreatedAt, updatedAPIClient.CreatedByUserID, updatedAPIClient.UpdatedAt, updatedAPIClient.UpdatedByUserID, updatedAPIClient.DeletedAt, updatedAPIClient.DeletedByUserID, updatedAPIClient.UserID, updatedAPIClient.AppName, updatedAPIClient.Description, updatedAPIClient.AllowedOrigins, updatedAPIClient.RateLimitRPM,
+	)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	if changedRows != 1 {
+		return internal.APIClient{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedAPIClient, err
+}
+
+func updateAPIClient(ctx context.Context, db internal.Database, apiClient internal.APIClient) (internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	defer tx.Rollback()
+
+	newAPIClient, err := updateAPIClientInTx(ctx, tx, apiClient)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+
+	tx.Commit()
+	return newAPIClient, nil
 }

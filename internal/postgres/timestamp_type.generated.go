@@ -18,7 +18,6 @@ func getTimestampTypeByID(ctx context.Context, db internal.Database, id uuid.UUI
 	return timestampType, err
 }
 
-// Inserts a TimestampType, filling out it's created at and updated at metadata
 func insertTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, timestampType internal.TimestampType) (internal.TimestampType, error) {
 	newTimestampType := timestampType
 	auth, err := context1.GetAuthenticationDetails(ctx)
@@ -47,4 +46,62 @@ func insertTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, timestampType int
 		return internal.TimestampType{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
 	}
 	return newTimestampType, err
+}
+
+func insertTimestampType(ctx context.Context, db internal.Database, timestampType internal.TimestampType) (internal.TimestampType, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	defer tx.Rollback()
+
+	newTimestampType, err := insertTimestampTypeInTx(ctx, tx, timestampType)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+
+	tx.Commit()
+	return newTimestampType, nil
+}
+
+func updateTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
+	updatedTimestampType := newTimestampType
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	updatedTimestampType.UpdatedAt = time.Now()
+	updatedTimestampType.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE timestamp_types SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, description=$9",
+		updatedTimestampType.ID, updatedTimestampType.CreatedAt, updatedTimestampType.CreatedByUserID, updatedTimestampType.UpdatedAt, updatedTimestampType.UpdatedByUserID, updatedTimestampType.DeletedAt, updatedTimestampType.DeletedByUserID, updatedTimestampType.Name, updatedTimestampType.Description,
+	)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	if changedRows != 1 {
+		return internal.TimestampType{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+	}
+	return updatedTimestampType, err
+}
+
+func updateTimestampType(ctx context.Context, db internal.Database, timestampType internal.TimestampType) (internal.TimestampType, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	defer tx.Rollback()
+
+	newTimestampType, err := updateTimestampTypeInTx(ctx, tx, timestampType)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+
+	tx.Commit()
+	return newTimestampType, nil
 }
