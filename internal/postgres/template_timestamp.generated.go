@@ -119,3 +119,19 @@ func updateTemplateTimestamp(ctx context.Context, db internal.Database, template
 	tx.Commit()
 	return result, nil
 }
+
+func deleteTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteTemplateTimestampInTx(ctx, tx, templateTimestamp)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}

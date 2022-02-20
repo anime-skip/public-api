@@ -95,8 +95,10 @@ func generateModelSqlMethods(model interface{}) {
 
 	if modelDetails.primaryKey != nil {
 		deleteInTx(file, modelType, *modelDetails.primaryKey)
-		delete(file, modelType)
+	} else {
+		fmt.Printf("\x1b[1m\x1b[93mCould not generate delete function for %s, implement/update it yourself\x1b[0m\n", modelName)
 	}
+	delete(file, modelType)
 
 	writeFile(filename, file)
 }
