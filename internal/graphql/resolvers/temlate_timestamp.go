@@ -7,9 +7,9 @@ import (
 )
 
 func (r *templateTimestampResolver) Template(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Template, error) {
-	panic("not implemented")
+	panic("templateTimestampResolver.Template not implemented")
 }
 
 func (r *templateTimestampResolver) Timestamp(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Timestamp, error) {
-	panic("not implemented")
+	panic("templateTimestampResolver.Timestamp not implemented")
 }

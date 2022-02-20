@@ -9,6 +9,8 @@ import (
 	_ "github.com/lib/pq"
 )
 
+//go:generate go run ../../cmd/sql-gen/main.go
+
 func Open(url string, disableSsl bool, targetVersion int) internal.Database {
 	log.D("Connecting to postgres...")
 	sslmode := "require"

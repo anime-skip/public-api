@@ -25,27 +25,27 @@ type GraphQLHandler struct {
 
 // BaseEntity defines the common columns that all db structs should hold
 type BaseEntity struct {
-	ID              uuid.UUID
+	ID              uuid.UUID  `                         sql_gen:"primary_key"`
 	CreatedAt       time.Time  `db:"created_at"`
 	CreatedByUserID uuid.UUID  `db:"created_by_user_id"`
 	UpdatedAt       time.Time  `db:"updated_at"`
 	UpdatedByUserID uuid.UUID  `db:"updated_by_user_id"`
-	DeletedAt       *time.Time `db:"deleted_at"`
+	DeletedAt       *time.Time `db:"deleted_at"          sql_gen:"soft_delete"`
 	DeletedByUserID *uuid.UUID `db:"deleted_by_user_id"`
 }
 
 type APIClient struct {
 	// Custom Soft Delete, not BaseModel
-	ID              string
+	ID              string     `                         sql_gen:"primary_key"`
 	CreatedAt       time.Time  `db:"created_at"`
 	CreatedByUserID uuid.UUID  `db:"created_by_user_id"`
 	UpdatedAt       time.Time  `db:"updated_at"`
 	UpdatedByUserID uuid.UUID  `db:"updated_by_user_id"`
-	DeletedAt       *time.Time `db:"deleted_at"`
+	DeletedAt       *time.Time `db:"deleted_at"          sql_gen:"soft_delete"`
 	DeletedByUserID *uuid.UUID `db:"deleted_by_user_id"`
 
 	// Fields
-	UserID         uuid.UUID `db:"user_id"`
+	UserID         uuid.UUID `db:"user_id"   sql_gen:"get_many"`
 	AppName        string    `db:"app_name"`
 	Description    string
 	AllowedOrigins *string `db:"allowed_origins"`
@@ -53,7 +53,7 @@ type APIClient struct {
 }
 
 type EpisodeURL struct {
-	URL             string
+	URL             string    `                         sql_gen:"primary_key"`
 	CreatedAt       time.Time `db:"created_at"`
 	CreatedByUserID uuid.UUID `db:"created_by_user_id"`
 	UpdatedAt       time.Time `db:"updated_at"`
@@ -62,7 +62,7 @@ type EpisodeURL struct {
 	Source           int
 	Duration         *float64
 	TimestampsOffset *float64  `db:"timestamps_offset"`
-	EpisodeID        uuid.UUID `db:"episode_id"`
+	EpisodeID        uuid.UUID `db:"episode_id"         sql_gen:"get_many"`
 }
 
 type Episode struct {
@@ -72,16 +72,16 @@ type Episode struct {
 	AbsoluteNumber *string `db:"absolute_number"`
 	Name           *string
 	BaseDuration   *float64  `db:"base_duration"`
-	ShowID         uuid.UUID `db:"show_id"`
+	ShowID         uuid.UUID `db:"show_id"        sql_gen:"get_many"`
 }
 
 type Preferences struct {
-	ID        uuid.UUID
+	ID        uuid.UUID  `                 sql_gen:"primary_key"`
 	CreatedAt time.Time  `db:"created_at"`
 	UpdatedAt time.Time  `db:"updated_at"`
-	DeletedAt *time.Time `db:"deleted_at"`
+	DeletedAt *time.Time `db:"deleted_at"  sql_gen:"soft_delete"`
 
-	UserID                     uuid.UUID `db:"user_id"`
+	UserID                     uuid.UUID `db:"user_id"                        sql_gen:"get_one"`
 	EnableAutoSkip             bool      `db:"enable_auto_skip"`
 	EnableAutoPlay             bool      `db:"enable_auto_play"`
 	MinimizeToolbarWhenEditing bool      `db:"minimize_toolbar_when_editing"`
@@ -105,8 +105,8 @@ type Preferences struct {
 
 type ShowAdmin struct {
 	BaseEntity
-	ShowID uuid.UUID `db:"show_id"`
-	UserID uuid.UUID `db:"user_id"`
+	ShowID uuid.UUID `db:"show_id" sql_gen:"get_many"`
+	UserID uuid.UUID `db:"user_id" sql_gen:"get_many"`
 }
 
 type Show struct {
@@ -118,13 +118,13 @@ type Show struct {
 }
 
 type TemplateTimestamp struct {
-	TemplateID  uuid.UUID `db:"template_id"`
-	TimestampID uuid.UUID `db:"timestamp_id"`
+	TemplateID  uuid.UUID `db:"template_id"  sql_gen:"get_many"`
+	TimestampID uuid.UUID `db:"timestamp_id" sql_gen:"get_many"`
 }
 
 type Template struct {
 	BaseEntity
-	ShowID          uuid.UUID `db:"show_id"`
+	ShowID          uuid.UUID `db:"show_id"            sql_gen:"get_many"`
 	Type            int
 	Seasons         pq.StringArray
 	SourceEpisodeID uuid.UUID `db:"source_episode_id"`
@@ -145,13 +145,13 @@ type Timestamp struct {
 }
 
 type User struct {
-	ID            uuid.UUID
+	ID            uuid.UUID  `                     sql_gen:"primary_key"`
 	CreatedAt     time.Time  `db:"created_at"`
-	DeletedAt     *time.Time `db:"deleted_at"`
-	Username      string
-	Email         string
-	PasswordHash  string `db:"password_hash"`
-	ProfileURL    string `db:"profile_url"`
-	EmailVerified bool   `db:"email_verified"`
+	DeletedAt     *time.Time `db:"deleted_at"      sql_gen:"soft_delete"`
+	Username      string     `                     sql_gen:"get_one"`
+	Email         string     `                     sql_gen:"get_one"`
+	PasswordHash  string     `db:"password_hash"`
+	ProfileURL    string     `db:"profile_url"`
+	EmailVerified bool       `db:"email_verified"`
 	Role          int
 }

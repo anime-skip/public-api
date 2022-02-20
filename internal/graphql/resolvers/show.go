@@ -19,21 +19,21 @@ func (r *showResolver) DeletedBy(ctx context.Context, obj *graphql.Show) (*graph
 }
 
 func (r *showResolver) Admins(ctx context.Context, obj *graphql.Show) ([]*graphql.ShowAdmin, error) {
-	panic("not implemented")
+	panic("showResolver.Admins not implemented")
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *graphql.Show) ([]*graphql.Episode, error) {
-	panic("not implemented")
+	panic("showResolver.Episodes not implemented")
 }
 
 func (r *showResolver) Templates(ctx context.Context, obj *graphql.Show) ([]*graphql.Template, error) {
-	panic("not implemented")
+	panic("showResolver.Templates not implemented")
 }
 
 func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("not implemented")
+	panic("showResolver.SeasonCount not implemented")
 }
 
 func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("not implemented")
+	panic("showResolver.EpisodeCount not implemented")
 }

@@ -18,10 +18,10 @@ func main() {
 		config.EnvInt("DATABASE_VERSION"),
 	)
 
-	services := internal.Services{
-		UserService:        postgres.NewUserService(db),
-		PreferencesService: postgres.NewPreferencesService(db),
-	}
+	services := internal.NewServices(
+		postgres.NewUserService(db),
+		postgres.NewPreferencesService(db),
+	)
 
 	graphqlHandler := handler.NewGraphqlHandler(
 		services,

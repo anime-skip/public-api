@@ -3,7 +3,6 @@ package resolvers
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
@@ -17,9 +16,7 @@ func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*graphql.Use
 	}
 
 	// return user for created_by_user_id and updated_by_user_id
-	user, err := r.UserService.GetUserByID(ctx, internal.GetUserByIDParams{
-		UserID: *id,
-	})
+	user, err := r.UserService.GetByID(ctx, *id)
 	if err != nil {
 		return nil, err
 	}

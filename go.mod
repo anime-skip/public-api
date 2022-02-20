@@ -5,7 +5,9 @@ go 1.17
 require (
 	github.com/99designs/gqlgen v0.16.0
 	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
+	github.com/dave/jennifer v1.5.0
 	github.com/davecgh/go-spew v1.1.1
+	github.com/ettle/strcase v0.1.1
 	github.com/go-chi/chi v1.5.4
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jmoiron/sqlx v1.3.4
@@ -32,12 +34,12 @@ require (
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0 // indirect
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210405180319-a5a99cb37ef4 // indirect
+	golang.org/x/mod v0.5.1 // indirect
+	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.0.0-20210630005230-0f9fa26af87c // indirect
+	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654 // indirect
 	golang.org/x/term v0.0.0-20210317153231-de623e64d2a6 // indirect
-	golang.org/x/tools v0.1.5 // indirect
+	golang.org/x/tools v0.1.8 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6 // indirect
 	gopkg.in/yaml.v2 v2.2.4 // indirect

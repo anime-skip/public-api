@@ -19,7 +19,7 @@ func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *graphql.ShowAdmi
 }
 
 func (r *showAdminResolver) Show(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.Show, error) {
-	panic("not implemented")
+	panic("showAdminResolver.Show not implemented")
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {

@@ -20,7 +20,7 @@ RUN go mod verify
 ADD . .
 ARG VERSION
 RUN : "${VERSION:?Argument needs to be passed and non-empty.}"
-RUN go build \
+RUN OOS=linux GOARCH=amd64 go build \
     -ldflags "-X anime-skip.com/timestamps-service/internal/config.VERSION=$VERSION" \
     -o bin/server \
     cmd/server/main.go
