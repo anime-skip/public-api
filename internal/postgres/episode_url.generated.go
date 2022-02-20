@@ -60,7 +60,7 @@ func insertEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, episodeURL internal.
 		return internal.EpisodeURL{}, err
 	}
 	if changedRows != 1 {
-		return internal.EpisodeURL{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.EpisodeURL{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newEpisodeURL, err
 }
@@ -72,13 +72,13 @@ func insertEpisodeURL(ctx context.Context, db internal.Database, episodeURL inte
 	}
 	defer tx.Rollback()
 
-	newEpisodeURL, err := insertEpisodeURLInTx(ctx, tx, episodeURL)
+	result, err := insertEpisodeURLInTx(ctx, tx, episodeURL)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 
 	tx.Commit()
-	return newEpisodeURL, nil
+	return result, nil
 }
 
 func updateEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
@@ -102,7 +102,7 @@ func updateEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL intern
 		return internal.EpisodeURL{}, err
 	}
 	if changedRows != 1 {
-		return internal.EpisodeURL{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.EpisodeURL{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedEpisodeURL, err
 }
@@ -114,11 +114,49 @@ func updateEpisodeURL(ctx context.Context, db internal.Database, episodeURL inte
 	}
 	defer tx.Rollback()
 
-	newEpisodeURL, err := updateEpisodeURLInTx(ctx, tx, episodeURL)
+	result, err := updateEpisodeURLInTx(ctx, tx, episodeURL)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 
 	tx.Commit()
-	return newEpisodeURL, nil
+	return result, nil
+}
+
+func deleteEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	deletedEpisodeURL := newEpisodeURL
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	deletedEpisodeURL.UpdatedAt = time.Now()
+	deletedEpisodeURL.UpdatedByUserID = auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM episode_urls WHERE url=$1", deletedEpisodeURL.URL)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	if changedRows != 1 {
+		return internal.EpisodeURL{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedEpisodeURL, err
+}
+
+func deleteEpisodeURL(ctx context.Context, db internal.Database, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteEpisodeURLInTx(ctx, tx, episodeURL)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

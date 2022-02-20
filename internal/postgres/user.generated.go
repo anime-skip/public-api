@@ -58,7 +58,7 @@ func insertUserInTx(ctx context.Context, tx *sqlx.Tx, user internal.User) (inter
 		return internal.User{}, err
 	}
 	if changedRows != 1 {
-		return internal.User{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.User{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newUser, err
 }
@@ -70,13 +70,13 @@ func insertUser(ctx context.Context, db internal.Database, user internal.User) (
 	}
 	defer tx.Rollback()
 
-	newUser, err := insertUserInTx(ctx, tx, user)
+	result, err := insertUserInTx(ctx, tx, user)
 	if err != nil {
 		return internal.User{}, err
 	}
 
 	tx.Commit()
-	return newUser, nil
+	return result, nil
 }
 
 func updateUserInTx(ctx context.Context, tx *sqlx.Tx, newUser internal.User) (internal.User, error) {
@@ -94,7 +94,7 @@ func updateUserInTx(ctx context.Context, tx *sqlx.Tx, newUser internal.User) (in
 		return internal.User{}, err
 	}
 	if changedRows != 1 {
-		return internal.User{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.User{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedUser, err
 }
@@ -106,11 +106,45 @@ func updateUser(ctx context.Context, db internal.Database, user internal.User) (
 	}
 	defer tx.Rollback()
 
-	newUser, err := updateUserInTx(ctx, tx, user)
+	result, err := updateUserInTx(ctx, tx, user)
 	if err != nil {
 		return internal.User{}, err
 	}
 
 	tx.Commit()
-	return newUser, nil
+	return result, nil
+}
+
+func deleteUserInTx(ctx context.Context, tx *sqlx.Tx, newUser internal.User) (internal.User, error) {
+	deletedUser := newUser
+	now := time.Now()
+	deletedUser.DeletedAt = &now
+	result, err := tx.ExecContext(ctx, "DELETE FROM users WHERE id=$1", deletedUser.ID)
+	if err != nil {
+		return internal.User{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.User{}, err
+	}
+	if changedRows != 1 {
+		return internal.User{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedUser, err
+}
+
+func deleteUser(ctx context.Context, db internal.Database, user internal.User) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteUserInTx(ctx, tx, user)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

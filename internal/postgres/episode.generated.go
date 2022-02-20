@@ -81,7 +81,7 @@ func insertEpisodeInTx(ctx context.Context, tx *sqlx.Tx, episode internal.Episod
 		return internal.Episode{}, err
 	}
 	if changedRows != 1 {
-		return internal.Episode{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.Episode{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newEpisode, err
 }
@@ -93,13 +93,13 @@ func insertEpisode(ctx context.Context, db internal.Database, episode internal.E
 	}
 	defer tx.Rollback()
 
-	newEpisode, err := insertEpisodeInTx(ctx, tx, episode)
+	result, err := insertEpisodeInTx(ctx, tx, episode)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 
 	tx.Commit()
-	return newEpisode, nil
+	return result, nil
 }
 
 func updateEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Episode) (internal.Episode, error) {
@@ -123,7 +123,7 @@ func updateEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Epi
 		return internal.Episode{}, err
 	}
 	if changedRows != 1 {
-		return internal.Episode{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.Episode{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedEpisode, err
 }
@@ -135,11 +135,52 @@ func updateEpisode(ctx context.Context, db internal.Database, episode internal.E
 	}
 	defer tx.Rollback()
 
-	newEpisode, err := updateEpisodeInTx(ctx, tx, episode)
+	result, err := updateEpisodeInTx(ctx, tx, episode)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 
 	tx.Commit()
-	return newEpisode, nil
+	return result, nil
+}
+
+func deleteEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Episode) (internal.Episode, error) {
+	deletedEpisode := newEpisode
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	deletedEpisode.UpdatedAt = time.Now()
+	deletedEpisode.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedEpisode.DeletedAt = &now
+	deletedEpisode.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM episodes WHERE id=$1", deletedEpisode.ID)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	if changedRows != 1 {
+		return internal.Episode{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedEpisode, err
+}
+
+func deleteEpisode(ctx context.Context, db internal.Database, episode internal.Episode) (internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteEpisodeInTx(ctx, tx, episode)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

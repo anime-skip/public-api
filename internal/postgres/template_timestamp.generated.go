@@ -63,7 +63,7 @@ func insertTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, templateTimes
 		return internal.TemplateTimestamp{}, err
 	}
 	if changedRows != 1 {
-		return internal.TemplateTimestamp{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.TemplateTimestamp{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newTemplateTimestamp, err
 }
@@ -75,13 +75,13 @@ func insertTemplateTimestamp(ctx context.Context, db internal.Database, template
 	}
 	defer tx.Rollback()
 
-	newTemplateTimestamp, err := insertTemplateTimestampInTx(ctx, tx, templateTimestamp)
+	result, err := insertTemplateTimestampInTx(ctx, tx, templateTimestamp)
 	if err != nil {
 		return internal.TemplateTimestamp{}, err
 	}
 
 	tx.Commit()
-	return newTemplateTimestamp, nil
+	return result, nil
 }
 
 func updateTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
@@ -99,7 +99,7 @@ func updateTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTi
 		return internal.TemplateTimestamp{}, err
 	}
 	if changedRows != 1 {
-		return internal.TemplateTimestamp{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.TemplateTimestamp{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedTemplateTimestamp, err
 }
@@ -111,11 +111,11 @@ func updateTemplateTimestamp(ctx context.Context, db internal.Database, template
 	}
 	defer tx.Rollback()
 
-	newTemplateTimestamp, err := updateTemplateTimestampInTx(ctx, tx, templateTimestamp)
+	result, err := updateTemplateTimestampInTx(ctx, tx, templateTimestamp)
 	if err != nil {
 		return internal.TemplateTimestamp{}, err
 	}
 
 	tx.Commit()
-	return newTemplateTimestamp, nil
+	return result, nil
 }

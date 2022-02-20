@@ -93,6 +93,11 @@ func generateModelSqlMethods(model interface{}) {
 	updateInTx(file, modelType)
 	update(file, modelType)
 
+	if modelDetails.primaryKey != nil {
+		deleteInTx(file, modelType, *modelDetails.primaryKey)
+		delete(file, modelType)
+	}
+
 	writeFile(filename, file)
 }
 
@@ -204,7 +209,6 @@ func _getOne(file *File, funcName string, sql string, model reflect.Type, field 
 	modelName := model.Name()
 	varName := strcase.ToGoCamel(modelName)
 	fieldName := strcase.ToGoCamel(field.Name)
-	println("    ", funcName)
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -278,7 +282,6 @@ func _getMany(file *File, funcName string, sql string, model reflect.Type, field
 	returnErr := If(Err().Op("!=").Nil()).Block(
 		Return().List(Nil(), Err()),
 	)
-	println("    ", funcName)
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -361,13 +364,11 @@ func unwrapInTxFunc(file *File, model reflect.Type, inTxFuncName string) {
 	modelName := model.Name()
 	funcName := strings.Replace(inTxFuncName, "InTx", "", 1)
 	argName := strcase.ToGoCamel(modelName)
-	newModelName := strcase.ToGoCamel("new" + modelName)
+	resultName := "result"
 	emptyModel := Qual(internalPkg, modelName).Block()
 	ifErrReturn := If(Err().Op("!=").Nil()).Block(
 		Return().List(emptyModel, Err()),
 	)
-
-	println("    ", funcName)
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -381,11 +382,11 @@ func unwrapInTxFunc(file *File, model reflect.Type, inTxFuncName string) {
 		ifErrReturn,
 		Defer().Id("tx").Dot("Rollback").Call(),
 		Empty(),
-		List(Id(newModelName), Err()).Op(":=").Id(inTxFuncName).Call(Id("ctx"), Id("tx"), Id(argName)),
+		List(Id(resultName), Err()).Op(":=").Id(inTxFuncName).Call(Id("ctx"), Id("tx"), Id(argName)),
 		ifErrReturn,
 		Empty(),
 		Id("tx").Dot("Commit").Call(),
-		Return().List(Id(newModelName), Nil()),
+		Return().List(Id(resultName), Nil()),
 	).Line()
 }
 
@@ -417,8 +418,6 @@ func insertInTx(file *File, model reflect.Type) {
 	_, hasUpdatedBy := model.FieldByName("UpdatedByUserID")
 	_, hasDeletedAt := model.FieldByName("DeletedAt")
 	_, hasDeletedBy := model.FieldByName("DeletedByUserID")
-
-	println("    ", funcName)
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -456,7 +455,7 @@ func insertInTx(file *File, model reflect.Type) {
 		g.List(Id("changedRows"), Err()).Op(":=").Id("result").Dot("RowsAffected").Call()
 		g.Add(ifErrReturn)
 		g.If(Id("changedRows").Op("!=").Lit(1)).Block(
-			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Inserted %d rows, not 1"), Id("changedRows"))),
+			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Inserted more than 1 row (%d)"), Id("changedRows"))),
 		)
 		g.Return().List(Id(newModelName), Err())
 	}).Line()
@@ -497,8 +496,6 @@ func updateInTx(file *File, model reflect.Type) {
 	_, hasUpdatedAt := model.FieldByName("UpdatedAt")
 	_, hasUpdatedBy := model.FieldByName("UpdatedByUserID")
 
-	println("    ", funcName)
-
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("tx").Op("*").Qual(sqlxPkg, "Tx"),
@@ -523,7 +520,7 @@ func updateInTx(file *File, model reflect.Type) {
 		g.List(Id("changedRows"), Err()).Op(":=").Id("result").Dot("RowsAffected").Call()
 		g.Add(ifErrReturn)
 		g.If(Id("changedRows").Op("!=").Lit(1)).Block(
-			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Updated %d rows, not 1"), Id("changedRows"))),
+			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Updated more than 1 row (%d)"), Id("changedRows"))),
 		)
 		g.Return().List(Id(updatedModelName), Err())
 	}).Line()
@@ -535,3 +532,65 @@ func update(file *File, model reflect.Type) {
 }
 
 // Delete
+
+func deleteInTx(file *File, model reflect.Type, primaryKey reflect.StructField) {
+	modelName := model.Name()
+	funcName := fmt.Sprintf("delete%sInTx", modelName)
+	argName := strcase.ToGoCamel("new" + modelName)
+	deletedModelName := strcase.ToGoCamel("deleted" + modelName)
+	tableName := pluralize(strcase.ToSnake(modelName))
+	sql := fmt.Sprintf(
+		"DELETE FROM %s WHERE %s=$1",
+		tableName,
+		getColumnName(primaryKey),
+	)
+	emptyModel := Qual(internalPkg, modelName).Block()
+	ifErrReturn := If(Err().Op("!=").Nil()).Block(
+		Return().List(emptyModel, Err()),
+	)
+	_, hasUpdatedAt := model.FieldByName("UpdatedAt")
+	_, hasUpdatedBy := model.FieldByName("UpdatedByUserID")
+	_, hasDeletedAt := model.FieldByName("DeletedAt")
+	_, hasDeletedBy := model.FieldByName("DeletedByUserID")
+
+	file.Func().Id(funcName).Params(
+		Id("ctx").Qual("context", "Context"),
+		Id("tx").Op("*").Qual(sqlxPkg, "Tx"),
+		Id(argName).Qual(internalPkg, modelName),
+	).Params(
+		Qual(internalPkg, modelName),
+		Error(),
+	).BlockFunc(func(g *Group) {
+		g.Id(deletedModelName).Op(":=").Id(argName)
+		if hasUpdatedBy {
+			g.List(Id("auth"), Err()).Op(":=").Qual(asContextPkg, "GetAuthenticationDetails").Call(Id("ctx"))
+			g.Add(ifErrReturn)
+		}
+		if hasUpdatedAt {
+			g.Add(updateMetadataTime(deletedModelName, "UpdatedAt"))
+		}
+		if hasUpdatedBy {
+			g.Add(updateMetadataUserID(deletedModelName, "UpdatedByUserID"))
+		}
+		if hasDeletedAt {
+			g.Id("now").Op(":=").Qual("time", "Now").Call()
+			g.Add(Id(deletedModelName).Dot("DeletedAt").Op("=").Op("&").Id("now"))
+		}
+		if hasDeletedBy {
+			g.Id(deletedModelName).Dot("DeletedByUserID").Op("=").Op("&").Id("auth").Dot("UserID")
+		}
+		g.List(Id("result"), Err()).Op(":=").Id("tx").Dot("ExecContext").Call(Id("ctx"), Lit(sql), Id(deletedModelName).Dot(primaryKey.Name))
+		g.Add(ifErrReturn)
+		g.List(Id("changedRows"), Err()).Op(":=").Id("result").Dot("RowsAffected").Call()
+		g.Add(ifErrReturn)
+		g.If(Id("changedRows").Op("!=").Lit(1)).Block(
+			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Deleted more than 1 row (%d)"), Id("changedRows"))),
+		)
+		g.Return().List(Id(deletedModelName), Err())
+	}).Line()
+}
+
+func delete(file *File, model reflect.Type) {
+	inTxFuncName := fmt.Sprintf("delete%sInTx", model.Name())
+	unwrapInTxFunc(file, model, inTxFuncName)
+}

@@ -43,7 +43,7 @@ func insertTimestampInTx(ctx context.Context, tx *sqlx.Tx, timestamp internal.Ti
 		return internal.Timestamp{}, err
 	}
 	if changedRows != 1 {
-		return internal.Timestamp{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.Timestamp{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newTimestamp, err
 }
@@ -55,13 +55,13 @@ func insertTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	}
 	defer tx.Rollback()
 
-	newTimestamp, err := insertTimestampInTx(ctx, tx, timestamp)
+	result, err := insertTimestampInTx(ctx, tx, timestamp)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
 
 	tx.Commit()
-	return newTimestamp, nil
+	return result, nil
 }
 
 func updateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
@@ -85,7 +85,7 @@ func updateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal
 		return internal.Timestamp{}, err
 	}
 	if changedRows != 1 {
-		return internal.Timestamp{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.Timestamp{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedTimestamp, err
 }
@@ -97,11 +97,52 @@ func updateTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	}
 	defer tx.Rollback()
 
-	newTimestamp, err := updateTimestampInTx(ctx, tx, timestamp)
+	result, err := updateTimestampInTx(ctx, tx, timestamp)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
 
 	tx.Commit()
-	return newTimestamp, nil
+	return result, nil
+}
+
+func deleteTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
+	deletedTimestamp := newTimestamp
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	deletedTimestamp.UpdatedAt = time.Now()
+	deletedTimestamp.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedTimestamp.DeletedAt = &now
+	deletedTimestamp.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM timestamps WHERE id=$1", deletedTimestamp.ID)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	if changedRows != 1 {
+		return internal.Timestamp{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedTimestamp, err
+}
+
+func deleteTimestamp(ctx context.Context, db internal.Database, timestamp internal.Timestamp) (internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteTimestampInTx(ctx, tx, timestamp)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

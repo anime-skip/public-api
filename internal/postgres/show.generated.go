@@ -43,7 +43,7 @@ func insertShowInTx(ctx context.Context, tx *sqlx.Tx, show internal.Show) (inter
 		return internal.Show{}, err
 	}
 	if changedRows != 1 {
-		return internal.Show{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.Show{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newShow, err
 }
@@ -55,13 +55,13 @@ func insertShow(ctx context.Context, db internal.Database, show internal.Show) (
 	}
 	defer tx.Rollback()
 
-	newShow, err := insertShowInTx(ctx, tx, show)
+	result, err := insertShowInTx(ctx, tx, show)
 	if err != nil {
 		return internal.Show{}, err
 	}
 
 	tx.Commit()
-	return newShow, nil
+	return result, nil
 }
 
 func updateShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (internal.Show, error) {
@@ -85,7 +85,7 @@ func updateShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (in
 		return internal.Show{}, err
 	}
 	if changedRows != 1 {
-		return internal.Show{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.Show{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedShow, err
 }
@@ -97,11 +97,52 @@ func updateShow(ctx context.Context, db internal.Database, show internal.Show) (
 	}
 	defer tx.Rollback()
 
-	newShow, err := updateShowInTx(ctx, tx, show)
+	result, err := updateShowInTx(ctx, tx, show)
 	if err != nil {
 		return internal.Show{}, err
 	}
 
 	tx.Commit()
-	return newShow, nil
+	return result, nil
+}
+
+func deleteShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (internal.Show, error) {
+	deletedShow := newShow
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	deletedShow.UpdatedAt = time.Now()
+	deletedShow.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedShow.DeletedAt = &now
+	deletedShow.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM shows WHERE id=$1", deletedShow.ID)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Show{}, err
+	}
+	if changedRows != 1 {
+		return internal.Show{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedShow, err
+}
+
+func deleteShow(ctx context.Context, db internal.Database, show internal.Show) (internal.Show, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteShowInTx(ctx, tx, show)
+	if err != nil {
+		return internal.Show{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

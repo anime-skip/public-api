@@ -81,7 +81,7 @@ func insertAPIClientInTx(ctx context.Context, tx *sqlx.Tx, apiClient internal.AP
 		return internal.APIClient{}, err
 	}
 	if changedRows != 1 {
-		return internal.APIClient{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.APIClient{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newAPIClient, err
 }
@@ -93,13 +93,13 @@ func insertAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	}
 	defer tx.Rollback()
 
-	newAPIClient, err := insertAPIClientInTx(ctx, tx, apiClient)
+	result, err := insertAPIClientInTx(ctx, tx, apiClient)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
 
 	tx.Commit()
-	return newAPIClient, nil
+	return result, nil
 }
 
 func updateAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
@@ -123,7 +123,7 @@ func updateAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal
 		return internal.APIClient{}, err
 	}
 	if changedRows != 1 {
-		return internal.APIClient{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.APIClient{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedAPIClient, err
 }
@@ -135,11 +135,52 @@ func updateAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	}
 	defer tx.Rollback()
 
-	newAPIClient, err := updateAPIClientInTx(ctx, tx, apiClient)
+	result, err := updateAPIClientInTx(ctx, tx, apiClient)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
 
 	tx.Commit()
-	return newAPIClient, nil
+	return result, nil
+}
+
+func deleteAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
+	deletedAPIClient := newAPIClient
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	deletedAPIClient.UpdatedAt = time.Now()
+	deletedAPIClient.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedAPIClient.DeletedAt = &now
+	deletedAPIClient.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM api_clients WHERE id=$1", deletedAPIClient.ID)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	if changedRows != 1 {
+		return internal.APIClient{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedAPIClient, err
+}
+
+func deleteAPIClient(ctx context.Context, db internal.Database, apiClient internal.APIClient) (internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteAPIClientInTx(ctx, tx, apiClient)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

@@ -81,7 +81,7 @@ func insertTemplateInTx(ctx context.Context, tx *sqlx.Tx, template internal.Temp
 		return internal.Template{}, err
 	}
 	if changedRows != 1 {
-		return internal.Template{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.Template{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newTemplate, err
 }
@@ -93,13 +93,13 @@ func insertTemplate(ctx context.Context, db internal.Database, template internal
 	}
 	defer tx.Rollback()
 
-	newTemplate, err := insertTemplateInTx(ctx, tx, template)
+	result, err := insertTemplateInTx(ctx, tx, template)
 	if err != nil {
 		return internal.Template{}, err
 	}
 
 	tx.Commit()
-	return newTemplate, nil
+	return result, nil
 }
 
 func updateTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.Template) (internal.Template, error) {
@@ -123,7 +123,7 @@ func updateTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.T
 		return internal.Template{}, err
 	}
 	if changedRows != 1 {
-		return internal.Template{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.Template{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedTemplate, err
 }
@@ -135,11 +135,52 @@ func updateTemplate(ctx context.Context, db internal.Database, template internal
 	}
 	defer tx.Rollback()
 
-	newTemplate, err := updateTemplateInTx(ctx, tx, template)
+	result, err := updateTemplateInTx(ctx, tx, template)
 	if err != nil {
 		return internal.Template{}, err
 	}
 
 	tx.Commit()
-	return newTemplate, nil
+	return result, nil
+}
+
+func deleteTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.Template) (internal.Template, error) {
+	deletedTemplate := newTemplate
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	deletedTemplate.UpdatedAt = time.Now()
+	deletedTemplate.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedTemplate.DeletedAt = &now
+	deletedTemplate.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM templates WHERE id=$1", deletedTemplate.ID)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Template{}, err
+	}
+	if changedRows != 1 {
+		return internal.Template{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedTemplate, err
+}
+
+func deleteTemplate(ctx context.Context, db internal.Database, template internal.Template) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteTemplateInTx(ctx, tx, template)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

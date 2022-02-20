@@ -119,7 +119,7 @@ func insertShowAdminInTx(ctx context.Context, tx *sqlx.Tx, showAdmin internal.Sh
 		return internal.ShowAdmin{}, err
 	}
 	if changedRows != 1 {
-		return internal.ShowAdmin{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.ShowAdmin{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newShowAdmin, err
 }
@@ -131,13 +131,13 @@ func insertShowAdmin(ctx context.Context, db internal.Database, showAdmin intern
 	}
 	defer tx.Rollback()
 
-	newShowAdmin, err := insertShowAdminInTx(ctx, tx, showAdmin)
+	result, err := insertShowAdminInTx(ctx, tx, showAdmin)
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
 
 	tx.Commit()
-	return newShowAdmin, nil
+	return result, nil
 }
 
 func updateShowAdminInTx(ctx context.Context, tx *sqlx.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
@@ -161,7 +161,7 @@ func updateShowAdminInTx(ctx context.Context, tx *sqlx.Tx, newShowAdmin internal
 		return internal.ShowAdmin{}, err
 	}
 	if changedRows != 1 {
-		return internal.ShowAdmin{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.ShowAdmin{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedShowAdmin, err
 }
@@ -173,11 +173,52 @@ func updateShowAdmin(ctx context.Context, db internal.Database, showAdmin intern
 	}
 	defer tx.Rollback()
 
-	newShowAdmin, err := updateShowAdminInTx(ctx, tx, showAdmin)
+	result, err := updateShowAdminInTx(ctx, tx, showAdmin)
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
 
 	tx.Commit()
-	return newShowAdmin, nil
+	return result, nil
+}
+
+func deleteShowAdminInTx(ctx context.Context, tx *sqlx.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	deletedShowAdmin := newShowAdmin
+	auth, err := context1.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	deletedShowAdmin.UpdatedAt = time.Now()
+	deletedShowAdmin.UpdatedByUserID = auth.UserID
+	now := time.Now()
+	deletedShowAdmin.DeletedAt = &now
+	deletedShowAdmin.DeletedByUserID = &auth.UserID
+	result, err := tx.ExecContext(ctx, "DELETE FROM show_admins WHERE id=$1", deletedShowAdmin.ID)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	if changedRows != 1 {
+		return internal.ShowAdmin{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedShowAdmin, err
+}
+
+func deleteShowAdmin(ctx context.Context, db internal.Database, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deleteShowAdminInTx(ctx, tx, showAdmin)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }

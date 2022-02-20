@@ -47,7 +47,7 @@ func insertPreferencesInTx(ctx context.Context, tx *sqlx.Tx, preferences interna
 		return internal.Preferences{}, err
 	}
 	if changedRows != 1 {
-		return internal.Preferences{}, fmt.Errorf("Inserted %d rows, not 1", changedRows)
+		return internal.Preferences{}, fmt.Errorf("Inserted more than 1 row (%d)", changedRows)
 	}
 	return newPreferences, err
 }
@@ -59,13 +59,13 @@ func insertPreferences(ctx context.Context, db internal.Database, preferences in
 	}
 	defer tx.Rollback()
 
-	newPreferences, err := insertPreferencesInTx(ctx, tx, preferences)
+	result, err := insertPreferencesInTx(ctx, tx, preferences)
 	if err != nil {
 		return internal.Preferences{}, err
 	}
 
 	tx.Commit()
-	return newPreferences, nil
+	return result, nil
 }
 
 func updatePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
@@ -84,7 +84,7 @@ func updatePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences inte
 		return internal.Preferences{}, err
 	}
 	if changedRows != 1 {
-		return internal.Preferences{}, fmt.Errorf("Updated %d rows, not 1", changedRows)
+		return internal.Preferences{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
 	return updatedPreferences, err
 }
@@ -96,11 +96,46 @@ func updatePreferences(ctx context.Context, db internal.Database, preferences in
 	}
 	defer tx.Rollback()
 
-	newPreferences, err := updatePreferencesInTx(ctx, tx, preferences)
+	result, err := updatePreferencesInTx(ctx, tx, preferences)
 	if err != nil {
 		return internal.Preferences{}, err
 	}
 
 	tx.Commit()
-	return newPreferences, nil
+	return result, nil
+}
+
+func deletePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
+	deletedPreferences := newPreferences
+	deletedPreferences.UpdatedAt = time.Now()
+	now := time.Now()
+	deletedPreferences.DeletedAt = &now
+	result, err := tx.ExecContext(ctx, "DELETE FROM preferences WHERE id=$1", deletedPreferences.ID)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	if changedRows != 1 {
+		return internal.Preferences{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedPreferences, err
+}
+
+func deletePreferences(ctx context.Context, db internal.Database, preferences internal.Preferences) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := deletePreferencesInTx(ctx, tx, preferences)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
