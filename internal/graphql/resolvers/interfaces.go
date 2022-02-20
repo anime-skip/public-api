@@ -15,18 +15,6 @@ type Resolver struct {
 	*internal.Services
 }
 
-func (r *episodeResolver) CreatedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *episodeResolver) DeletedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
-	panic("not implemented")
-}
-
 func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*graphql.Show, error) {
 	panic("not implemented")
 }
@@ -40,14 +28,6 @@ func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*gr
 }
 
 func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {
-	panic("not implemented")
-}
-
-func (r *episodeUrlResolver) CreatedBy(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.User, error) {
 	panic("not implemented")
 }
 
@@ -275,18 +255,6 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *st
 	panic("not implemented")
 }
 
-func (r *showResolver) CreatedBy(ctx context.Context, obj *graphql.Show) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) UpdatedBy(ctx context.Context, obj *graphql.Show) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) DeletedBy(ctx context.Context, obj *graphql.Show) (*graphql.User, error) {
-	panic("not implemented")
-}
-
 func (r *showResolver) Admins(ctx context.Context, obj *graphql.Show) ([]*graphql.ShowAdmin, error) {
 	panic("not implemented")
 }
@@ -307,35 +275,11 @@ func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int
 	panic("not implemented")
 }
 
-func (r *showAdminResolver) CreatedBy(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *showAdminResolver) UpdatedBy(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {
-	panic("not implemented")
-}
-
 func (r *showAdminResolver) Show(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.Show, error) {
 	panic("not implemented")
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) CreatedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) UpdatedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) DeletedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
 	panic("not implemented")
 }
 
@@ -375,35 +319,11 @@ func (r *thirdPartyTimestampResolver) Type(ctx context.Context, obj *graphql.Thi
 	panic("not implemented")
 }
 
-func (r *timestampResolver) CreatedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *timestampResolver) UpdatedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *timestampResolver) DeletedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
-	panic("not implemented")
-}
-
 func (r *timestampResolver) Type(ctx context.Context, obj *graphql.Timestamp) (*graphql.TimestampType, error) {
 	panic("not implemented")
 }
 
 func (r *timestampResolver) Episode(ctx context.Context, obj *graphql.Timestamp) (*graphql.Episode, error) {
-	panic("not implemented")
-}
-
-func (r *timestampTypeResolver) CreatedBy(ctx context.Context, obj *graphql.TimestampType) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *timestampTypeResolver) UpdatedBy(ctx context.Context, obj *graphql.TimestampType) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *timestampTypeResolver) DeletedBy(ctx context.Context, obj *graphql.TimestampType) (*graphql.User, error) {
 	panic("not implemented")
 }
 
