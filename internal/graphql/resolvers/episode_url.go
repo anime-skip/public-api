@@ -13,3 +13,7 @@ func (r *episodeUrlResolver) CreatedBy(ctx context.Context, obj *graphql.Episode
 func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.User, error) {
 	return r.getUserById(ctx, obj.UpdatedByUserID)
 }
+
+func (r *episodeUrlResolver) Episode(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.Episode, error) {
+	panic("not implemented")
+}

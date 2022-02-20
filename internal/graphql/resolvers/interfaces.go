@@ -15,26 +15,6 @@ type Resolver struct {
 	*internal.Services
 }
 
-func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*graphql.Show, error) {
-	panic("not implemented")
-}
-
-func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) ([]*graphql.Timestamp, error) {
-	panic("not implemented")
-}
-
-func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*graphql.EpisodeURL, error) {
-	panic("not implemented")
-}
-
-func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {
-	panic("not implemented")
-}
-
-func (r *episodeUrlResolver) Episode(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.Episode, error) {
-	panic("not implemented")
-}
-
 func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*graphql.LoginData, error) {
 	panic("not implemented")
 }
@@ -75,11 +55,11 @@ func (r *mutationResolver) CreateShow(ctx context.Context, showInput graphql.Inp
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateShow(ctx context.Context, showID string, newShow graphql.InputShow) (*graphql.Show, error) {
+func (r *mutationResolver) UpdateShow(ctx context.Context, showID *uuid.UUID, newShow graphql.InputShow) (*graphql.Show, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteShow(ctx context.Context, showID string) (*graphql.Show, error) {
+func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
 	panic("not implemented")
 }
 
@@ -87,23 +67,23 @@ func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput g
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID string) (*graphql.ShowAdmin, error) {
+func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) CreateEpisode(ctx context.Context, showID string, episodeInput graphql.InputEpisode) (*graphql.Episode, error) {
+func (r *mutationResolver) CreateEpisode(ctx context.Context, showID *uuid.UUID, episodeInput graphql.InputEpisode) (*graphql.Episode, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID string, newEpisode graphql.InputEpisode) (*graphql.Episode, error) {
+func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID *uuid.UUID, newEpisode graphql.InputEpisode) (*graphql.Episode, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID string) (*graphql.Episode, error) {
+func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID string, episodeURLInput graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
+func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid.UUID, episodeURLInput graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
 	panic("not implemented")
 }
 
@@ -115,19 +95,19 @@ func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL stri
 	panic("not implemented")
 }
 
-func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID string, timestampInput graphql.InputTimestamp) (*graphql.Timestamp, error) {
+func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID *uuid.UUID, timestampInput graphql.InputTimestamp) (*graphql.Timestamp, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp graphql.InputTimestamp) (*graphql.Timestamp, error) {
+func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID *uuid.UUID, newTimestamp graphql.InputTimestamp) (*graphql.Timestamp, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID string) (*graphql.Timestamp, error) {
+func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graphql.InputTimestampOn, update []*graphql.InputExistingTimestamp, delete []string) (*graphql.UpdatedTimestamps, error) {
+func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graphql.InputTimestampOn, update []*graphql.InputExistingTimestamp, delete []*uuid.UUID) (*graphql.UpdatedTimestamps, error) {
 	panic("not implemented")
 }
 
@@ -135,11 +115,11 @@ func (r *mutationResolver) CreateTimestampType(ctx context.Context, timestampTyp
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType graphql.InputTimestampType) (*graphql.TimestampType, error) {
+func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTypeID *uuid.UUID, newTimestampType graphql.InputTimestampType) (*graphql.TimestampType, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTypeID string) (*graphql.TimestampType, error) {
+func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*graphql.TimestampType, error) {
 	panic("not implemented")
 }
 
@@ -147,11 +127,11 @@ func (r *mutationResolver) CreateTemplate(ctx context.Context, newTemplate graph
 	panic("not implemented")
 }
 
-func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID string, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
+func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID *uuid.UUID, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
 	panic("not implemented")
 }
 
-func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID string) (*graphql.Template, error) {
+func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
 	panic("not implemented")
 }
 
@@ -171,15 +151,15 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindUser(ctx context.Context, userID string) (*graphql.User, error) {
-	panic("not implemented")
+func (r *queryResolver) FindUser(ctx context.Context, userID *uuid.UUID) (*graphql.User, error) {
+	return r.getUserById(ctx, userID)
 }
 
 func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*graphql.User, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindShow(ctx context.Context, showID string) (*graphql.Show, error) {
+func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
 	panic("not implemented")
 }
 
@@ -187,15 +167,15 @@ func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset 
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindShowAdmin(ctx context.Context, showAdminID string) (*graphql.ShowAdmin, error) {
+func (r *queryResolver) FindShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID string) ([]*graphql.ShowAdmin, error) {
+func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindShowAdminsByUserID(ctx context.Context, userID string) ([]*graphql.ShowAdmin, error) {
+func (r *queryResolver) FindShowAdminsByUserID(ctx context.Context, userID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
 	panic("not implemented")
 }
 
@@ -203,15 +183,15 @@ func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, o
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindEpisode(ctx context.Context, episodeID string) (*graphql.Episode, error) {
+func (r *queryResolver) FindEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID string) ([]*graphql.Episode, error) {
+func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *string, offset *int, limit *int, sort *string) ([]*graphql.Episode, error) {
+func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*graphql.Episode, error) {
 	panic("not implemented")
 }
 
@@ -223,19 +203,19 @@ func (r *queryResolver) FindEpisodeURL(ctx context.Context, episodeURL string) (
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID string) ([]*graphql.EpisodeURL, error) {
+func (r *queryResolver) FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.EpisodeURL, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID string) (*graphql.Timestamp, error) {
+func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*graphql.Timestamp, error) {
+func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.Timestamp, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTimestampType(ctx context.Context, timestampTypeID string) (*graphql.TimestampType, error) {
+func (r *queryResolver) FindTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*graphql.TimestampType, error) {
 	panic("not implemented")
 }
 
@@ -243,91 +223,15 @@ func (r *queryResolver) AllTimestampTypes(ctx context.Context) ([]*graphql.Times
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTemplate(ctx context.Context, templateID string) (*graphql.Template, error) {
+func (r *queryResolver) FindTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID string) ([]*graphql.Template, error) {
+func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Template, error) {
 	panic("not implemented")
 }
 
-func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *string, showName *string, season *string) (*graphql.Template, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) Admins(ctx context.Context, obj *graphql.Show) ([]*graphql.ShowAdmin, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) Episodes(ctx context.Context, obj *graphql.Show) ([]*graphql.Episode, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) Templates(ctx context.Context, obj *graphql.Show) ([]*graphql.Template, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("not implemented")
-}
-
-func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("not implemented")
-}
-
-func (r *showAdminResolver) Show(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.Show, error) {
-	panic("not implemented")
-}
-
-func (r *showAdminResolver) User(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) Show(ctx context.Context, obj *graphql.Template) (*graphql.Show, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) SourceEpisode(ctx context.Context, obj *graphql.Template) (*graphql.Episode, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) Timestamps(ctx context.Context, obj *graphql.Template) ([]*graphql.Timestamp, error) {
-	panic("not implemented")
-}
-
-func (r *templateResolver) TimestampIds(ctx context.Context, obj *graphql.Template) ([]*uuid.UUID, error) {
-	panic("not implemented")
-}
-
-func (r *templateTimestampResolver) Template(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Template, error) {
-	panic("not implemented")
-}
-
-func (r *templateTimestampResolver) Timestamp(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Timestamp, error) {
-	panic("not implemented")
-}
-
-func (r *thirdPartyEpisodeResolver) Timestamps(ctx context.Context, obj *graphql.ThirdPartyEpisode) ([]*graphql.ThirdPartyTimestamp, error) {
-	panic("not implemented")
-}
-
-func (r *thirdPartyEpisodeResolver) Show(ctx context.Context, obj *graphql.ThirdPartyEpisode) (*graphql.ThirdPartyShow, error) {
-	panic("not implemented")
-}
-
-func (r *thirdPartyTimestampResolver) Type(ctx context.Context, obj *graphql.ThirdPartyTimestamp) (*graphql.TimestampType, error) {
-	panic("not implemented")
-}
-
-func (r *timestampResolver) Type(ctx context.Context, obj *graphql.Timestamp) (*graphql.TimestampType, error) {
-	panic("not implemented")
-}
-
-func (r *timestampResolver) Episode(ctx context.Context, obj *graphql.Timestamp) (*graphql.Episode, error) {
-	panic("not implemented")
-}
-
-func (r *userResolver) AdminOfShows(ctx context.Context, obj *graphql.User) ([]*graphql.ShowAdmin, error) {
+func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*graphql.Template, error) {
 	panic("not implemented")
 }
 

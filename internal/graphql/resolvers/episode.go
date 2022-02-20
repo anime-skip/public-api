@@ -17,3 +17,19 @@ func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *graphql.Episode) (
 func (r *episodeResolver) DeletedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
 	return r.getUserById(ctx, obj.DeletedByUserID)
 }
+
+func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*graphql.Show, error) {
+	panic("not implemented")
+}
+
+func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) ([]*graphql.Timestamp, error) {
+	panic("not implemented")
+}
+
+func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*graphql.EpisodeURL, error) {
+	panic("not implemented")
+}
+
+func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {
+	panic("not implemented")
+}

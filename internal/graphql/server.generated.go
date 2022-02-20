@@ -123,34 +123,34 @@ type ComplexityRoot struct {
 		AddTimestampToTemplate      func(childComplexity int, templateTimestamp InputTemplateTimestamp) int
 		ChangePassword              func(childComplexity int, oldPassword string, newPassword string, confirmNewPassword string) int
 		CreateAccount               func(childComplexity int, username string, email string, passwordHash string, recaptchaResponse string) int
-		CreateEpisode               func(childComplexity int, showID string, episodeInput InputEpisode) int
-		CreateEpisodeURL            func(childComplexity int, episodeID string, episodeURLInput InputEpisodeURL) int
+		CreateEpisode               func(childComplexity int, showID *uuid.UUID, episodeInput InputEpisode) int
+		CreateEpisodeURL            func(childComplexity int, episodeID *uuid.UUID, episodeURLInput InputEpisodeURL) int
 		CreateShow                  func(childComplexity int, showInput InputShow, becomeAdmin bool) int
 		CreateShowAdmin             func(childComplexity int, showAdminInput InputShowAdmin) int
 		CreateTemplate              func(childComplexity int, newTemplate InputTemplate) int
-		CreateTimestamp             func(childComplexity int, episodeID string, timestampInput InputTimestamp) int
+		CreateTimestamp             func(childComplexity int, episodeID *uuid.UUID, timestampInput InputTimestamp) int
 		CreateTimestampType         func(childComplexity int, timestampTypeInput InputTimestampType) int
 		DeleteAccount               func(childComplexity int, deleteToken string) int
 		DeleteAccountRequest        func(childComplexity int, passwordHash string) int
-		DeleteEpisode               func(childComplexity int, episodeID string) int
+		DeleteEpisode               func(childComplexity int, episodeID *uuid.UUID) int
 		DeleteEpisodeURL            func(childComplexity int, episodeURL string) int
-		DeleteShow                  func(childComplexity int, showID string) int
-		DeleteShowAdmin             func(childComplexity int, showAdminID string) int
-		DeleteTemplate              func(childComplexity int, templateID string) int
-		DeleteTimestamp             func(childComplexity int, timestampID string) int
-		DeleteTimestampType         func(childComplexity int, timestampTypeID string) int
+		DeleteShow                  func(childComplexity int, showID *uuid.UUID) int
+		DeleteShowAdmin             func(childComplexity int, showAdminID *uuid.UUID) int
+		DeleteTemplate              func(childComplexity int, templateID *uuid.UUID) int
+		DeleteTimestamp             func(childComplexity int, timestampID *uuid.UUID) int
+		DeleteTimestampType         func(childComplexity int, timestampTypeID *uuid.UUID) int
 		RemoveTimestampFromTemplate func(childComplexity int, templateTimestamp InputTemplateTimestamp) int
 		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
 		SavePreferences             func(childComplexity int, preferences InputPreferences) int
-		UpdateEpisode               func(childComplexity int, episodeID string, newEpisode InputEpisode) int
+		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL InputEpisodeURL) int
-		UpdateShow                  func(childComplexity int, showID string, newShow InputShow) int
-		UpdateTemplate              func(childComplexity int, templateID string, newTemplate InputTemplate) int
-		UpdateTimestamp             func(childComplexity int, timestampID string, newTimestamp InputTimestamp) int
-		UpdateTimestampType         func(childComplexity int, timestampTypeID string, newTimestampType InputTimestampType) int
-		UpdateTimestamps            func(childComplexity int, create []*InputTimestampOn, update []*InputExistingTimestamp, delete []string) int
+		UpdateShow                  func(childComplexity int, showID *uuid.UUID, newShow InputShow) int
+		UpdateTemplate              func(childComplexity int, templateID *uuid.UUID, newTemplate InputTemplate) int
+		UpdateTimestamp             func(childComplexity int, timestampID *uuid.UUID, newTimestamp InputTimestamp) int
+		UpdateTimestampType         func(childComplexity int, timestampTypeID *uuid.UUID, newTimestampType InputTimestampType) int
+		UpdateTimestamps            func(childComplexity int, create []*InputTimestampOn, update []*InputExistingTimestamp, delete []*uuid.UUID) int
 		VerifyEmailAddress          func(childComplexity int, validationToken string) int
 	}
 
@@ -184,27 +184,27 @@ type ComplexityRoot struct {
 	Query struct {
 		Account                    func(childComplexity int) int
 		AllTimestampTypes          func(childComplexity int) int
-		FindEpisode                func(childComplexity int, episodeID string) int
+		FindEpisode                func(childComplexity int, episodeID *uuid.UUID) int
 		FindEpisodeByName          func(childComplexity int, name string) int
 		FindEpisodeURL             func(childComplexity int, episodeURL string) int
-		FindEpisodeUrlsByEpisodeID func(childComplexity int, episodeID string) int
-		FindEpisodesByShowID       func(childComplexity int, showID string) int
-		FindShow                   func(childComplexity int, showID string) int
-		FindShowAdmin              func(childComplexity int, showAdminID string) int
-		FindShowAdminsByShowID     func(childComplexity int, showID string) int
-		FindShowAdminsByUserID     func(childComplexity int, userID string) int
-		FindTemplate               func(childComplexity int, templateID string) int
-		FindTemplateByDetails      func(childComplexity int, episodeID *string, showName *string, season *string) int
-		FindTemplatesByShowID      func(childComplexity int, showID string) int
-		FindTimestamp              func(childComplexity int, timestampID string) int
-		FindTimestampType          func(childComplexity int, timestampTypeID string) int
-		FindTimestampsByEpisodeID  func(childComplexity int, episodeID string) int
-		FindUser                   func(childComplexity int, userID string) int
+		FindEpisodeUrlsByEpisodeID func(childComplexity int, episodeID *uuid.UUID) int
+		FindEpisodesByShowID       func(childComplexity int, showID *uuid.UUID) int
+		FindShow                   func(childComplexity int, showID *uuid.UUID) int
+		FindShowAdmin              func(childComplexity int, showAdminID *uuid.UUID) int
+		FindShowAdminsByShowID     func(childComplexity int, showID *uuid.UUID) int
+		FindShowAdminsByUserID     func(childComplexity int, userID *uuid.UUID) int
+		FindTemplate               func(childComplexity int, templateID *uuid.UUID) int
+		FindTemplateByDetails      func(childComplexity int, episodeID *uuid.UUID, showName *string, season *string) int
+		FindTemplatesByShowID      func(childComplexity int, showID *uuid.UUID) int
+		FindTimestamp              func(childComplexity int, timestampID *uuid.UUID) int
+		FindTimestampType          func(childComplexity int, timestampTypeID *uuid.UUID) int
+		FindTimestampsByEpisodeID  func(childComplexity int, episodeID *uuid.UUID) int
+		FindUser                   func(childComplexity int, userID *uuid.UUID) int
 		FindUserByUsername         func(childComplexity int, username string) int
 		Login                      func(childComplexity int, usernameEmail string, passwordHash string) int
 		LoginRefresh               func(childComplexity int, refreshToken string) int
 		RecentlyAddedEpisodes      func(childComplexity int, limit *int, offset *int) int
-		SearchEpisodes             func(childComplexity int, search *string, showID *string, offset *int, limit *int, sort *string) int
+		SearchEpisodes             func(childComplexity int, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) int
 		SearchShows                func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 	}
 
@@ -387,26 +387,26 @@ type MutationResolver interface {
 	DeleteAccount(ctx context.Context, deleteToken string) (*Account, error)
 	SavePreferences(ctx context.Context, preferences InputPreferences) (*Preferences, error)
 	CreateShow(ctx context.Context, showInput InputShow, becomeAdmin bool) (*Show, error)
-	UpdateShow(ctx context.Context, showID string, newShow InputShow) (*Show, error)
-	DeleteShow(ctx context.Context, showID string) (*Show, error)
+	UpdateShow(ctx context.Context, showID *uuid.UUID, newShow InputShow) (*Show, error)
+	DeleteShow(ctx context.Context, showID *uuid.UUID) (*Show, error)
 	CreateShowAdmin(ctx context.Context, showAdminInput InputShowAdmin) (*ShowAdmin, error)
-	DeleteShowAdmin(ctx context.Context, showAdminID string) (*ShowAdmin, error)
-	CreateEpisode(ctx context.Context, showID string, episodeInput InputEpisode) (*Episode, error)
-	UpdateEpisode(ctx context.Context, episodeID string, newEpisode InputEpisode) (*Episode, error)
-	DeleteEpisode(ctx context.Context, episodeID string) (*Episode, error)
-	CreateEpisodeURL(ctx context.Context, episodeID string, episodeURLInput InputEpisodeURL) (*EpisodeURL, error)
+	DeleteShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*ShowAdmin, error)
+	CreateEpisode(ctx context.Context, showID *uuid.UUID, episodeInput InputEpisode) (*Episode, error)
+	UpdateEpisode(ctx context.Context, episodeID *uuid.UUID, newEpisode InputEpisode) (*Episode, error)
+	DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*Episode, error)
+	CreateEpisodeURL(ctx context.Context, episodeID *uuid.UUID, episodeURLInput InputEpisodeURL) (*EpisodeURL, error)
 	DeleteEpisodeURL(ctx context.Context, episodeURL string) (*EpisodeURL, error)
 	UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL InputEpisodeURL) (*EpisodeURL, error)
-	CreateTimestamp(ctx context.Context, episodeID string, timestampInput InputTimestamp) (*Timestamp, error)
-	UpdateTimestamp(ctx context.Context, timestampID string, newTimestamp InputTimestamp) (*Timestamp, error)
-	DeleteTimestamp(ctx context.Context, timestampID string) (*Timestamp, error)
-	UpdateTimestamps(ctx context.Context, create []*InputTimestampOn, update []*InputExistingTimestamp, delete []string) (*UpdatedTimestamps, error)
+	CreateTimestamp(ctx context.Context, episodeID *uuid.UUID, timestampInput InputTimestamp) (*Timestamp, error)
+	UpdateTimestamp(ctx context.Context, timestampID *uuid.UUID, newTimestamp InputTimestamp) (*Timestamp, error)
+	DeleteTimestamp(ctx context.Context, timestampID *uuid.UUID) (*Timestamp, error)
+	UpdateTimestamps(ctx context.Context, create []*InputTimestampOn, update []*InputExistingTimestamp, delete []*uuid.UUID) (*UpdatedTimestamps, error)
 	CreateTimestampType(ctx context.Context, timestampTypeInput InputTimestampType) (*TimestampType, error)
-	UpdateTimestampType(ctx context.Context, timestampTypeID string, newTimestampType InputTimestampType) (*TimestampType, error)
-	DeleteTimestampType(ctx context.Context, timestampTypeID string) (*TimestampType, error)
+	UpdateTimestampType(ctx context.Context, timestampTypeID *uuid.UUID, newTimestampType InputTimestampType) (*TimestampType, error)
+	DeleteTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*TimestampType, error)
 	CreateTemplate(ctx context.Context, newTemplate InputTemplate) (*Template, error)
-	UpdateTemplate(ctx context.Context, templateID string, newTemplate InputTemplate) (*Template, error)
-	DeleteTemplate(ctx context.Context, templateID string) (*Template, error)
+	UpdateTemplate(ctx context.Context, templateID *uuid.UUID, newTemplate InputTemplate) (*Template, error)
+	DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*Template, error)
 	AddTimestampToTemplate(ctx context.Context, templateTimestamp InputTemplateTimestamp) (*TemplateTimestamp, error)
 	RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp InputTemplateTimestamp) (*TemplateTimestamp, error)
 }
@@ -417,27 +417,27 @@ type QueryResolver interface {
 	Account(ctx context.Context) (*Account, error)
 	Login(ctx context.Context, usernameEmail string, passwordHash string) (*LoginData, error)
 	LoginRefresh(ctx context.Context, refreshToken string) (*LoginData, error)
-	FindUser(ctx context.Context, userID string) (*User, error)
+	FindUser(ctx context.Context, userID *uuid.UUID) (*User, error)
 	FindUserByUsername(ctx context.Context, username string) (*User, error)
-	FindShow(ctx context.Context, showID string) (*Show, error)
+	FindShow(ctx context.Context, showID *uuid.UUID) (*Show, error)
 	SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*Show, error)
-	FindShowAdmin(ctx context.Context, showAdminID string) (*ShowAdmin, error)
-	FindShowAdminsByShowID(ctx context.Context, showID string) ([]*ShowAdmin, error)
-	FindShowAdminsByUserID(ctx context.Context, userID string) ([]*ShowAdmin, error)
+	FindShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*ShowAdmin, error)
+	FindShowAdminsByShowID(ctx context.Context, showID *uuid.UUID) ([]*ShowAdmin, error)
+	FindShowAdminsByUserID(ctx context.Context, userID *uuid.UUID) ([]*ShowAdmin, error)
 	RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*Episode, error)
-	FindEpisode(ctx context.Context, episodeID string) (*Episode, error)
-	FindEpisodesByShowID(ctx context.Context, showID string) ([]*Episode, error)
-	SearchEpisodes(ctx context.Context, search *string, showID *string, offset *int, limit *int, sort *string) ([]*Episode, error)
+	FindEpisode(ctx context.Context, episodeID *uuid.UUID) (*Episode, error)
+	FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*Episode, error)
+	SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*Episode, error)
 	FindEpisodeByName(ctx context.Context, name string) ([]*ThirdPartyEpisode, error)
 	FindEpisodeURL(ctx context.Context, episodeURL string) (*EpisodeURL, error)
-	FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID string) ([]*EpisodeURL, error)
-	FindTimestamp(ctx context.Context, timestampID string) (*Timestamp, error)
-	FindTimestampsByEpisodeID(ctx context.Context, episodeID string) ([]*Timestamp, error)
-	FindTimestampType(ctx context.Context, timestampTypeID string) (*TimestampType, error)
+	FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*EpisodeURL, error)
+	FindTimestamp(ctx context.Context, timestampID *uuid.UUID) (*Timestamp, error)
+	FindTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*Timestamp, error)
+	FindTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*TimestampType, error)
 	AllTimestampTypes(ctx context.Context) ([]*TimestampType, error)
-	FindTemplate(ctx context.Context, templateID string) (*Template, error)
-	FindTemplatesByShowID(ctx context.Context, showID string) ([]*Template, error)
-	FindTemplateByDetails(ctx context.Context, episodeID *string, showName *string, season *string) (*Template, error)
+	FindTemplate(ctx context.Context, templateID *uuid.UUID) (*Template, error)
+	FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*Template, error)
+	FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*Template, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *Show) (*User, error)
@@ -887,7 +887,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateEpisode(childComplexity, args["showId"].(string), args["episodeInput"].(InputEpisode)), true
+		return e.complexity.Mutation.CreateEpisode(childComplexity, args["showId"].(*uuid.UUID), args["episodeInput"].(InputEpisode)), true
 
 	case "Mutation.createEpisodeUrl":
 		if e.complexity.Mutation.CreateEpisodeURL == nil {
@@ -899,7 +899,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateEpisodeURL(childComplexity, args["episodeId"].(string), args["episodeUrlInput"].(InputEpisodeURL)), true
+		return e.complexity.Mutation.CreateEpisodeURL(childComplexity, args["episodeId"].(*uuid.UUID), args["episodeUrlInput"].(InputEpisodeURL)), true
 
 	case "Mutation.createShow":
 		if e.complexity.Mutation.CreateShow == nil {
@@ -947,7 +947,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateTimestamp(childComplexity, args["episodeId"].(string), args["timestampInput"].(InputTimestamp)), true
+		return e.complexity.Mutation.CreateTimestamp(childComplexity, args["episodeId"].(*uuid.UUID), args["timestampInput"].(InputTimestamp)), true
 
 	case "Mutation.createTimestampType":
 		if e.complexity.Mutation.CreateTimestampType == nil {
@@ -995,7 +995,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteEpisode(childComplexity, args["episodeId"].(string)), true
+		return e.complexity.Mutation.DeleteEpisode(childComplexity, args["episodeId"].(*uuid.UUID)), true
 
 	case "Mutation.deleteEpisodeUrl":
 		if e.complexity.Mutation.DeleteEpisodeURL == nil {
@@ -1019,7 +1019,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteShow(childComplexity, args["showId"].(string)), true
+		return e.complexity.Mutation.DeleteShow(childComplexity, args["showId"].(*uuid.UUID)), true
 
 	case "Mutation.deleteShowAdmin":
 		if e.complexity.Mutation.DeleteShowAdmin == nil {
@@ -1031,7 +1031,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteShowAdmin(childComplexity, args["showAdminId"].(string)), true
+		return e.complexity.Mutation.DeleteShowAdmin(childComplexity, args["showAdminId"].(*uuid.UUID)), true
 
 	case "Mutation.deleteTemplate":
 		if e.complexity.Mutation.DeleteTemplate == nil {
@@ -1043,7 +1043,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTemplate(childComplexity, args["templateId"].(string)), true
+		return e.complexity.Mutation.DeleteTemplate(childComplexity, args["templateId"].(*uuid.UUID)), true
 
 	case "Mutation.deleteTimestamp":
 		if e.complexity.Mutation.DeleteTimestamp == nil {
@@ -1055,7 +1055,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTimestamp(childComplexity, args["timestampId"].(string)), true
+		return e.complexity.Mutation.DeleteTimestamp(childComplexity, args["timestampId"].(*uuid.UUID)), true
 
 	case "Mutation.deleteTimestampType":
 		if e.complexity.Mutation.DeleteTimestampType == nil {
@@ -1067,7 +1067,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.DeleteTimestampType(childComplexity, args["timestampTypeId"].(string)), true
+		return e.complexity.Mutation.DeleteTimestampType(childComplexity, args["timestampTypeId"].(*uuid.UUID)), true
 
 	case "Mutation.removeTimestampFromTemplate":
 		if e.complexity.Mutation.RemoveTimestampFromTemplate == nil {
@@ -1139,7 +1139,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateEpisode(childComplexity, args["episodeId"].(string), args["newEpisode"].(InputEpisode)), true
+		return e.complexity.Mutation.UpdateEpisode(childComplexity, args["episodeId"].(*uuid.UUID), args["newEpisode"].(InputEpisode)), true
 
 	case "Mutation.updateEpisodeUrl":
 		if e.complexity.Mutation.UpdateEpisodeURL == nil {
@@ -1163,7 +1163,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateShow(childComplexity, args["showId"].(string), args["newShow"].(InputShow)), true
+		return e.complexity.Mutation.UpdateShow(childComplexity, args["showId"].(*uuid.UUID), args["newShow"].(InputShow)), true
 
 	case "Mutation.updateTemplate":
 		if e.complexity.Mutation.UpdateTemplate == nil {
@@ -1175,7 +1175,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTemplate(childComplexity, args["templateId"].(string), args["newTemplate"].(InputTemplate)), true
+		return e.complexity.Mutation.UpdateTemplate(childComplexity, args["templateId"].(*uuid.UUID), args["newTemplate"].(InputTemplate)), true
 
 	case "Mutation.updateTimestamp":
 		if e.complexity.Mutation.UpdateTimestamp == nil {
@@ -1187,7 +1187,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTimestamp(childComplexity, args["timestampId"].(string), args["newTimestamp"].(InputTimestamp)), true
+		return e.complexity.Mutation.UpdateTimestamp(childComplexity, args["timestampId"].(*uuid.UUID), args["newTimestamp"].(InputTimestamp)), true
 
 	case "Mutation.updateTimestampType":
 		if e.complexity.Mutation.UpdateTimestampType == nil {
@@ -1199,7 +1199,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTimestampType(childComplexity, args["timestampTypeId"].(string), args["newTimestampType"].(InputTimestampType)), true
+		return e.complexity.Mutation.UpdateTimestampType(childComplexity, args["timestampTypeId"].(*uuid.UUID), args["newTimestampType"].(InputTimestampType)), true
 
 	case "Mutation.updateTimestamps":
 		if e.complexity.Mutation.UpdateTimestamps == nil {
@@ -1211,7 +1211,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateTimestamps(childComplexity, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]string)), true
+		return e.complexity.Mutation.UpdateTimestamps(childComplexity, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]*uuid.UUID)), true
 
 	case "Mutation.verifyEmailAddress":
 		if e.complexity.Mutation.VerifyEmailAddress == nil {
@@ -1417,7 +1417,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindEpisode(childComplexity, args["episodeId"].(string)), true
+		return e.complexity.Query.FindEpisode(childComplexity, args["episodeId"].(*uuid.UUID)), true
 
 	case "Query.findEpisodeByName":
 		if e.complexity.Query.FindEpisodeByName == nil {
@@ -1453,7 +1453,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindEpisodeUrlsByEpisodeID(childComplexity, args["episodeId"].(string)), true
+		return e.complexity.Query.FindEpisodeUrlsByEpisodeID(childComplexity, args["episodeId"].(*uuid.UUID)), true
 
 	case "Query.findEpisodesByShowId":
 		if e.complexity.Query.FindEpisodesByShowID == nil {
@@ -1465,7 +1465,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindEpisodesByShowID(childComplexity, args["showId"].(string)), true
+		return e.complexity.Query.FindEpisodesByShowID(childComplexity, args["showId"].(*uuid.UUID)), true
 
 	case "Query.findShow":
 		if e.complexity.Query.FindShow == nil {
@@ -1477,7 +1477,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShow(childComplexity, args["showId"].(string)), true
+		return e.complexity.Query.FindShow(childComplexity, args["showId"].(*uuid.UUID)), true
 
 	case "Query.findShowAdmin":
 		if e.complexity.Query.FindShowAdmin == nil {
@@ -1489,7 +1489,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShowAdmin(childComplexity, args["showAdminId"].(string)), true
+		return e.complexity.Query.FindShowAdmin(childComplexity, args["showAdminId"].(*uuid.UUID)), true
 
 	case "Query.findShowAdminsByShowId":
 		if e.complexity.Query.FindShowAdminsByShowID == nil {
@@ -1501,7 +1501,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShowAdminsByShowID(childComplexity, args["showId"].(string)), true
+		return e.complexity.Query.FindShowAdminsByShowID(childComplexity, args["showId"].(*uuid.UUID)), true
 
 	case "Query.findShowAdminsByUserId":
 		if e.complexity.Query.FindShowAdminsByUserID == nil {
@@ -1513,7 +1513,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindShowAdminsByUserID(childComplexity, args["userId"].(string)), true
+		return e.complexity.Query.FindShowAdminsByUserID(childComplexity, args["userId"].(*uuid.UUID)), true
 
 	case "Query.findTemplate":
 		if e.complexity.Query.FindTemplate == nil {
@@ -1525,7 +1525,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTemplate(childComplexity, args["templateId"].(string)), true
+		return e.complexity.Query.FindTemplate(childComplexity, args["templateId"].(*uuid.UUID)), true
 
 	case "Query.findTemplateByDetails":
 		if e.complexity.Query.FindTemplateByDetails == nil {
@@ -1537,7 +1537,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTemplateByDetails(childComplexity, args["episodeId"].(*string), args["showName"].(*string), args["season"].(*string)), true
+		return e.complexity.Query.FindTemplateByDetails(childComplexity, args["episodeId"].(*uuid.UUID), args["showName"].(*string), args["season"].(*string)), true
 
 	case "Query.findTemplatesByShowId":
 		if e.complexity.Query.FindTemplatesByShowID == nil {
@@ -1549,7 +1549,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTemplatesByShowID(childComplexity, args["showId"].(string)), true
+		return e.complexity.Query.FindTemplatesByShowID(childComplexity, args["showId"].(*uuid.UUID)), true
 
 	case "Query.findTimestamp":
 		if e.complexity.Query.FindTimestamp == nil {
@@ -1561,7 +1561,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTimestamp(childComplexity, args["timestampId"].(string)), true
+		return e.complexity.Query.FindTimestamp(childComplexity, args["timestampId"].(*uuid.UUID)), true
 
 	case "Query.findTimestampType":
 		if e.complexity.Query.FindTimestampType == nil {
@@ -1573,7 +1573,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTimestampType(childComplexity, args["timestampTypeId"].(string)), true
+		return e.complexity.Query.FindTimestampType(childComplexity, args["timestampTypeId"].(*uuid.UUID)), true
 
 	case "Query.findTimestampsByEpisodeId":
 		if e.complexity.Query.FindTimestampsByEpisodeID == nil {
@@ -1585,7 +1585,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindTimestampsByEpisodeID(childComplexity, args["episodeId"].(string)), true
+		return e.complexity.Query.FindTimestampsByEpisodeID(childComplexity, args["episodeId"].(*uuid.UUID)), true
 
 	case "Query.findUser":
 		if e.complexity.Query.FindUser == nil {
@@ -1597,7 +1597,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.FindUser(childComplexity, args["userId"].(string)), true
+		return e.complexity.Query.FindUser(childComplexity, args["userId"].(*uuid.UUID)), true
 
 	case "Query.findUserByUsername":
 		if e.complexity.Query.FindUserByUsername == nil {
@@ -1657,7 +1657,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.SearchEpisodes(childComplexity, args["search"].(*string), args["showId"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
+		return e.complexity.Query.SearchEpisodes(childComplexity, args["search"].(*string), args["showId"].(*uuid.UUID), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.searchShows":
 		if e.complexity.Query.SearchShows == nil {
@@ -3175,13 +3175,13 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
+  updateShow(showId: UUID! @isShowAdmin, newShow: InputShow!): Show!
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
-  deleteShow(showId: ID!): Show! @hasRole(role: ADMIN)
+  deleteShow(showId: UUID!): Show! @hasRole(role: ADMIN)
 
   # Show Admins
   """
@@ -3195,7 +3195,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin!
+  deleteShowAdmin(showAdminId: UUID! @isShowAdmin): ShowAdmin!
 
   # Episodes
   """
@@ -3203,14 +3203,17 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  createEpisode(showId: ID! @isShowAdmin, episodeInput: InputEpisode!): Episode!
+  createEpisode(
+    showId: UUID! @isShowAdmin
+    episodeInput: InputEpisode!
+  ): Episode!
   """
   Update episode info
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateEpisode(
-    episodeId: ID! @isShowAdmin
+    episodeId: UUID! @isShowAdmin
     newEpisode: InputEpisode!
   ): Episode!
   """
@@ -3218,7 +3221,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: ID! @isShowAdmin): Episode!
+  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode!
 
   # Episode Urls
   """
@@ -3227,7 +3230,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createEpisodeUrl(
-    episodeId: ID! @isShowAdmin
+    episodeId: UUID! @isShowAdmin
     episodeUrlInput: InputEpisodeUrl!
   ): EpisodeUrl!
   """
@@ -3253,7 +3256,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createTimestamp(
-    episodeId: ID! @isShowAdmin
+    episodeId: UUID! @isShowAdmin
     timestampInput: InputTimestamp!
   ): Timestamp!
   """
@@ -3262,7 +3265,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateTimestamp(
-    timestampId: ID! @isShowAdmin
+    timestampId: UUID! @isShowAdmin
     newTimestamp: InputTimestamp!
   ): Timestamp!
   """
@@ -3270,7 +3273,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteTimestamp(timestampId: ID! @isShowAdmin): Timestamp!
+  deleteTimestamp(timestampId: UUID! @isShowAdmin): Timestamp!
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
 
@@ -3279,7 +3282,7 @@ input InputTemplateTimestamp {
   updateTimestamps(
     create: [InputTimestampOn!]!
     update: [InputExistingTimestamp!]!
-    delete: [ID!]!
+    delete: [UUID!]!
   ): UpdatedTimestamps!
 
   # Timestamp Types
@@ -3296,7 +3299,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
   updateTimestampType(
-    timestampTypeId: ID!
+    timestampTypeId: UUID!
     newTimestampType: InputTimestampType!
   ): TimestampType! @hasRole(role: ADMIN)
   """
@@ -3304,7 +3307,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
-  deleteTimestampType(timestampTypeId: ID!): TimestampType!
+  deleteTimestampType(timestampTypeId: UUID!): TimestampType!
     @hasRole(role: ADMIN)
 
   # Templates
@@ -3314,11 +3317,11 @@ input InputTemplateTimestamp {
     @authenticated
   "Make changes to an existing template"
   updateTemplate(
-    templateId: ID! @isShowAdmin
+    templateId: UUID! @isShowAdmin
     newTemplate: InputTemplate!
   ): Template! @authenticated
   "Delete an existing template"
-  deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
+  deleteTemplate(templateId: UUID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
   addTimestampToTemplate(
     templateTimestamp: InputTemplateTimestamp!
@@ -3331,7 +3334,7 @@ input InputTemplateTimestamp {
   # Add and/or remove a set of timestamps from an existing template. Partial failures are completely
   # rolled back
   # """
-  # updateTemplateTimestamps(templateId: ID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
+  # updateTemplateTimestamps(templateId: UUID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
 }
 `, BuiltIn: false},
 	{Name: "api/queries.graphqls", Input: `type Query {
@@ -3348,13 +3351,13 @@ input InputTemplateTimestamp {
 
   # Users
   "Find user with a matching ` + "`" + `User.id` + "`" + `"
-  findUser(userId: ID!): User!
+  findUser(userId: UUID!): User!
   "Find user with a matching ` + "`" + `User.username` + "`" + `"
   findUserByUsername(username: String!): User!
 
   # Shows
   "Find show with a matching ` + "`" + `Show.id` + "`" + `"
-  findShow(showId: ID!): Show!
+  findShow(showId: UUID!): Show!
   """
   Search for shows that include the ` + "`" + `search` + "`" + ` in the ` + "`" + `Show.name` + "`" + `. Results are sorted by ` + "`" + `Show.name` + "`" + `
   as ` + "`" + `ASC` + "`" + ` or ` + "`" + `DESC` + "`" + `
@@ -3368,11 +3371,11 @@ input InputTemplateTimestamp {
 
   # Show Admins
   "Find show admin with a matching ` + "`" + `ShowAdmin.id` + "`" + `"
-  findShowAdmin(showAdminId: ID!): ShowAdmin!
+  findShowAdmin(showAdminId: UUID!): ShowAdmin!
   "Get a list of admins for a given ` + "`" + `Show.id` + "`" + `"
-  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]!
+  findShowAdminsByShowId(showId: UUID!): [ShowAdmin!]!
   "Get a list of show admins for a given ` + "`" + `User.id` + "`" + `"
-  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]!
+  findShowAdminsByUserId(userId: UUID!): [ShowAdmin!]!
 
   # Episodes
   """
@@ -3383,9 +3386,9 @@ input InputTemplateTimestamp {
   """
   recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]!
   "Find episode with a matching ` + "`" + `Episode.id` + "`" + `"
-  findEpisode(episodeId: ID!): Episode!
+  findEpisode(episodeId: UUID!): Episode!
   "Get a list of episodes for a given ` + "`" + `Show.id` + "`" + `"
-  findEpisodesByShowId(showId: ID!): [Episode!]!
+  findEpisodesByShowId(showId: UUID!): [Episode!]!
   """
   Search for episodes that include the ` + "`" + `search` + "`" + ` in the ` + "`" + `Episode.name` + "`" + `. Results are sorted by
   ` + "`" + `Show.name` + "`" + `as ` + "`" + `ASC` + "`" + ` or ` + "`" + `DESC` + "`" + `
@@ -3394,7 +3397,7 @@ input InputTemplateTimestamp {
   """
   searchEpisodes(
     search: String = ""
-    showId: ID
+    showId: UUID
     offset: Int = 0
     limit: Int = 25
     sort: String = "ASC"
@@ -3417,25 +3420,25 @@ input InputTemplateTimestamp {
   """
   findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the ` + "`" + `EpisodeUrl` + "`" + `s for a given ` + "`" + `Episode.id` + "`" + `"
-  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
+  findEpisodeUrlsByEpisodeId(episodeId: UUID!): [EpisodeUrl!]!
 
   # Timestamps
   "Get timestamp info based on a ` + "`" + `Timestamp.id` + "`" + `"
-  findTimestamp(timestampId: ID!): Timestamp!
+  findTimestamp(timestampId: UUID!): Timestamp!
   "Get all the timestamps for an episode"
-  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]!
+  findTimestampsByEpisodeId(episodeId: UUID!): [Timestamp!]!
 
   # Timestamp Types
   "Get timestamp type info based on a ` + "`" + `TimestampType.id` + "`" + `"
-  findTimestampType(timestampTypeId: ID!): TimestampType!
+  findTimestampType(timestampTypeId: UUID!): TimestampType!
   "List all the ` + "`" + `TimestampType` + "`" + `s. Items come back in a random order"
   allTimestampTypes: [TimestampType!]!
 
   # Templates
   "Get template info based on a ` + "`" + `Template.id` + "`" + `"
-  findTemplate(templateId: ID!): Template!
+  findTemplate(templateId: UUID!): Template!
   "Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `"
-  findTemplatesByShowId(showId: ID!): [Template!]!
+  findTemplatesByShowId(showId: UUID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -3445,7 +3448,7 @@ input InputTemplateTimestamp {
   3. Matching show name (case sensitive)
   """
   findTemplateByDetails(
-    episodeId: ID
+    episodeId: UUID
     showName: String
     season: String
   ): Template!
@@ -3606,10 +3609,12 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3621,10 +3626,12 @@ func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Con
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["episodeId"] = arg0
@@ -3643,10 +3650,12 @@ func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Con
 func (ec *executionContext) field_Mutation_createEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3658,10 +3667,12 @@ func (ec *executionContext) field_Mutation_createEpisode_args(ctx context.Contex
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["showId"] = arg0
@@ -3779,10 +3790,12 @@ func (ec *executionContext) field_Mutation_createTimestampType_args(ctx context.
 func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3794,10 +3807,12 @@ func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Cont
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["episodeId"] = arg0
@@ -3874,10 +3889,12 @@ func (ec *executionContext) field_Mutation_deleteEpisodeUrl_args(ctx context.Con
 func (ec *executionContext) field_Mutation_deleteEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3889,10 +3906,12 @@ func (ec *executionContext) field_Mutation_deleteEpisode_args(ctx context.Contex
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["episodeId"] = arg0
@@ -3902,10 +3921,12 @@ func (ec *executionContext) field_Mutation_deleteEpisode_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showAdminId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showAdminId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3917,10 +3938,12 @@ func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Cont
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["showAdminId"] = arg0
@@ -3930,10 +3953,10 @@ func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Cont
 func (ec *executionContext) field_Mutation_deleteShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3945,10 +3968,12 @@ func (ec *executionContext) field_Mutation_deleteShow_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_deleteTemplate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -3960,10 +3985,12 @@ func (ec *executionContext) field_Mutation_deleteTemplate_args(ctx context.Conte
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["templateId"] = arg0
@@ -3973,10 +4000,10 @@ func (ec *executionContext) field_Mutation_deleteTemplate_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_deleteTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3988,10 +4015,12 @@ func (ec *executionContext) field_Mutation_deleteTimestampType_args(ctx context.
 func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -4003,10 +4032,12 @@ func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Cont
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["timestampId"] = arg0
@@ -4155,10 +4186,12 @@ func (ec *executionContext) field_Mutation_updateEpisodeUrl_args(ctx context.Con
 func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -4170,10 +4203,12 @@ func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Contex
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["episodeId"] = arg0
@@ -4192,10 +4227,12 @@ func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -4207,10 +4244,12 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["showId"] = arg0
@@ -4229,10 +4268,12 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -4244,10 +4285,12 @@ func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Conte
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["templateId"] = arg0
@@ -4266,10 +4309,10 @@ func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Conte
 func (ec *executionContext) field_Mutation_updateTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4290,10 +4333,12 @@ func (ec *executionContext) field_Mutation_updateTimestampType_args(ctx context.
 func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNID2string(ctx, tmp) }
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
 				return nil, errors.New("directive isShowAdmin is not implemented")
@@ -4305,10 +4350,12 @@ func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Cont
 		if err != nil {
 			return nil, graphql.ErrorOnPath(ctx, err)
 		}
-		if data, ok := tmp.(string); ok {
+		if data, ok := tmp.(*uuid.UUID); ok {
 			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
 		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["timestampId"] = arg0
@@ -4345,10 +4392,10 @@ func (ec *executionContext) field_Mutation_updateTimestamps_args(ctx context.Con
 		}
 	}
 	args["update"] = arg1
-	var arg2 []string
+	var arg2 []*uuid.UUID
 	if tmp, ok := rawArgs["delete"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delete"))
-		arg2, err = ec.unmarshalNID2ᚕstringᚄ(ctx, tmp)
+		arg2, err = ec.unmarshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4420,10 +4467,10 @@ func (ec *executionContext) field_Query_findEpisodeUrl_args(ctx context.Context,
 func (ec *executionContext) field_Query_findEpisodeUrlsByEpisodeId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4435,10 +4482,10 @@ func (ec *executionContext) field_Query_findEpisodeUrlsByEpisodeId_args(ctx cont
 func (ec *executionContext) field_Query_findEpisode_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4450,10 +4497,10 @@ func (ec *executionContext) field_Query_findEpisode_args(ctx context.Context, ra
 func (ec *executionContext) field_Query_findEpisodesByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4465,10 +4512,10 @@ func (ec *executionContext) field_Query_findEpisodesByShowId_args(ctx context.Co
 func (ec *executionContext) field_Query_findShowAdmin_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showAdminId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showAdminId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4480,10 +4527,10 @@ func (ec *executionContext) field_Query_findShowAdmin_args(ctx context.Context, 
 func (ec *executionContext) field_Query_findShowAdminsByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4495,10 +4542,10 @@ func (ec *executionContext) field_Query_findShowAdminsByShowId_args(ctx context.
 func (ec *executionContext) field_Query_findShowAdminsByUserId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["userId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4510,10 +4557,10 @@ func (ec *executionContext) field_Query_findShowAdminsByUserId_args(ctx context.
 func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4525,10 +4572,10 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 func (ec *executionContext) field_Query_findTemplateByDetails_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 *string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg0, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4558,10 +4605,10 @@ func (ec *executionContext) field_Query_findTemplateByDetails_args(ctx context.C
 func (ec *executionContext) field_Query_findTemplate_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4573,10 +4620,10 @@ func (ec *executionContext) field_Query_findTemplate_args(ctx context.Context, r
 func (ec *executionContext) field_Query_findTemplatesByShowId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4588,10 +4635,10 @@ func (ec *executionContext) field_Query_findTemplatesByShowId_args(ctx context.C
 func (ec *executionContext) field_Query_findTimestampType_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4603,10 +4650,10 @@ func (ec *executionContext) field_Query_findTimestampType_args(ctx context.Conte
 func (ec *executionContext) field_Query_findTimestamp_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4618,10 +4665,10 @@ func (ec *executionContext) field_Query_findTimestamp_args(ctx context.Context, 
 func (ec *executionContext) field_Query_findTimestampsByEpisodeId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4648,10 +4695,10 @@ func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Cont
 func (ec *executionContext) field_Query_findUser_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["userId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4735,10 +4782,10 @@ func (ec *executionContext) field_Query_searchEpisodes_args(ctx context.Context,
 		}
 	}
 	args["search"] = arg0
-	var arg1 *string
+	var arg1 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg1, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		arg1, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6915,7 +6962,7 @@ func (ec *executionContext) _Mutation_updateShow(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(string), args["newShow"].(InputShow))
+		return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(*uuid.UUID), args["newShow"].(InputShow))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6958,7 +7005,7 @@ func (ec *executionContext) _Mutation_deleteShow(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteShow(rctx, args["showId"].(string))
+			return ec.resolvers.Mutation().DeleteShow(rctx, args["showId"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐRole(ctx, "ADMIN")
@@ -7065,7 +7112,7 @@ func (ec *executionContext) _Mutation_deleteShowAdmin(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteShowAdmin(rctx, args["showAdminId"].(string))
+		return ec.resolvers.Mutation().DeleteShowAdmin(rctx, args["showAdminId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7107,7 +7154,7 @@ func (ec *executionContext) _Mutation_createEpisode(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(string), args["episodeInput"].(InputEpisode))
+		return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(*uuid.UUID), args["episodeInput"].(InputEpisode))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7149,7 +7196,7 @@ func (ec *executionContext) _Mutation_updateEpisode(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(string), args["newEpisode"].(InputEpisode))
+		return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(*uuid.UUID), args["newEpisode"].(InputEpisode))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7191,7 +7238,7 @@ func (ec *executionContext) _Mutation_deleteEpisode(ctx context.Context, field g
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(string))
+		return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7233,7 +7280,7 @@ func (ec *executionContext) _Mutation_createEpisodeUrl(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(string), args["episodeUrlInput"].(InputEpisodeURL))
+		return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(*uuid.UUID), args["episodeUrlInput"].(InputEpisodeURL))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7359,7 +7406,7 @@ func (ec *executionContext) _Mutation_createTimestamp(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(string), args["timestampInput"].(InputTimestamp))
+		return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(*uuid.UUID), args["timestampInput"].(InputTimestamp))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7401,7 +7448,7 @@ func (ec *executionContext) _Mutation_updateTimestamp(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(string), args["newTimestamp"].(InputTimestamp))
+		return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(*uuid.UUID), args["newTimestamp"].(InputTimestamp))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7443,7 +7490,7 @@ func (ec *executionContext) _Mutation_deleteTimestamp(ctx context.Context, field
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(string))
+		return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7485,7 +7532,7 @@ func (ec *executionContext) _Mutation_updateTimestamps(ctx context.Context, fiel
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTimestamps(rctx, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]string))
+		return ec.resolvers.Mutation().UpdateTimestamps(rctx, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7594,7 +7641,7 @@ func (ec *executionContext) _Mutation_updateTimestampType(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTimestampType(rctx, args["timestampTypeId"].(string), args["newTimestampType"].(InputTimestampType))
+			return ec.resolvers.Mutation().UpdateTimestampType(rctx, args["timestampTypeId"].(*uuid.UUID), args["newTimestampType"].(InputTimestampType))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐRole(ctx, "ADMIN")
@@ -7660,7 +7707,7 @@ func (ec *executionContext) _Mutation_deleteTimestampType(ctx context.Context, f
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteTimestampType(rctx, args["timestampTypeId"].(string))
+			return ec.resolvers.Mutation().DeleteTimestampType(rctx, args["timestampTypeId"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐRole(ctx, "ADMIN")
@@ -7788,7 +7835,7 @@ func (ec *executionContext) _Mutation_updateTemplate(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateTemplate(rctx, args["templateId"].(string), args["newTemplate"].(InputTemplate))
+			return ec.resolvers.Mutation().UpdateTemplate(rctx, args["templateId"].(*uuid.UUID), args["newTemplate"].(InputTemplate))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authenticated == nil {
@@ -7850,7 +7897,7 @@ func (ec *executionContext) _Mutation_deleteTemplate(ctx context.Context, field 
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().DeleteTemplate(rctx, args["templateId"].(string))
+			return ec.resolvers.Mutation().DeleteTemplate(rctx, args["templateId"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authenticated == nil {
@@ -9011,7 +9058,7 @@ func (ec *executionContext) _Query_findUser(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindUser(rctx, args["userId"].(string))
+		return ec.resolvers.Query().FindUser(rctx, args["userId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9095,7 +9142,7 @@ func (ec *executionContext) _Query_findShow(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShow(rctx, args["showId"].(string))
+		return ec.resolvers.Query().FindShow(rctx, args["showId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9179,7 +9226,7 @@ func (ec *executionContext) _Query_findShowAdmin(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShowAdmin(rctx, args["showAdminId"].(string))
+		return ec.resolvers.Query().FindShowAdmin(rctx, args["showAdminId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9221,7 +9268,7 @@ func (ec *executionContext) _Query_findShowAdminsByShowId(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShowAdminsByShowID(rctx, args["showId"].(string))
+		return ec.resolvers.Query().FindShowAdminsByShowID(rctx, args["showId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9263,7 +9310,7 @@ func (ec *executionContext) _Query_findShowAdminsByUserId(ctx context.Context, f
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindShowAdminsByUserID(rctx, args["userId"].(string))
+		return ec.resolvers.Query().FindShowAdminsByUserID(rctx, args["userId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9347,7 +9394,7 @@ func (ec *executionContext) _Query_findEpisode(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindEpisode(rctx, args["episodeId"].(string))
+		return ec.resolvers.Query().FindEpisode(rctx, args["episodeId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9389,7 +9436,7 @@ func (ec *executionContext) _Query_findEpisodesByShowId(ctx context.Context, fie
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindEpisodesByShowID(rctx, args["showId"].(string))
+		return ec.resolvers.Query().FindEpisodesByShowID(rctx, args["showId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9431,7 +9478,7 @@ func (ec *executionContext) _Query_searchEpisodes(ctx context.Context, field gra
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().SearchEpisodes(rctx, args["search"].(*string), args["showId"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+		return ec.resolvers.Query().SearchEpisodes(rctx, args["search"].(*string), args["showId"].(*uuid.UUID), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9557,7 +9604,7 @@ func (ec *executionContext) _Query_findEpisodeUrlsByEpisodeId(ctx context.Contex
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindEpisodeUrlsByEpisodeID(rctx, args["episodeId"].(string))
+		return ec.resolvers.Query().FindEpisodeUrlsByEpisodeID(rctx, args["episodeId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9599,7 +9646,7 @@ func (ec *executionContext) _Query_findTimestamp(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTimestamp(rctx, args["timestampId"].(string))
+		return ec.resolvers.Query().FindTimestamp(rctx, args["timestampId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9641,7 +9688,7 @@ func (ec *executionContext) _Query_findTimestampsByEpisodeId(ctx context.Context
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTimestampsByEpisodeID(rctx, args["episodeId"].(string))
+		return ec.resolvers.Query().FindTimestampsByEpisodeID(rctx, args["episodeId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9683,7 +9730,7 @@ func (ec *executionContext) _Query_findTimestampType(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTimestampType(rctx, args["timestampTypeId"].(string))
+		return ec.resolvers.Query().FindTimestampType(rctx, args["timestampTypeId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9760,7 +9807,7 @@ func (ec *executionContext) _Query_findTemplate(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTemplate(rctx, args["templateId"].(string))
+		return ec.resolvers.Query().FindTemplate(rctx, args["templateId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9802,7 +9849,7 @@ func (ec *executionContext) _Query_findTemplatesByShowId(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTemplatesByShowID(rctx, args["showId"].(string))
+		return ec.resolvers.Query().FindTemplatesByShowID(rctx, args["showId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -9844,7 +9891,7 @@ func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, fi
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().FindTemplateByDetails(rctx, args["episodeId"].(*string), args["showName"].(*string), args["season"].(*string))
+		return ec.resolvers.Query().FindTemplateByDetails(rctx, args["episodeId"].(*uuid.UUID), args["showName"].(*string), args["season"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -19383,38 +19430,6 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNID2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNID2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNID2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNID2string(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
 func (ec *executionContext) unmarshalNInputEpisode2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputEpisode(ctx context.Context, v interface{}) (InputEpisode, error) {
 	res, err := ec.unmarshalInputInputEpisode(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -20428,22 +20443,6 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	}
 	res := graphql.MarshalFloatContext(*v)
 	return graphql.WrapContextMarshaler(ctx, res)
-}
-
-func (ec *executionContext) unmarshalOID2ᚖstring(ctx context.Context, v interface{}) (*string, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := graphql.UnmarshalID(v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOID2ᚖstring(ctx context.Context, sel ast.SelectionSet, v *string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := graphql.MarshalID(*v)
-	return res
 }
 
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
