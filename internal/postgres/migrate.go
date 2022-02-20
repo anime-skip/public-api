@@ -33,6 +33,7 @@ func migrate(db *sqlx.DB, dbVersion int) error {
 		/* 17 */ tables.CreateTemplateTimestampsTable,
 		/* 18 */ tables.CreateAPIClientsTable,
 		/* 19 */ tables.AddColorThemePreference,
+		/* 20 */ tables.AddMissingPreferenceDefaults(),
 	}, dbVersion)
 	if err != nil {
 		return err

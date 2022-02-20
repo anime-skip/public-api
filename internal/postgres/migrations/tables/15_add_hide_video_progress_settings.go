@@ -6,7 +6,7 @@ var AddHideTimelinePreferences = sqlMigration(
 	`
 	ALTER TABLE preferences
 		ADD minimize_toolbar_when_editing boolean,
-		ADD hide_timeline_when_minimized boolean;
+		ADD hide_timeline_when_minimized  boolean;
 	`,
 	`
 	ALTER TABLE preferences
