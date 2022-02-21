@@ -57,7 +57,7 @@ type ModelDetails struct {
 func generateModelSqlMethods(model interface{}) {
 	modelType := reflect.TypeOf(model)
 	modelName := modelType.Name()
-	filename := fmt.Sprintf("%s.generated.go", strcase.ToSnake(modelName))
+	filename := fmt.Sprintf("%s_repo.generated.go", strcase.ToSnake(modelName))
 	fmt.Printf(" - %s -> %s\n", modelName, filename)
 	modelDetails := getModelDetails(modelType)
 

@@ -72,5 +72,10 @@ func (r *accountResolver) Preferences(ctx go_context.Context, obj *graphql.Accou
 }
 
 func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {
+	// auth, err := context.GetAuthenticationDetails(ctx)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// showAdmins, err := r.ShowAdminService.
 	panic("accountResolver.AdminOfShows not implemented")
 }

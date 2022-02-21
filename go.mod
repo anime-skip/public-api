@@ -12,6 +12,7 @@ require (
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
+	github.com/mitchellh/mapstructure v1.2.3
 	github.com/vektah/gqlparser/v2 v2.2.0
 )
 
@@ -29,7 +30,6 @@ require (
 	github.com/matryer/moq v0.2.3 // indirect
 	github.com/mattn/go-colorable v0.1.9 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
-	github.com/mitchellh/mapstructure v1.2.3 // indirect
 	github.com/rjeczalik/notify v0.0.0-20181126183243-629144ba06a1 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/urfave/cli/v2 v2.3.0 // indirect
