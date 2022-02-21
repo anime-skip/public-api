@@ -3,9 +3,23 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/utils"
 	"github.com/gofrs/uuid"
 )
+
+// Helpers
+
+func (r *Resolver) getEpisodeByID(ctx context.Context, id *uuid.UUID) (*graphql.Episode, error) {
+	internalEpisode, err := r.EpisodeService.GetByID(ctx, *id)
+	if err != nil {
+		return nil, err
+	}
+	episode := mappers.ToGraphqlEpisode(internalEpisode)
+	return &episode, nil
+}
 
 // Mutations
 
@@ -24,11 +38,22 @@ func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UU
 // Queries
 
 func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*graphql.Episode, error) {
-	panic("queryResolver.RecentlyAddedEpisodes not implemented")
+	params := internal.GetRecentlyAddedParams{
+		Pagination: internal.Pagination{
+			Limit:  utils.IntOr(limit, 10),
+			Offset: utils.IntOr(offset, 0),
+		},
+	}
+	internalEpisodes, err := r.EpisodeService.GetRecentlyAdded(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+	episodes := mappers.ToGraphqlEpisodePointers(internalEpisodes)
+	return episodes, nil
 }
 
 func (r *queryResolver) FindEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
-	panic("queryResolver.FindEpisode not implemented")
+	return r.getEpisodeByID(ctx, episodeID)
 }
 
 func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
@@ -58,7 +83,7 @@ func (r *episodeResolver) DeletedBy(ctx context.Context, obj *graphql.Episode) (
 }
 
 func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*graphql.Show, error) {
-	panic("episodeResolver.Show not implemented")
+	return r.getShowById(ctx, obj.ShowID)
 }
 
 func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) ([]*graphql.Timestamp, error) {
@@ -66,7 +91,7 @@ func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) 
 }
 
 func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*graphql.EpisodeURL, error) {
-	panic("episodeResolver.Urls not implemented")
+	return r.getEpisodeURLsByEpisodeID(ctx, obj.ID)
 }
 
 func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {

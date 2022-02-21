@@ -18,10 +18,19 @@ func main() {
 		config.EnvInt("DATABASE_VERSION"),
 	)
 
-	services := internal.NewServices(
-		postgres.NewUserService(db),
-		postgres.NewPreferencesService(db),
-	)
+	services := internal.Services{
+		APIClientService:         postgres.NewAPIClientService(db),
+		EpisodeService:           postgres.NewEpisodeService(db),
+		EpisodeURLService:        postgres.NewEpisodeURLService(db),
+		PreferencesService:       postgres.NewPreferencesService(db),
+		ShowAdminService:         postgres.NewShowAdminService(db),
+		ShowService:              postgres.NewShowService(db),
+		TemplateService:          postgres.NewTemplateService(db),
+		TemplateTimestampService: postgres.NewTemplateTimestampService(db),
+		TimestampService:         postgres.NewTimestampService(db),
+		TimestampTypeService:     postgres.NewTimestampTypeService(db),
+		UserService:              postgres.NewUserService(db),
+	}
 
 	graphqlHandler := handler.NewGraphqlHandler(
 		services,

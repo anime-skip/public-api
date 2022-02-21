@@ -4,10 +4,20 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getShowById(ctx context.Context, id *uuid.UUID) (*graphql.Show, error) {
+	internalShow, err := r.ShowService.GetByID(ctx, *id)
+	if err != nil {
+		return nil, err
+	}
+	show := mappers.ToGraphqlShow(internalShow)
+	return &show, nil
+}
 
 // Mutations
 
@@ -26,7 +36,7 @@ func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*
 // Queries
 
 func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
-	panic("queryResolver.FindShow not implemented")
+	return r.getShowById(ctx, showID)
 }
 
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*graphql.Show, error) {

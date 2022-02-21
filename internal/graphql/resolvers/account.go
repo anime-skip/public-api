@@ -59,11 +59,11 @@ func (r *queryResolver) Account(ctx go_context.Context) (*graphql.Account, error
 	if err != nil {
 		return nil, err
 	}
-	user, err := r.UserService.GetByID(ctx, auth.UserID)
+	internalUser, err := r.UserService.GetByID(ctx, auth.UserID)
 	if err != nil {
 		return nil, err
 	}
-	account := mappers.ToGraphqlAccount(user)
+	account := mappers.ToGraphqlAccount(internalUser)
 	return &account, nil
 }
 
@@ -72,10 +72,14 @@ func (r *accountResolver) Preferences(ctx go_context.Context, obj *graphql.Accou
 }
 
 func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {
-	// auth, err := context.GetAuthenticationDetails(ctx)
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// showAdmins, err := r.ShowAdminService.
-	panic("accountResolver.AdminOfShows not implemented")
+	auth, err := context.GetAuthenticationDetails(ctx)
+	if err != nil {
+		return nil, err
+	}
+	internalShowAdmins, err := r.ShowAdminService.GetByUserID(ctx, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+	showAdmins := mappers.ToGraphqlShowAdminPointers(internalShowAdmins)
+	return showAdmins, nil
 }

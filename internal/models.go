@@ -23,6 +23,11 @@ type GraphQLHandler struct {
 	EnableIntrospection bool
 }
 
+type Pagination struct {
+	Offset int
+	Limit  int
+}
+
 // BaseEntity defines the common columns that all db structs should hold
 type BaseEntity struct {
 	ID              uuid.UUID  `                         sql_gen:"primary_key"`

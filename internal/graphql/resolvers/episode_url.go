@@ -4,10 +4,29 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getEpisodeURLByURL(ctx context.Context, url string) (*graphql.EpisodeURL, error) {
+	internalEpisodeURL, err := r.EpisodeURLService.GetByURL(ctx, url)
+	if err != nil {
+		return nil, err
+	}
+	episodeURL := mappers.ToGraphqlEpisodeURL(internalEpisodeURL)
+	return &episodeURL, nil
+}
+
+func (r *Resolver) getEpisodeURLsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.EpisodeURL, error) {
+	internalEpisodeURLs, err := r.EpisodeURLService.GetByEpisodeId(ctx, *episodeID)
+	if err != nil {
+		return nil, err
+	}
+	episodeURLs := mappers.ToGraphqlEpisodeURLPointers(internalEpisodeURLs)
+	return episodeURLs, nil
+}
 
 // Mutations
 
@@ -26,11 +45,11 @@ func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL stri
 // Queries
 
 func (r *queryResolver) FindEpisodeURL(ctx context.Context, episodeURL string) (*graphql.EpisodeURL, error) {
-	panic("queryResolver.FindEpisodeURL not implemented")
+	return r.getEpisodeURLByURL(ctx, episodeURL)
 }
 
 func (r *queryResolver) FindEpisodeUrlsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.EpisodeURL, error) {
-	panic("queryResolver.FindEpisodeUrlsByEpisodeID not implemented")
+	return r.getEpisodeURLsByEpisodeID(ctx, episodeID)
 }
 
 // Fields

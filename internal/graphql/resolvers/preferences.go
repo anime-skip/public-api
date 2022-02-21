@@ -28,6 +28,8 @@ func (r *mutationResolver) SavePreferences(ctx go_context.Context, preferences m
 	if err != nil {
 		return nil, err
 	}
+
+	// Apply updates to struct
 	existingPrefs, err := r.getPreferences(ctx, auth.UserID)
 	if err != nil {
 		return nil, err
@@ -36,13 +38,16 @@ func (r *mutationResolver) SavePreferences(ctx go_context.Context, preferences m
 	if err != nil {
 		return nil, err
 	}
-	newPrefs := mappers.ToInternalPreferences(*existingPrefs)
-	updatedPrefs, err := r.PreferencesService.Update(ctx, newPrefs)
+	newInternalPrefs := mappers.ToInternalPreferences(*existingPrefs)
+
+	// Update data
+	updatedInternalPrefs, err := r.PreferencesService.Update(ctx, newInternalPrefs)
 	if err != nil {
 		return nil, err
 	}
-	updatedGqlPrefs := mappers.ToGraphqlPreferences(updatedPrefs)
-	return &updatedGqlPrefs, nil
+
+	updatedPrefs := mappers.ToGraphqlPreferences(updatedInternalPrefs)
+	return &updatedPrefs, nil
 }
 
 // Queries

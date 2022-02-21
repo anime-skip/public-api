@@ -16,13 +16,13 @@ func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*graphql.Use
 		return nil, nil
 	}
 
-	// return user for created_by_user_id and updated_by_user_id
-	user, err := r.UserService.GetByID(ctx, *id)
+	// return internalUser for created_by_user_id and updated_by_user_id
+	internalUser, err := r.UserService.GetByID(ctx, *id)
 	if err != nil {
 		return nil, err
 	}
-	gqlUser := mappers.ToGraphqlUser(user)
-	return &gqlUser, nil
+	user := mappers.ToGraphqlUser(internalUser)
+	return &user, nil
 }
 
 // Mutations

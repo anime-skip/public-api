@@ -4,10 +4,29 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getShowAdminsByShowId(ctx context.Context, showID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
+	internalAdmins, err := r.ShowAdminService.GetByShowID(ctx, *showID)
+	if err != nil {
+		return nil, err
+	}
+	admins := mappers.ToGraphqlShowAdminPointers(internalAdmins)
+	return admins, nil
+}
+
+func (r *Resolver) getShowAdminsByUserId(ctx context.Context, userID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
+	internalAdmins, err := r.ShowAdminService.GetByUserID(ctx, *userID)
+	if err != nil {
+		return nil, err
+	}
+	admins := mappers.ToGraphqlShowAdminPointers(internalAdmins)
+	return admins, nil
+}
 
 // Mutations
 
@@ -22,15 +41,20 @@ func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID *uui
 // Queries
 
 func (r *queryResolver) FindShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {
-	panic("queryResolver.FindShowAdmin not implemented")
+	internalAdmin, err := r.ShowAdminService.GetByID(ctx, *showAdminID)
+	if err != nil {
+		return nil, err
+	}
+	admin := mappers.ToGraphqlShowAdmin(internalAdmin)
+	return &admin, nil
 }
 
 func (r *queryResolver) FindShowAdminsByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
-	panic("queryResolver.FindShowAdminsByShowID not implemented")
+	return r.getShowAdminsByShowId(ctx, showID)
 }
 
 func (r *queryResolver) FindShowAdminsByUserID(ctx context.Context, userID *uuid.UUID) ([]*graphql.ShowAdmin, error) {
-	panic("queryResolver.FindShowAdminsByUserID not implemented")
+	return r.getShowAdminsByUserId(ctx, userID)
 }
 
 // Fields
@@ -48,7 +72,7 @@ func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *graphql.ShowAdmi
 }
 
 func (r *showAdminResolver) Show(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.Show, error) {
-	panic("showAdminResolver.Show not implemented")
+	return r.getShowById(ctx, obj.ShowID)
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *graphql.ShowAdmin) (*graphql.User, error) {

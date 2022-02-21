@@ -24,29 +24,40 @@ type Authenticator interface {
 type APIClientService interface {
 }
 
-type EpisodeURLService interface {
+type GetRecentlyAddedParams struct {
+	Pagination
+}
+type EpisodeService interface {
+	GetRecentlyAdded(ctx context.Context, params GetRecentlyAddedParams) ([]Episode, error)
+	GetByID(ctx context.Context, id uuid.UUID) (Episode, error)
+	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Episode, error)
 }
 
-type EpisodeService interface {
+type EpisodeURLService interface {
+	GetByURL(ctx context.Context, url string) (EpisodeURL, error)
+	GetByEpisodeId(ctx context.Context, episodeID uuid.UUID) ([]EpisodeURL, error)
 }
 
 type PreferencesService interface {
-	GetByUserID(ctx context.Context, UserID uuid.UUID) (Preferences, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) (Preferences, error)
 	// CreateInTx(ctx context.Context, tx *sqlx.Tx, newPreferences Preferences) error
 	Update(ctx context.Context, newPreferences Preferences) (Preferences, error)
 }
 
 type ShowAdminService interface {
-	// GetByUserID(ctx context.Context, UserID uuid.UUID) ([]ShowAdmin, error)
+	GetByID(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]ShowAdmin, error)
+	GetByShowID(ctx context.Context, showID uuid.UUID) ([]ShowAdmin, error)
 }
 
 type ShowService interface {
-}
-
-type TemplateTimestampService interface {
+	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
 }
 
 type TemplateService interface {
+}
+
+type TemplateTimestampService interface {
 }
 
 type ThirdPartyEpisodeService interface {
@@ -55,30 +66,29 @@ type ThirdPartyEpisodeService interface {
 type ThirdPartyTimestampService interface {
 }
 
-type TimestampTypeService interface {
-}
-
 type TimestampService interface {
 }
 
+type TimestampTypeService interface {
+}
+
 type UserService interface {
-	GetByID(ctx context.Context, ID uuid.UUID) (User, error)
+	GetByID(ctx context.Context, id uuid.UUID) (User, error)
 	GetByUsername(ctx context.Context, username string) (User, error)
 	// CreateInTx(ctx context.Context, tx *sqlx.Tx, newUser User) error
 	// DeleteInTx(ctx context.Context, tx *sqlx.Tx, user User) (EpisodeURL, error)
 }
 
-func NewServices(
-	userService UserService,
-	preferencesService PreferencesService,
-) Services {
-	return Services{
-		UserService:        userService,
-		PreferencesService: preferencesService,
-	}
-}
-
 type Services struct {
-	UserService        UserService
-	PreferencesService PreferencesService
+	APIClientService         APIClientService
+	EpisodeService           EpisodeService
+	EpisodeURLService        EpisodeURLService
+	PreferencesService       PreferencesService
+	ShowAdminService         ShowAdminService
+	ShowService              ShowService
+	TemplateService          TemplateService
+	TemplateTimestampService TemplateTimestampService
+	TimestampService         TimestampService
+	TimestampTypeService     TimestampTypeService
+	UserService              UserService
 }
