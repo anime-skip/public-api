@@ -20,5 +20,20 @@ func (s *timestampTypeService) GetByID(ctx context.Context, id uuid.UUID) (inter
 }
 
 func (s *timestampTypeService) GetAll(ctx context.Context) ([]internal.TimestampType, error) {
-	panic("timestampTypeService.GetAll not implemented")
+	rows, err := s.db.QueryxContext(ctx, "SELECT * FROM timestamp_types WHERE deleted_at IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	types := []internal.TimestampType{}
+	for rows.Next() {
+		var timestampType internal.TimestampType
+		err = rows.StructScan(&timestampType)
+		if err != nil {
+			return nil, err
+		}
+		types = append(types, timestampType)
+	}
+	return types, nil
 }

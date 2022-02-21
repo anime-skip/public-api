@@ -43,7 +43,12 @@ func (r *queryResolver) FindTimestampType(ctx context.Context, timestampTypeID *
 }
 
 func (r *queryResolver) AllTimestampTypes(ctx context.Context) ([]*graphql.TimestampType, error) {
-	panic("queryResolver.AllTimestampTypes not implemented")
+	internalTypes, err := r.TimestampTypeService.GetAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+	timestampType := mappers.ToGraphqlTimestampTypePointers(internalTypes)
+	return timestampType, nil
 }
 
 // Fields

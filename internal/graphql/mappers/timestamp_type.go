@@ -19,3 +19,16 @@ func ToGraphqlTimestampType(timestampType internal.TimestampType) graphql.Timest
 		Description: timestampType.Description,
 	}
 }
+
+func toGraphqlTimestampTypePointer(timestamp internal.TimestampType) *graphql.TimestampType {
+	value := ToGraphqlTimestampType(timestamp)
+	return &value
+}
+
+func ToGraphqlTimestampTypePointers(timestampTypes []internal.TimestampType) []*graphql.TimestampType {
+	result := []*graphql.TimestampType{}
+	for _, timestampType := range timestampTypes {
+		result = append(result, toGraphqlTimestampTypePointer(timestampType))
+	}
+	return result
+}
