@@ -68,12 +68,7 @@ func (r *queryResolver) Account(ctx go_context.Context) (*graphql.Account, error
 }
 
 func (r *accountResolver) Preferences(ctx go_context.Context, obj *graphql.Account) (*graphql.Preferences, error) {
-	prefs, err := r.PreferencesService.GetByUserID(ctx, *obj.ID)
-	if err != nil {
-		return nil, err
-	}
-	gqlPrefs := mappers.ToGraphqlPreferences(prefs)
-	return &gqlPrefs, nil
+	return r.getPreferences(ctx, *obj.ID)
 }
 
 func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {

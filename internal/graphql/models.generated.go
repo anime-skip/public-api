@@ -155,29 +155,6 @@ type InputExistingTimestamp struct {
 	Timestamp *InputTimestamp `json:"timestamp"`
 }
 
-// Data used to update a user's `Preferences`. See `Preferences` for a description of each field. If a
-// field is not passed or passed as `null`, it will leave the value as is and skip updating it
-type InputPreferences struct {
-	EnableAutoSkip             *bool       `json:"enableAutoSkip"`
-	EnableAutoPlay             *bool       `json:"enableAutoPlay"`
-	MinimizeToolbarWhenEditing *bool       `json:"minimizeToolbarWhenEditing"`
-	HideTimelineWhenMinimized  *bool       `json:"hideTimelineWhenMinimized"`
-	ColorTheme                 *ColorTheme `json:"colorTheme"`
-	SkipBranding               *bool       `json:"skipBranding"`
-	SkipIntros                 *bool       `json:"skipIntros"`
-	SkipNewIntros              *bool       `json:"skipNewIntros"`
-	SkipMixedIntros            *bool       `json:"skipMixedIntros"`
-	SkipRecaps                 *bool       `json:"skipRecaps"`
-	SkipFiller                 *bool       `json:"skipFiller"`
-	SkipCanon                  *bool       `json:"skipCanon"`
-	SkipTransitions            *bool       `json:"skipTransitions"`
-	SkipCredits                *bool       `json:"skipCredits"`
-	SkipNewCredits             *bool       `json:"skipNewCredits"`
-	SkipMixedCredits           *bool       `json:"skipMixedCredits"`
-	SkipPreview                *bool       `json:"skipPreview"`
-	SkipTitleCard              *bool       `json:"skipTitleCard"`
-}
-
 // Data required to create a new `Show`. See `Show` for a description of each field
 type InputShow struct {
 	Name         string  `json:"name"`
@@ -286,7 +263,7 @@ type Preferences struct {
 	SkipTitleCard bool `json:"skipTitleCard"`
 }
 
-// A show containing a list of episodes and relevate links
+// A show containing a list of episodes and relevant links
 type Show struct {
 	ID              *uuid.UUID `json:"id"`
 	CreatedAt       time.Time  `json:"createdAt"`

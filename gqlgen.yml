@@ -55,6 +55,8 @@ models:
         resolver: true
       preferences:
         resolver: true
+  PreferenceChanges:
+    model: "map[string]interface{}"
   Preferences:
     fields:
       createdBy:

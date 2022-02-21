@@ -143,7 +143,7 @@ type ComplexityRoot struct {
 		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
-		SavePreferences             func(childComplexity int, preferences InputPreferences) int
+		SavePreferences             func(childComplexity int, preferences map[string]interface{}) int
 		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL InputEpisodeURL) int
 		UpdateShow                  func(childComplexity int, showID *uuid.UUID, newShow InputShow) int
@@ -385,7 +385,7 @@ type MutationResolver interface {
 	ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*LoginData, error)
 	DeleteAccountRequest(ctx context.Context, passwordHash string) (*Account, error)
 	DeleteAccount(ctx context.Context, deleteToken string) (*Account, error)
-	SavePreferences(ctx context.Context, preferences InputPreferences) (*Preferences, error)
+	SavePreferences(ctx context.Context, preferences map[string]interface{}) (*Preferences, error)
 	CreateShow(ctx context.Context, showInput InputShow, becomeAdmin bool) (*Show, error)
 	UpdateShow(ctx context.Context, showID *uuid.UUID, newShow InputShow) (*Show, error)
 	DeleteShow(ctx context.Context, showID *uuid.UUID) (*Show, error)
@@ -1127,7 +1127,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(InputPreferences)), true
+		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(map[string]interface{})), true
 
 	case "Mutation.updateEpisode":
 		if e.complexity.Mutation.UpdateEpisode == nil {
@@ -2839,7 +2839,7 @@ type Preferences {
 Data used to update a user's ` + "`" + `Preferences` + "`" + `. See ` + "`" + `Preferences` + "`" + ` for a description of each field. If a
 field is not passed or passed as ` + "`" + `null` + "`" + `, it will leave the value as is and skip updating it
 """
-input InputPreferences {
+input PreferenceChanges {
   enableAutoSkip: Boolean
   enableAutoPlay: Boolean
   minimizeToolbarWhenEditing: Boolean
@@ -2861,7 +2861,7 @@ input InputPreferences {
   skipTitleCard: Boolean
 }
 
-"A show containing a list of episodes and relevate links"
+"A show containing a list of episodes and relevant links"
 type Show implements BaseModel {
   id: UUID!
   createdAt: Time!
@@ -3165,7 +3165,7 @@ input InputTemplateTimestamp {
 
   # Preferences
   "Update user preferences"
-  savePreferences(preferences: InputPreferences!): Preferences! @authenticated
+  savePreferences(preferences: PreferenceChanges!): Preferences! @authenticated
 
   # Shows
   "Create a show and optionally become an admin"
@@ -4134,10 +4134,10 @@ func (ec *executionContext) field_Mutation_resetPassword_args(ctx context.Contex
 func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 InputPreferences
+	var arg0 map[string]interface{}
 	if tmp, ok := rawArgs["preferences"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferences"))
-		arg0, err = ec.unmarshalNInputPreferences2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputPreferences(ctx, tmp)
+		arg0, err = ec.unmarshalNPreferenceChanges2map(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -6839,7 +6839,7 @@ func (ec *executionContext) _Mutation_savePreferences(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().SavePreferences(rctx, args["preferences"].(InputPreferences))
+			return ec.resolvers.Mutation().SavePreferences(rctx, args["preferences"].(map[string]interface{}))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authenticated == nil {
@@ -14951,165 +14951,6 @@ func (ec *executionContext) unmarshalInputInputExistingTimestamp(ctx context.Con
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputInputPreferences(ctx context.Context, obj interface{}) (InputPreferences, error) {
-	var it InputPreferences
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "enableAutoSkip":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enableAutoSkip"))
-			it.EnableAutoSkip, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "enableAutoPlay":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("enableAutoPlay"))
-			it.EnableAutoPlay, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "minimizeToolbarWhenEditing":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("minimizeToolbarWhenEditing"))
-			it.MinimizeToolbarWhenEditing, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "hideTimelineWhenMinimized":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("hideTimelineWhenMinimized"))
-			it.HideTimelineWhenMinimized, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "colorTheme":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("colorTheme"))
-			it.ColorTheme, err = ec.unmarshalOColorTheme2ᚖanimeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐColorTheme(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipBranding":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipBranding"))
-			it.SkipBranding, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipIntros":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipIntros"))
-			it.SkipIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipNewIntros":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipNewIntros"))
-			it.SkipNewIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipMixedIntros":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipMixedIntros"))
-			it.SkipMixedIntros, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipRecaps":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipRecaps"))
-			it.SkipRecaps, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipFiller":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipFiller"))
-			it.SkipFiller, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipCanon":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipCanon"))
-			it.SkipCanon, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipTransitions":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipTransitions"))
-			it.SkipTransitions, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipCredits":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipCredits"))
-			it.SkipCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipNewCredits":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipNewCredits"))
-			it.SkipNewCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipMixedCredits":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipMixedCredits"))
-			it.SkipMixedCredits, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipPreview":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipPreview"))
-			it.SkipPreview, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "skipTitleCard":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("skipTitleCard"))
-			it.SkipTitleCard, err = ec.unmarshalOBoolean2ᚖbool(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputInputShow(ctx context.Context, obj interface{}) (InputShow, error) {
 	var it InputShow
 	asMap := map[string]interface{}{}
@@ -19462,11 +19303,6 @@ func (ec *executionContext) unmarshalNInputExistingTimestamp2ᚖanimeᚑskipᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNInputPreferences2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputPreferences(ctx context.Context, v interface{}) (InputPreferences, error) {
-	res, err := ec.unmarshalInputInputPreferences(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
 func (ec *executionContext) unmarshalNInputShow2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputShow(ctx context.Context, v interface{}) (InputShow, error) {
 	res, err := ec.unmarshalInputInputShow(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19551,6 +19387,10 @@ func (ec *executionContext) marshalNLoginData2ᚖanimeᚑskipᚗcomᚋtimestamps
 		return graphql.Null
 	}
 	return ec._LoginData(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPreferenceChanges2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	return v.(map[string]interface{}), nil
 }
 
 func (ec *executionContext) marshalNPreferences2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐPreferences(ctx context.Context, sel ast.SelectionSet, v Preferences) graphql.Marshaler {

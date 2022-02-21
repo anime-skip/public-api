@@ -47,7 +47,7 @@ type PreferencesService interface {
 	// GetByID(ctx context.Context, ID uuid.UUID) (Preferences, error)
 	GetByUserID(ctx context.Context, UserID uuid.UUID) (Preferences, error)
 	// CreateInTx(ctx context.Context, tx *sqlx.Tx, newPreferences Preferences) error
-	// Update(ctx context.Context, newPreferences Preferences) error
+	Update(ctx context.Context, newPreferences Preferences) (Preferences, error)
 	// DeleteInTx(ctx context.Context, tx *sqlx.Tx, preferences Preferences) (Preferences, error)
 }
 
