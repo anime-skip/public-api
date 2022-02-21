@@ -4,7 +4,36 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"github.com/gofrs/uuid"
 )
+
+// Helpers
+
+// Mutations
+
+func (r *mutationResolver) CreateShow(ctx context.Context, showInput graphql.InputShow, becomeAdmin bool) (*graphql.Show, error) {
+	panic("mutationResolver.CreateShow not implemented")
+}
+
+func (r *mutationResolver) UpdateShow(ctx context.Context, showID *uuid.UUID, newShow graphql.InputShow) (*graphql.Show, error) {
+	panic("mutationResolver.UpdateShow not implemented")
+}
+
+func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
+	panic("mutationResolver.DeleteShow not implemented")
+}
+
+// Queries
+
+func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
+	panic("queryResolver.FindShow not implemented")
+}
+
+func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*graphql.Show, error) {
+	panic("queryResolver.SearchShows not implemented")
+}
+
+// Fields
 
 func (r *showResolver) CreatedBy(ctx context.Context, obj *graphql.Show) (*graphql.User, error) {
 	return r.getUserById(ctx, obj.CreatedByUserID)

@@ -6,6 +6,14 @@ import (
 	"anime-skip.com/timestamps-service/internal/graphql"
 )
 
+// Helpers
+
+// Mutations
+
+// Queries
+
+// Fields
+
 func (r *thirdPartyEpisodeResolver) Timestamps(ctx context.Context, obj *graphql.ThirdPartyEpisode) ([]*graphql.ThirdPartyTimestamp, error) {
 	panic("thirdPartyEpisodeResolver.Timestamps not implemented")
 }
