@@ -108,6 +108,7 @@ There are minor changes to the GraphQL schema, none of which should introduce br
   - `timestampResolver.Episode`
   - `userResolver.AdminOfShows`
 - [ ] `ctrl+shift+f` "not implemented"
+- [ ] Track Client IDs
 
 ### Todo Before Publishing
 
