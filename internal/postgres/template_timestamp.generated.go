@@ -120,6 +120,22 @@ func updateTemplateTimestamp(ctx context.Context, db internal.Database, template
 	return result, nil
 }
 
+func deleteTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	deletedTemplateTimestamp := newTemplateTimestamp
+	result, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", deletedTemplateTimestamp.TemplateID, deletedTemplateTimestamp.TimestampID)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	changedRows, err := result.RowsAffected()
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	if changedRows != 1 {
+		return internal.TemplateTimestamp{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+	}
+	return deletedTemplateTimestamp, err
+}
+
 func deleteTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {

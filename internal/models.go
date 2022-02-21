@@ -118,8 +118,8 @@ type Show struct {
 }
 
 type TemplateTimestamp struct {
-	TemplateID  uuid.UUID `db:"template_id"  sql_gen:"get_many"`
-	TimestampID uuid.UUID `db:"timestamp_id" sql_gen:"get_many"`
+	TemplateID  uuid.UUID `db:"template_id"  sql_gen:"primary_key,get_many"`
+	TimestampID uuid.UUID `db:"timestamp_id" sql_gen:"primary_key,get_many"`
 }
 
 type Template struct {
