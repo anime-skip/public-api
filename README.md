@@ -13,22 +13,23 @@ There are minor changes to the GraphQL schema, none of which should introduce br
 ### Todo
 
 - [x] ~~_Upgrade Go to 1.17_~~
-  > I'm about a month early to upgrade to 1.18, but 1.17 is way newer than 1.14 like it was running before
+  > I'm about a month early to upgrade to 1.18 and generics :/
 - [x] ~~_Upgrade Gqlgen_~~
-  > Library version was a few years old, so it needed upgraded. New features like [changesets](https://gqlgen.com/reference/changesets/) are nice to have as well
+  > Library version was a few years old, so it needed upgraded. New features like [changesets](https://gqlgen.com/reference/changesets/) are nice to have as well.
 - [x] ~~_Dependency injection_~~
-  > The main goal is to decouple the authentication logic so it can be hot-swapped when new authentication API is setup, but caching and data loaders should be much easier to include now
+  > The main goal is to decouple the authentication logic so it can be hot-swapped when new authentication API is setup, but caching and data loaders should be much easier to implement and include now.
   >
   > This will also make testing easier when I'm ready to backfill the tests
 - [x] ~~_Generate SQL methods_~~
   > Before, SQL logic was handwritten and copied from other functions using GORM.
   >
-  > Instead, generate the methods so they are the exact same, removing possible human/copy/paste error. Also prevents me from forgetting to update the old methods when a bug is found
+  > Instead, generate the methods so they are the exact same, removing possible human/copy/paste error. Also prevents me from forgetting to update the old methods when a bug is found.
 - [x] ~~_Drop GORM_~~
-  > I'm, dropping GORM because I didn't really use it, and generating the SQL methods effectively implements most of the utils gorm provides, even unscoped requests for soft deleted data
+  > I'm, dropping GORM because I didn't really use it, and generating the SQL methods effectively implements most of the utils gorm provides, even unscoped requests for soft deleted data.
   >
-  > Instead, I'm using [sqlx](http://jmoiron.github.io/sqlx/) to help with the only thing generating code doesn't help with - scanning queries into structs
+  > Instead, I'm using [sqlx](http://jmoiron.github.io/sqlx/) to help with the only thing generating code doesn't help with - scanning queries into structs.
 - [ ] Implement authorizer that matches v1 authorization
+  > The new injectable authorizor needs to match the existing logic so no-one gets logged out
 - [ ] Re-implement resolvers (delete as completed)
   - `mutationResolver.CreateAccount`
   - `mutationResolver.ChangePassword`
