@@ -24,7 +24,7 @@ type Authenticator interface {
 
 type UserService interface {
 	GetByID(ctx context.Context, ID uuid.UUID) (User, error)
-	// GetByUsername(ctx context.Context, username string) (User, error)
+	GetByUsername(ctx context.Context, username string) (User, error)
 	// CreateInTx(ctx context.Context, tx *sqlx.Tx, newUser User) error
 	// DeleteInTx(ctx context.Context, tx *sqlx.Tx, user User) (EpisodeURL, error)
 }

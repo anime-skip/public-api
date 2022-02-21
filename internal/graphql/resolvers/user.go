@@ -34,11 +34,16 @@ func (r *queryResolver) FindUser(ctx context.Context, userID *uuid.UUID) (*graph
 }
 
 func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*graphql.User, error) {
-	panic("queryResolver.FindUserByUsername not implemented")
+	user, err := r.UserService.GetByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+	gqlUser := mappers.ToGraphqlUser(user)
+	return &gqlUser, nil
 }
 
 // Fields
 
 func (r *userResolver) AdminOfShows(ctx context.Context, obj *graphql.User) ([]*graphql.ShowAdmin, error) {
-	panic("not implemented")
+	panic("userResolver.AdminOfShows not implemented")
 }
