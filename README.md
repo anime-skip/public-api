@@ -121,7 +121,7 @@ The project is written in Go. However, all builds are done in a docker container
 - [`docker`](https://docs.docker.com/get-docker/)
 - [`docker-compose`](https://docs.docker.com/compose/install/)
 - GNU `make`
-- [`go v17+`](https://golang.org/doc/install#download)
+- (Optional) [`go v17+`](https://golang.org/doc/install#download)
 
 ### Build Commands
 
