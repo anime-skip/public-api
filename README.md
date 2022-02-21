@@ -4,7 +4,7 @@ The primary backend for Anime Skip, containing accounts, auth, episodes, shows..
 
 Check out the [API Playground](http://test.api.anime-skip.com/graphiql) to get started and read the docs.
 
-# Version 2
+## Version 2
 
 This branch contains the refactored backend that is easier to maintain and uses dependency injection to decouple the code.
 
@@ -107,9 +107,9 @@ There are minor changes to the GraphQL schema, none of which should introduce br
   - `timestampResolver.Episode`
   - `userResolver.AdminOfShows`
 
-### Before Publishing Notes
+### Todo Before Publishing
 
-- Added a migration, #20 so bump to that
+- Added a migration, #20 so bump to that env var
 - Env variable names are different (`ctrl+shift+F`, "os.Getenv")
 
 ## Development
