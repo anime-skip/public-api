@@ -5,6 +5,8 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -14,18 +16,27 @@ import (
 func getPreferencesByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.Preferences{}, errors.New("record not found")
+	}
 	return preferences, err
 }
 
 func getPreferencesByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1 AND deleted_at IS NULL", userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.Preferences{}, errors.New("record not found")
+	}
 	return preferences, err
 }
 
 func getUnscopedPreferencesByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1", userID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.Preferences{}, errors.New("record not found")
+	}
 	return preferences, err
 }
 

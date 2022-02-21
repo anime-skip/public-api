@@ -6,6 +6,8 @@ import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -15,6 +17,9 @@ import (
 func getAPIClientByID(ctx context.Context, db internal.Database, id string) (internal.APIClient, error) {
 	var apiClient internal.APIClient
 	err := db.GetContext(ctx, &apiClient, "SELECT * FROM api_clients WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.APIClient{}, errors.New("record not found")
+	}
 	return apiClient, err
 }
 

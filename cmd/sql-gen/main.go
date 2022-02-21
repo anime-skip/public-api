@@ -225,6 +225,15 @@ func _getOne(file *File, funcName string, sql string, model reflect.Type, field 
 			Lit(sql),
 			Id(fieldName),
 		),
+		// if errors.Is(err, sql.ErrNoRows) {
+		// 	return internal.Show{}, errors.New("record not found")
+		// }
+		If(Qual("errors", "Is").Call(Err(), Qual("database/sql", "ErrNoRows"))).Block(
+			Return(
+				Qual(internalPkg, modelName).Block(),
+				Qual("errors", "New").Call(Lit("record not found")),
+			),
+		),
 		Return(
 			Id(varName),
 			Err(),

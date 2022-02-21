@@ -6,6 +6,8 @@ import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -15,6 +17,9 @@ import (
 func getShowAdminByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.ShowAdmin, error) {
 	var showAdmin internal.ShowAdmin
 	err := db.GetContext(ctx, &showAdmin, "SELECT * FROM show_admins WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.ShowAdmin{}, errors.New("record not found")
+	}
 	return showAdmin, err
 }
 

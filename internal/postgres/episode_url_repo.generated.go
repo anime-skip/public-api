@@ -6,6 +6,8 @@ import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -15,6 +17,9 @@ import (
 func getEpisodeURLByURL(ctx context.Context, db internal.Database, url string) (internal.EpisodeURL, error) {
 	var episodeURL internal.EpisodeURL
 	err := db.GetContext(ctx, &episodeURL, "SELECT * FROM episode_urls WHERE url=$1", url)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.EpisodeURL{}, errors.New("record not found")
+	}
 	return episodeURL, err
 }
 

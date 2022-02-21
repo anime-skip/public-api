@@ -5,6 +5,8 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -14,30 +16,45 @@ import (
 func getUserByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.User, error) {
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.User{}, errors.New("record not found")
+	}
 	return user, err
 }
 
 func getUserByUsername(ctx context.Context, db internal.Database, username string) (internal.User, error) {
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL", username)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.User{}, errors.New("record not found")
+	}
 	return user, err
 }
 
 func getUnscopedUserByUsername(ctx context.Context, db internal.Database, username string) (internal.User, error) {
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1", username)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.User{}, errors.New("record not found")
+	}
 	return user, err
 }
 
 func getUserByEmail(ctx context.Context, db internal.Database, email string) (internal.User, error) {
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL", email)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.User{}, errors.New("record not found")
+	}
 	return user, err
 }
 
 func getUnscopedUserByEmail(ctx context.Context, db internal.Database, email string) (internal.User, error) {
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1", email)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.User{}, errors.New("record not found")
+	}
 	return user, err
 }
 

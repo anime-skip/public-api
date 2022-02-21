@@ -6,6 +6,8 @@ import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 	sqlx "github.com/jmoiron/sqlx"
@@ -15,6 +17,9 @@ import (
 func getTimestampTypeByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.TimestampType, error) {
 	var timestampType internal.TimestampType
 	err := db.GetContext(ctx, &timestampType, "SELECT * FROM timestamp_types WHERE id=$1", id)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.TimestampType{}, errors.New("record not found")
+	}
 	return timestampType, err
 }
 
