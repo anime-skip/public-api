@@ -18,6 +18,44 @@ func getTimestampByID(ctx context.Context, db internal.Database, id uuid.UUID) (
 	return timestamp, err
 }
 
+func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
+	rows, err := db.QueryxContext(ctx, "SELECT * FROM timestamps WHERE deleted_at IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	timestamps := []internal.Timestamp{}
+	for rows.Next() {
+		var timestamp internal.Timestamp
+		err = rows.StructScan(&timestamp)
+		if err != nil {
+			return nil, err
+		}
+		timestamps = append(timestamps, timestamp)
+	}
+	return timestamps, nil
+}
+
+func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
+	rows, err := db.QueryxContext(ctx, "SELECT * FROM timestamps")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	timestamps := []internal.Timestamp{}
+	for rows.Next() {
+		var timestamp internal.Timestamp
+		err = rows.StructScan(&timestamp)
+		if err != nil {
+			return nil, err
+		}
+		timestamps = append(timestamps, timestamp)
+	}
+	return timestamps, nil
+}
+
 func insertTimestampInTx(ctx context.Context, tx *sqlx.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
 	newTimestamp := timestamp
 	auth, err := context1.GetAuthenticationDetails(ctx)

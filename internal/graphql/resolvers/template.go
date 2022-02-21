@@ -4,10 +4,41 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*graphql.Template, error) {
+	if id == nil {
+		return nil, nil
+	}
+	internalTemplate, err := r.TemplateService.GetByID(ctx, *id)
+	if err != nil {
+		return nil, err
+	}
+	template := mappers.ToGraphqlTemplate(internalTemplate)
+	return &template, nil
+}
+
+func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*graphql.Template, error) {
+	internalTemplate, err := r.TemplateService.GetByEpisodeID(ctx, *episodeID)
+	if err != nil {
+		return nil, err
+	}
+	template := mappers.ToGraphqlTemplate(internalTemplate)
+	return &template, nil
+}
+
+func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Template, error) {
+	internalTemplates, err := r.TemplateService.GetByShowID(ctx, *showID)
+	if err != nil {
+		return nil, err
+	}
+	templates := mappers.ToGraphqlTemplatePointers(internalTemplates)
+	return templates, nil
+}
 
 // Mutations
 
@@ -26,11 +57,11 @@ func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.
 // Queries
 
 func (r *queryResolver) FindTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
-	panic("queryResolver.FindTemplate not implemented")
+	return r.getTemplateByID(ctx, templateID)
 }
 
 func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Template, error) {
-	panic("queryResolver.FindTemplatesByShowID not implemented")
+	return r.getTemplatesByShowID(ctx, showID)
 }
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*graphql.Template, error) {
@@ -52,11 +83,11 @@ func (r *templateResolver) DeletedBy(ctx context.Context, obj *graphql.Template)
 }
 
 func (r *templateResolver) Show(ctx context.Context, obj *graphql.Template) (*graphql.Show, error) {
-	panic("templareResolver.Show not implemented")
+	return r.getShowById(ctx, obj.ShowID)
 }
 
 func (r *templateResolver) SourceEpisode(ctx context.Context, obj *graphql.Template) (*graphql.Episode, error) {
-	panic("templareResolver.SourceEpisode not implemented")
+	return r.getEpisodeByID(ctx, obj.SourceEpisodeID)
 }
 
 func (r *templateResolver) Timestamps(ctx context.Context, obj *graphql.Template) ([]*graphql.Timestamp, error) {

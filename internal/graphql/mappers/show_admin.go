@@ -20,18 +20,15 @@ func ToGraphqlShowAdmin(admin internal.ShowAdmin) graphql.ShowAdmin {
 	}
 }
 
-func ToGraphqlShowAdmins(admins []internal.ShowAdmin) []graphql.ShowAdmin {
-	result := []graphql.ShowAdmin{}
-	for _, admin := range admins {
-		result = append(result, ToGraphqlShowAdmin(admin))
-	}
-	return result
+func toGraphqlShowAdminPointer(timestamp internal.ShowAdmin) *graphql.ShowAdmin {
+	value := ToGraphqlShowAdmin(timestamp)
+	return &value
 }
 
-func ToGraphqlShowAdminPointers(admins []internal.ShowAdmin) []*graphql.ShowAdmin {
+func ToGraphqlShowAdminPointers(showAdmins []internal.ShowAdmin) []*graphql.ShowAdmin {
 	result := []*graphql.ShowAdmin{}
-	for _, admin := range ToGraphqlShowAdmins(admins) {
-		result = append(result, &admin)
+	for _, showAdmin := range showAdmins {
+		result = append(result, toGraphqlShowAdminPointer(showAdmin))
 	}
 	return result
 }

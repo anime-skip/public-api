@@ -4,10 +4,32 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getTimestampByID(ctx context.Context, id *uuid.UUID) (*graphql.Timestamp, error) {
+	if id == nil {
+		return nil, nil
+	}
+	internalTimestamp, err := r.TimestampService.GetByID(ctx, *id)
+	if err != nil {
+		return nil, err
+	}
+	timestamp := mappers.ToGraphqlTimestamp(internalTimestamp)
+	return &timestamp, nil
+}
+
+func (r *Resolver) getTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.Timestamp, error) {
+	internalTimestamps, err := r.TimestampService.GetByEpisodeID(ctx, *episodeID)
+	if err != nil {
+		return nil, err
+	}
+	episodes := mappers.ToGraphqlTimestampPointers(internalTimestamps)
+	return episodes, nil
+}
 
 // Mutations
 
@@ -52,7 +74,7 @@ func (r *timestampResolver) DeletedBy(ctx context.Context, obj *graphql.Timestam
 }
 
 func (r *timestampResolver) Type(ctx context.Context, obj *graphql.Timestamp) (*graphql.TimestampType, error) {
-	panic("timestampResolver.Type not implemented")
+	return r.getTimestampTypeByID(ctx, obj.TypeID)
 }
 
 func (r *timestampResolver) Episode(ctx context.Context, obj *graphql.Timestamp) (*graphql.Episode, error) {

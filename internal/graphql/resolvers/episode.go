@@ -13,12 +13,24 @@ import (
 // Helpers
 
 func (r *Resolver) getEpisodeByID(ctx context.Context, id *uuid.UUID) (*graphql.Episode, error) {
+	if id == nil {
+		return nil, nil
+	}
 	internalEpisode, err := r.EpisodeService.GetByID(ctx, *id)
 	if err != nil {
 		return nil, err
 	}
 	episode := mappers.ToGraphqlEpisode(internalEpisode)
 	return &episode, nil
+}
+
+func (r *Resolver) getEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
+	internalEpisodes, err := r.EpisodeService.GetByShowID(ctx, *showID)
+	if err != nil {
+		return nil, err
+	}
+	episodes := mappers.ToGraphqlEpisodePointers(internalEpisodes)
+	return episodes, nil
 }
 
 // Mutations
@@ -57,7 +69,7 @@ func (r *queryResolver) FindEpisode(ctx context.Context, episodeID *uuid.UUID) (
 }
 
 func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
-	panic("queryResolver.FindEpisodesByShowID not implemented")
+	return r.getEpisodesByShowID(ctx, showID)
 }
 
 func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*graphql.Episode, error) {
@@ -87,7 +99,7 @@ func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*grap
 }
 
 func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) ([]*graphql.Timestamp, error) {
-	panic("episodeResolver.Timestamps not implemented")
+	return r.getTimestampsByEpisodeID(ctx, obj.ID)
 }
 
 func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*graphql.EpisodeURL, error) {
@@ -95,5 +107,5 @@ func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*gr
 }
 
 func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {
-	panic("episodeResolver.Template not implemented")
+	return r.getTemplateByEpisodeID(ctx, obj.ID)
 }

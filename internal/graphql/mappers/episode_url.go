@@ -20,18 +20,15 @@ func ToGraphqlEpisodeURL(entity internal.EpisodeURL) graphql.EpisodeURL {
 	}
 }
 
-func ToGraphqlEpisodeURLs(episodeURLs []internal.EpisodeURL) []graphql.EpisodeURL {
-	result := []graphql.EpisodeURL{}
-	for _, episodeURL := range episodeURLs {
-		result = append(result, ToGraphqlEpisodeURL(episodeURL))
-	}
-	return result
+func toGraphqlEpisodeURLPointer(timestamp internal.EpisodeURL) *graphql.EpisodeURL {
+	value := ToGraphqlEpisodeURL(timestamp)
+	return &value
 }
 
 func ToGraphqlEpisodeURLPointers(episodeURLs []internal.EpisodeURL) []*graphql.EpisodeURL {
 	result := []*graphql.EpisodeURL{}
-	for _, episodeURL := range ToGraphqlEpisodeURLs(episodeURLs) {
-		result = append(result, &episodeURL)
+	for _, episodeURL := range episodeURLs {
+		result = append(result, toGraphqlEpisodeURLPointer(episodeURL))
 	}
 	return result
 }

@@ -4,10 +4,23 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
+
+func (r *Resolver) getTimestampTypeByID(ctx context.Context, id *uuid.UUID) (*graphql.TimestampType, error) {
+	if id == nil {
+		return nil, nil
+	}
+	internalTimestampType, err := r.TimestampTypeService.GetByID(ctx, *id)
+	if err != nil {
+		return nil, err
+	}
+	timestampType := mappers.ToGraphqlTimestampType(internalTimestampType)
+	return &timestampType, nil
+}
 
 // Mutations
 
@@ -26,7 +39,7 @@ func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTyp
 // Queries
 
 func (r *queryResolver) FindTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*graphql.TimestampType, error) {
-	panic("queryResolver.FindTimestampType not implemented")
+	return r.getTimestampTypeByID(ctx, timestampTypeID)
 }
 
 func (r *queryResolver) AllTimestampTypes(ctx context.Context) ([]*graphql.TimestampType, error) {

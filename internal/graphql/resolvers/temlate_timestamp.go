@@ -23,9 +23,9 @@ func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, temp
 // Fields
 
 func (r *templateTimestampResolver) Template(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Template, error) {
-	panic("templateTimestampResolver.Template not implemented")
+	return r.getTemplateByID(ctx, obj.TemplateID)
 }
 
 func (r *templateTimestampResolver) Timestamp(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Timestamp, error) {
-	panic("templateTimestampResolver.Timestamp not implemented")
+	return r.getTimestampByID(ctx, obj.TimestampID)
 }

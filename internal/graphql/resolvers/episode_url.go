@@ -63,5 +63,5 @@ func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *graphql.Episode
 }
 
 func (r *episodeUrlResolver) Episode(ctx context.Context, obj *graphql.EpisodeURL) (*graphql.Episode, error) {
-	panic("episodeUrlResolver.Episode not implemented")
+	return r.getEpisodeByID(ctx, obj.EpisodeID)
 }

@@ -11,12 +11,9 @@ import (
 // Helpers
 
 func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*graphql.User, error) {
-	// Handle deletedBy case
 	if id == nil {
 		return nil, nil
 	}
-
-	// return internalUser for created_by_user_id and updated_by_user_id
 	internalUser, err := r.UserService.GetByID(ctx, *id)
 	if err != nil {
 		return nil, err

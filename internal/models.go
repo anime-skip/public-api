@@ -146,7 +146,7 @@ type Timestamp struct {
 	At        float64
 	Source    int
 	TypeID    uuid.UUID `db:"type_id"`
-	EpisodeID uuid.UUID `db:"episode_id"`
+	EpisodeID uuid.UUID `db:"episode_id" sql_gen:"get_many"`
 }
 
 type User struct {

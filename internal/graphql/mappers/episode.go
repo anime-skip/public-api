@@ -24,18 +24,15 @@ func ToGraphqlEpisode(episode internal.Episode) graphql.Episode {
 	}
 }
 
-func ToGraphqlEpisodes(episodes []internal.Episode) []graphql.Episode {
-	result := []graphql.Episode{}
-	for _, episode := range episodes {
-		result = append(result, ToGraphqlEpisode(episode))
-	}
-	return result
+func toGraphqlEpisodePointer(timestamp internal.Episode) *graphql.Episode {
+	value := ToGraphqlEpisode(timestamp)
+	return &value
 }
 
 func ToGraphqlEpisodePointers(episodes []internal.Episode) []*graphql.Episode {
 	result := []*graphql.Episode{}
-	for _, episode := range ToGraphqlEpisodes(episodes) {
-		result = append(result, &episode)
+	for _, episode := range episodes {
+		result = append(result, toGraphqlEpisodePointer(episode))
 	}
 	return result
 }

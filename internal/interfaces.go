@@ -55,6 +55,9 @@ type ShowService interface {
 }
 
 type TemplateService interface {
+	GetByID(ctx context.Context, id uuid.UUID) (Template, error)
+	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Template, error)
+	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (Template, error)
 }
 
 type TemplateTimestampService interface {
@@ -67,9 +70,13 @@ type ThirdPartyTimestampService interface {
 }
 
 type TimestampService interface {
+	GetByID(ctx context.Context, id uuid.UUID) (Timestamp, error)
+	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) ([]Timestamp, error)
 }
 
 type TimestampTypeService interface {
+	GetByID(ctx context.Context, id uuid.UUID) (TimestampType, error)
+	GetAll(ctx context.Context) ([]TimestampType, error)
 }
 
 type UserService interface {

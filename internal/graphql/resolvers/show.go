@@ -11,6 +11,9 @@ import (
 // Helpers
 
 func (r *Resolver) getShowById(ctx context.Context, id *uuid.UUID) (*graphql.Show, error) {
+	if id == nil {
+		return nil, nil
+	}
 	internalShow, err := r.ShowService.GetByID(ctx, *id)
 	if err != nil {
 		return nil, err
@@ -58,15 +61,15 @@ func (r *showResolver) DeletedBy(ctx context.Context, obj *graphql.Show) (*graph
 }
 
 func (r *showResolver) Admins(ctx context.Context, obj *graphql.Show) ([]*graphql.ShowAdmin, error) {
-	panic("showResolver.Admins not implemented")
+	return r.getShowAdminsByShowId(ctx, obj.ID)
 }
 
 func (r *showResolver) Episodes(ctx context.Context, obj *graphql.Show) ([]*graphql.Episode, error) {
-	panic("showResolver.Episodes not implemented")
+	return r.getEpisodesByShowID(ctx, obj.ID)
 }
 
 func (r *showResolver) Templates(ctx context.Context, obj *graphql.Show) ([]*graphql.Template, error) {
-	panic("showResolver.Templates not implemented")
+	return r.getTemplatesByShowID(ctx, obj.ID)
 }
 
 func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int, error) {
@@ -74,5 +77,5 @@ func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int,
 }
 
 func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("showResolver.EpisodeCount not implemented")
+	panic("showResolver.EpisodeCount not implemented, use count query")
 }
