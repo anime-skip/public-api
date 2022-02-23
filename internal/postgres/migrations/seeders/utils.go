@@ -5,7 +5,6 @@ import (
 
 	"anime-skip.com/timestamps-service/internal"
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 )
 
 var now = time.Now()
@@ -22,7 +21,7 @@ func basicEntity(id string) internal.BaseEntity {
 	}
 }
 
-func insertUser(tx *sqlx.Tx, user internal.User, createdAt string) error {
+func insertUser(tx internal.Tx, user internal.User, createdAt string) error {
 	_, err := tx.Exec(
 		`INSERT INTO users(
 			id,  created_at,  username,  email,  password_hash,  profile_url,  email_verified,  role
@@ -41,7 +40,7 @@ func insertUser(tx *sqlx.Tx, user internal.User, createdAt string) error {
 	return err
 }
 
-func insertPreferences(tx *sqlx.Tx, userID uuid.UUID, createdAt string) error {
+func insertPreferences(tx internal.Tx, userID uuid.UUID, createdAt string) error {
 	_, err := tx.Exec(
 		"INSERT INTO preferences(id, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4)",
 		userID,
@@ -52,7 +51,7 @@ func insertPreferences(tx *sqlx.Tx, userID uuid.UUID, createdAt string) error {
 	return err
 }
 
-func insertTimestampType(tx *sqlx.Tx, timestampType internal.TimestampType) error {
+func insertTimestampType(tx internal.Tx, timestampType internal.TimestampType) error {
 	_, err := tx.Exec(
 		`INSERT INTO timestamp_types(
 			id,
@@ -80,12 +79,12 @@ func insertTimestampType(tx *sqlx.Tx, timestampType internal.TimestampType) erro
 	return err
 }
 
-func deleteTimestampType(tx *sqlx.Tx, timestampTypeID uuid.UUID) error {
+func deleteTimestampType(tx internal.Tx, timestampTypeID uuid.UUID) error {
 	_, err := tx.Exec("DELETE FROM timestamp_types WHERE id=$1", timestampTypeID)
 	return err
 }
 
-func insertAPIClient(tx *sqlx.Tx, client internal.APIClient) error {
+func insertAPIClient(tx internal.Tx, client internal.APIClient) error {
 	_, err := tx.Exec(
 		`INSERT INTO api_clients(
 			id,
@@ -119,7 +118,7 @@ func insertAPIClient(tx *sqlx.Tx, client internal.APIClient) error {
 	return err
 }
 
-func deleteAPIClient(tx *sqlx.Tx, clientID uuid.UUID) error {
+func deleteAPIClient(tx internal.Tx, clientID uuid.UUID) error {
 	_, err := tx.Exec("DELETE FROM api_clients WHERE id=$1", clientID)
 	return err
 }

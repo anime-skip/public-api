@@ -4,12 +4,12 @@ package postgres
 
 import (
 	internal "anime-skip.com/timestamps-service/internal"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func getPreferencesByID(ctx context.Context, db internal.Database, id uuid.UUID)
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Preferences{}, errors.New("record not found")
+		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.id=%s", id))
 	}
 	return preferences, err
 }
@@ -26,7 +26,7 @@ func getPreferencesByUserID(ctx context.Context, db internal.Database, userID uu
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1 AND deleted_at IS NULL", userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Preferences{}, errors.New("record not found")
+		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.userID=%s", userID))
 	}
 	return preferences, err
 }
@@ -35,12 +35,12 @@ func getUnscopedPreferencesByUserID(ctx context.Context, db internal.Database, u
 	var preferences internal.Preferences
 	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1", userID)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Preferences{}, errors.New("record not found")
+		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.userID=%s", userID))
 	}
 	return preferences, err
 }
 
-func insertPreferencesInTx(ctx context.Context, tx *sqlx.Tx, preferences internal.Preferences) (internal.Preferences, error) {
+func insertPreferencesInTx(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
 	newPreferences := preferences
 	newPreferences.CreatedAt = time.Now()
 	newPreferences.UpdatedAt = time.Now()
@@ -79,7 +79,7 @@ func insertPreferences(ctx context.Context, db internal.Database, preferences in
 	return result, nil
 }
 
-func updatePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
+func updatePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
 	updatedPreferences := newPreferences
 	updatedPreferences.UpdatedAt = time.Now()
 	result, err := tx.ExecContext(
@@ -116,7 +116,7 @@ func updatePreferences(ctx context.Context, db internal.Database, preferences in
 	return result, nil
 }
 
-func deletePreferencesInTx(ctx context.Context, tx *sqlx.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
+func deletePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
 	deletedPreferences := newPreferences
 	deletedPreferences.UpdatedAt = time.Now()
 	now := time.Now()

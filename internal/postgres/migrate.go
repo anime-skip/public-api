@@ -1,14 +1,14 @@
 package postgres
 
 import (
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/seeders"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/tables"
-	"github.com/jmoiron/sqlx"
 )
 
 // migrate all the migrations and seeders
-func migrate(db *sqlx.DB, dbVersion int) error {
+func migrate(db internal.Database, dbVersion int) error {
 	tx := db.MustBegin()
 	defer tx.Rollback()
 

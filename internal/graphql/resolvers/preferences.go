@@ -24,7 +24,7 @@ func (r *Resolver) getPreferences(ctx go_context.Context, userID uuid.UUID) (*gr
 // Mutations
 
 func (r *mutationResolver) SavePreferences(ctx go_context.Context, preferences map[string]interface{}) (*graphql.Preferences, error) {
-	auth, err := context.GetAuthenticationDetails(ctx)
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}

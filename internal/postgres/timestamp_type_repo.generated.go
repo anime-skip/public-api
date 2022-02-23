@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,21 +18,21 @@ func getTimestampTypeByID(ctx context.Context, db internal.Database, id uuid.UUI
 	var timestampType internal.TimestampType
 	err := db.GetContext(ctx, &timestampType, "SELECT * FROM timestamp_types WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.TimestampType{}, errors.New("record not found")
+		return internal.TimestampType{}, errors1.NewRecordNotFound(fmt.Sprintf("TimestampType.id=%s", id))
 	}
 	return timestampType, err
 }
 
-func insertTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, timestampType internal.TimestampType) (internal.TimestampType, error) {
+func insertTimestampTypeInTx(ctx context.Context, tx internal.Tx, timestampType internal.TimestampType) (internal.TimestampType, error) {
 	newTimestampType := timestampType
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.TimestampType{}, err
 	}
 	newTimestampType.CreatedAt = time.Now()
-	newTimestampType.CreatedByUserID = auth.UserID
+	newTimestampType.CreatedByUserID = claims.UserID
 	newTimestampType.UpdatedAt = time.Now()
-	newTimestampType.UpdatedByUserID = auth.UserID
+	newTimestampType.UpdatedByUserID = claims.UserID
 	newTimestampType.DeletedAt = nil
 	newTimestampType.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -69,14 +69,14 @@ func insertTimestampType(ctx context.Context, db internal.Database, timestampTyp
 	return result, nil
 }
 
-func updateTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
+func updateTimestampTypeInTx(ctx context.Context, tx internal.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
 	updatedTimestampType := newTimestampType
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.TimestampType{}, err
 	}
 	updatedTimestampType.UpdatedAt = time.Now()
-	updatedTimestampType.UpdatedByUserID = auth.UserID
+	updatedTimestampType.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE timestamp_types SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, description=$9",
@@ -111,17 +111,17 @@ func updateTimestampType(ctx context.Context, db internal.Database, timestampTyp
 	return result, nil
 }
 
-func deleteTimestampTypeInTx(ctx context.Context, tx *sqlx.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
+func deleteTimestampTypeInTx(ctx context.Context, tx internal.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
 	deletedTimestampType := newTimestampType
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.TimestampType{}, err
 	}
 	deletedTimestampType.UpdatedAt = time.Now()
-	deletedTimestampType.UpdatedByUserID = auth.UserID
+	deletedTimestampType.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedTimestampType.DeletedAt = &now
-	deletedTimestampType.DeletedByUserID = &auth.UserID
+	deletedTimestampType.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM timestamp_types WHERE id=$1", deletedTimestampType.ID)
 	if err != nil {
 		return internal.TimestampType{}, err

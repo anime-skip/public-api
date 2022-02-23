@@ -19,6 +19,10 @@ func (s *preferencesService) GetByUserID(ctx context.Context, userID uuid.UUID) 
 	return getPreferencesByUserID(ctx, s.db, userID)
 }
 
+func (p *preferencesService) CreateInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
+	return insertPreferencesInTx(ctx, tx, newPreferences)
+}
+
 func (p *preferencesService) Update(ctx context.Context, newPreferences internal.Preferences) (internal.Preferences, error) {
 	return updatePreferences(ctx, p.db, newPreferences)
 }

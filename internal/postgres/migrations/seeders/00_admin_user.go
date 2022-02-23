@@ -6,7 +6,6 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
 	"github.com/gofrs/uuid"
-	"github.com/jmoiron/sqlx"
 )
 
 var adminUUID = uuid.FromStringOrNil("00000000-0000-0000-0000-000000000000")
@@ -25,14 +24,14 @@ var adminUser = &internal.User{
 // SeedAdminUser inserts the admin user
 var SeedAdminUser = &sqlx_migration.Migration{
 	ID: "SEED_ADMIN_USER",
-	Up: func(tx *sqlx.Tx) error {
+	Up: func(tx internal.Tx) error {
 		err := insertUser(tx, *adminUser, "2019-12-25 17:35:37.485712-06")
 		if err != nil {
 			return err
 		}
 		return insertPreferences(tx, adminUser.ID, "2019-12-25 17:35:37.485712-06")
 	},
-	Down: func(tx *sqlx.Tx) error {
+	Down: func(tx internal.Tx) error {
 		_, err := tx.Exec("DELETE FROM users WHERE id=$1", adminUser.ID)
 		return err
 	},

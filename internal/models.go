@@ -10,6 +10,7 @@ import (
 )
 
 type Database = *sqlx.DB
+type Tx = *sqlx.Tx
 
 type ApiStatus struct {
 	Version       string

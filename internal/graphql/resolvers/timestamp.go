@@ -52,11 +52,11 @@ func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graph
 // Queries
 
 func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
-	panic("queryResolver.FindTimestamp not implemented")
+	return r.getTimestampByID(ctx, timestampID)
 }
 
 func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.Timestamp, error) {
-	panic("queryResolver.FindTimestampsByEpisodeID not implemented")
+	return r.getTimestampsByEpisodeID(ctx, episodeID)
 }
 
 // Fields
@@ -78,5 +78,5 @@ func (r *timestampResolver) Type(ctx context.Context, obj *graphql.Timestamp) (*
 }
 
 func (r *timestampResolver) Episode(ctx context.Context, obj *graphql.Timestamp) (*graphql.Episode, error) {
-	panic("timestampResolver.Episode not implemented")
+	return r.getEpisodeByID(ctx, obj.EpisodeID)
 }

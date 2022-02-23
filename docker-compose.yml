@@ -20,6 +20,12 @@ services:
       - ENABLE_INTROSPECTION=true
       - ENABLE_PLAYGROUND=true
       - LOG_LEVEL=0
+      - JWT_SECRET=some-secret
+      - EMAIL_SERVICE_HOST=email-service
+      - EMAIL_SERVICE_SECRET=some-secret
+      - EMAIL_SERVICE_ENABLED=true
+      - RECAPTCHA_SECRET=some-secret
+      - RECAPTCHA_RESPONSE_ALLOWLIST=password1,password2
 
   # Dependencies
   postgres:
@@ -51,3 +57,6 @@ services:
       - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps?sslmode=disable
     logging:
         driver: none
+
+  email-service:
+    image: ealen/echo-server

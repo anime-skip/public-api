@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 )
 
 func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
@@ -48,7 +47,7 @@ func getTemplateTimestampsByTimestampID(ctx context.Context, db internal.Databas
 	return templateTimestamps, nil
 }
 
-func insertTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+func insertTemplateTimestampInTx(ctx context.Context, tx internal.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	newTemplateTimestamp := templateTimestamp
 	result, err := tx.ExecContext(
 		ctx,
@@ -84,7 +83,7 @@ func insertTemplateTimestamp(ctx context.Context, db internal.Database, template
 	return result, nil
 }
 
-func updateTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+func updateTemplateTimestampInTx(ctx context.Context, tx internal.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	updatedTemplateTimestamp := newTemplateTimestamp
 	result, err := tx.ExecContext(
 		ctx,
@@ -120,7 +119,7 @@ func updateTemplateTimestamp(ctx context.Context, db internal.Database, template
 	return result, nil
 }
 
-func deleteTemplateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+func deleteTemplateTimestampInTx(ctx context.Context, tx internal.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	deletedTemplateTimestamp := newTemplateTimestamp
 	result, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", deletedTemplateTimestamp.TemplateID, deletedTemplateTimestamp.TimestampID)
 	if err != nil {

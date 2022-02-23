@@ -13,11 +13,12 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
-func NewGraphqlHandler(services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
+func NewGraphqlHandler(db internal.Database, services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
 	log.D("Building GraphQL Server...")
 	config := graphql.Config{
 		Resolvers: &resolvers.Resolver{
 			Services: &services,
+			DB:       db,
 		},
 		Directives: graphql.DirectiveRoot{
 			Authenticated: directives.Authenticated,

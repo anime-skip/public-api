@@ -4,7 +4,6 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/config"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
-	"github.com/jmoiron/sqlx"
 )
 
 var timestampTypes = []*internal.TimestampType{
@@ -83,7 +82,7 @@ var timestampTypes = []*internal.TimestampType{
 // SeedTimestampTypes inserts the necessary timestamp types
 var SeedTimestampTypes = &sqlx_migration.Migration{
 	ID: "SEED_TIMESTAMP_TYPES",
-	Up: func(tx *sqlx.Tx) error {
+	Up: func(tx internal.Tx) error {
 		for _, timestampType := range timestampTypes {
 			err := insertTimestampType(tx, *timestampType)
 			if err != nil {
@@ -92,7 +91,7 @@ var SeedTimestampTypes = &sqlx_migration.Migration{
 		}
 		return nil
 	},
-	Down: func(tx *sqlx.Tx) error {
+	Down: func(tx internal.Tx) error {
 		for _, timestampType := range timestampTypes {
 			err := deleteTimestampType(tx, timestampType.ID)
 			if err != nil {

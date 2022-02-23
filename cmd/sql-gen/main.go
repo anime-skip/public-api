@@ -38,7 +38,7 @@ var models = []interface{}{
 
 var internalPkg = "anime-skip.com/timestamps-service/internal"
 var asContextPkg = "anime-skip.com/timestamps-service/internal/context"
-var sqlxPkg = "github.com/jmoiron/sqlx"
+var asErrorsPkg = "anime-skip.com/timestamps-service/internal/errors"
 
 func main() {
 	println("SQL Generation")
@@ -209,6 +209,7 @@ func _getOne(file *File, funcName string, sql string, model reflect.Type, field 
 	modelName := model.Name()
 	varName := strcase.ToGoCamel(modelName)
 	fieldName := strcase.ToGoCamel(field.Name)
+	errMessage := fmt.Sprintf("%s.%s=", modelName, fieldName) + "%s"
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -225,13 +226,12 @@ func _getOne(file *File, funcName string, sql string, model reflect.Type, field 
 			Lit(sql),
 			Id(fieldName),
 		),
-		// if errors.Is(err, sql.ErrNoRows) {
-		// 	return internal.Show{}, errors.New("record not found")
-		// }
 		If(Qual("errors", "Is").Call(Err(), Qual("database/sql", "ErrNoRows"))).Block(
 			Return(
 				Qual(internalPkg, modelName).Block(),
-				Qual("errors", "New").Call(Lit("record not found")),
+				Qual(asErrorsPkg, "NewRecordNotFound").Call(
+					Qual("fmt", "Sprintf").Call(Lit(errMessage), Id(fieldName)),
+				),
 			),
 		),
 		Return(
@@ -363,7 +363,7 @@ func updateMetadataTime(id string, timeFieldName string) *Statement {
 	return Id(id).Dot(timeFieldName).Op("=").Qual("time", "Now").Call()
 }
 func updateMetadataUserID(id string, userIDFieldName string) *Statement {
-	return Id(id).Dot(userIDFieldName).Op("=").Id("auth").Dot("UserID")
+	return Id(id).Dot(userIDFieldName).Op("=").Id("claims").Dot("UserID")
 }
 func updateToNil(id string, nilFieldName string) *Statement {
 	return Id(id).Dot(nilFieldName).Op("=").Nil()
@@ -430,7 +430,7 @@ func insertInTx(file *File, model reflect.Type) {
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
-		Id("tx").Op("*").Qual(sqlxPkg, "Tx"),
+		Id("tx").Qual(internalPkg, "Tx"),
 		Id(argName).Qual(internalPkg, modelName),
 	).Params(
 		Qual(internalPkg, modelName),
@@ -438,7 +438,7 @@ func insertInTx(file *File, model reflect.Type) {
 	).BlockFunc(func(g *Group) {
 		g.Id(newModelName).Op(":=").Id(argName)
 		if hasCreatedBy || hasUpdatedBy {
-			g.List(Id("auth"), Err()).Op(":=").Qual(asContextPkg, "GetAuthenticationDetails").Call(Id("ctx"))
+			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
 			g.Add(ifErrReturn)
 		}
 		if hasCreatedAt {
@@ -507,7 +507,7 @@ func updateInTx(file *File, model reflect.Type) {
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
-		Id("tx").Op("*").Qual(sqlxPkg, "Tx"),
+		Id("tx").Qual(internalPkg, "Tx"),
 		Id(argName).Qual(internalPkg, modelName),
 	).Params(
 		Qual(internalPkg, modelName),
@@ -515,7 +515,7 @@ func updateInTx(file *File, model reflect.Type) {
 	).BlockFunc(func(g *Group) {
 		g.Id(updatedModelName).Op(":=").Id(argName)
 		if hasUpdatedBy {
-			g.List(Id("auth"), Err()).Op(":=").Qual(asContextPkg, "GetAuthenticationDetails").Call(Id("ctx"))
+			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
 			g.Add(ifErrReturn)
 		}
 		if hasUpdatedAt {
@@ -572,7 +572,7 @@ func deleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructFiel
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
-		Id("tx").Op("*").Qual(sqlxPkg, "Tx"),
+		Id("tx").Qual(internalPkg, "Tx"),
 		Id(argName).Qual(internalPkg, modelName),
 	).Params(
 		Qual(internalPkg, modelName),
@@ -580,7 +580,7 @@ func deleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructFiel
 	).BlockFunc(func(g *Group) {
 		g.Id(deletedModelName).Op(":=").Id(argName)
 		if hasUpdatedBy {
-			g.List(Id("auth"), Err()).Op(":=").Qual(asContextPkg, "GetAuthenticationDetails").Call(Id("ctx"))
+			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
 			g.Add(ifErrReturn)
 		}
 		if hasUpdatedAt {
@@ -594,7 +594,7 @@ func deleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructFiel
 			g.Add(Id(deletedModelName).Dot("DeletedAt").Op("=").Op("&").Id("now"))
 		}
 		if hasDeletedBy {
-			g.Id(deletedModelName).Dot("DeletedByUserID").Op("=").Op("&").Id("auth").Dot("UserID")
+			g.Id(deletedModelName).Dot("DeletedByUserID").Op("=").Op("&").Id("claims").Dot("UserID")
 		}
 		g.List(Id("result"), Err()).Op(":=").Id("tx").Dot("ExecContext").Call(execArgs...)
 		g.Add(ifErrReturn)

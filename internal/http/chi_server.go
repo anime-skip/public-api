@@ -20,7 +20,7 @@ type chiServer struct {
 	enablePlayground bool
 	graphqlPath      string
 	graphqlHandler   internal.GraphQLHandler
-	authenticator    internal.Authenticator
+	authService      internal.AuthService
 }
 
 func NewChiServer(
@@ -28,7 +28,7 @@ func NewChiServer(
 	enablePlayground bool,
 	graphqlPath string,
 	graphqlHandler internal.GraphQLHandler,
-	authenticator internal.Authenticator,
+	authService internal.AuthService,
 ) internal.Server {
 	log.D("Using Chi for routing...")
 	return &chiServer{
@@ -36,7 +36,7 @@ func NewChiServer(
 		enablePlayground: enablePlayground,
 		graphqlPath:      graphqlPath,
 		graphqlHandler:   graphqlHandler,
-		authenticator:    authenticator,
+		authService:      authService,
 	}
 }
 
@@ -51,6 +51,7 @@ func (s *chiServer) Start() error {
 		router.Handle("/", playground.Handler("Anime Skip", s.graphqlPath))
 	}
 	router.Route(s.graphqlPath, func(r chi.Router) {
+		r.Use(s.ipMiddleware)
 		r.Use(s.authorizerMiddleware)
 		r.Handle("/", s.graphqlHandler.Handler)
 	})
@@ -72,8 +73,20 @@ func (s *chiServer) statusHandler(rw http.ResponseWriter, r *http.Request) {
 func (s *chiServer) authorizerMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithAuthenticator(ctx, s.authenticator)
+		ctx = context.WithAuthService(ctx, s.authService)
 		ctx = context.WithAuthToken(ctx, getAuthToken(r))
+		next.ServeHTTP(rw, r.WithContext(ctx))
+	})
+}
+
+func (s *chiServer) ipMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		ip := r.Header.Get("X-FORWARDED-FOR")
+		if ip == "" {
+			ip = r.RemoteAddr
+		}
+		ctx := r.Context()
+		ctx = context.WithIPAddress(ctx, ip)
 		next.ServeHTTP(rw, r.WithContext(ctx))
 	})
 }

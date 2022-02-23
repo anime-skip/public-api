@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func getTemplateByID(ctx context.Context, db internal.Database, id uuid.UUID) (i
 	var template internal.Template
 	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Template{}, errors.New("record not found")
+		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.id=%s", id))
 	}
 	return template, err
 }
@@ -61,16 +61,16 @@ func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, sho
 	return templates, nil
 }
 
-func insertTemplateInTx(ctx context.Context, tx *sqlx.Tx, template internal.Template) (internal.Template, error) {
+func insertTemplateInTx(ctx context.Context, tx internal.Tx, template internal.Template) (internal.Template, error) {
 	newTemplate := template
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err
 	}
 	newTemplate.CreatedAt = time.Now()
-	newTemplate.CreatedByUserID = auth.UserID
+	newTemplate.CreatedByUserID = claims.UserID
 	newTemplate.UpdatedAt = time.Now()
-	newTemplate.UpdatedByUserID = auth.UserID
+	newTemplate.UpdatedByUserID = claims.UserID
 	newTemplate.DeletedAt = nil
 	newTemplate.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -107,14 +107,14 @@ func insertTemplate(ctx context.Context, db internal.Database, template internal
 	return result, nil
 }
 
-func updateTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.Template) (internal.Template, error) {
+func updateTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate internal.Template) (internal.Template, error) {
 	updatedTemplate := newTemplate
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err
 	}
 	updatedTemplate.UpdatedAt = time.Now()
-	updatedTemplate.UpdatedByUserID = auth.UserID
+	updatedTemplate.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE templates SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, show_id=$8, type=$9, seasons=$10, source_episode_id=$11",
@@ -149,17 +149,17 @@ func updateTemplate(ctx context.Context, db internal.Database, template internal
 	return result, nil
 }
 
-func deleteTemplateInTx(ctx context.Context, tx *sqlx.Tx, newTemplate internal.Template) (internal.Template, error) {
+func deleteTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate internal.Template) (internal.Template, error) {
 	deletedTemplate := newTemplate
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err
 	}
 	deletedTemplate.UpdatedAt = time.Now()
-	deletedTemplate.UpdatedByUserID = auth.UserID
+	deletedTemplate.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedTemplate.DeletedAt = &now
-	deletedTemplate.DeletedByUserID = &auth.UserID
+	deletedTemplate.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM templates WHERE id=$1", deletedTemplate.ID)
 	if err != nil {
 		return internal.Template{}, err

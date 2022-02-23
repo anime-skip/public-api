@@ -4,12 +4,12 @@ package postgres
 
 import (
 	internal "anime-skip.com/timestamps-service/internal"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -17,7 +17,7 @@ func getUserByID(ctx context.Context, db internal.Database, id uuid.UUID) (inter
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.User{}, errors.New("record not found")
+		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.id=%s", id))
 	}
 	return user, err
 }
@@ -26,7 +26,7 @@ func getUserByUsername(ctx context.Context, db internal.Database, username strin
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL", username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.User{}, errors.New("record not found")
+		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.username=%s", username))
 	}
 	return user, err
 }
@@ -35,7 +35,7 @@ func getUnscopedUserByUsername(ctx context.Context, db internal.Database, userna
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1", username)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.User{}, errors.New("record not found")
+		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.username=%s", username))
 	}
 	return user, err
 }
@@ -44,7 +44,7 @@ func getUserByEmail(ctx context.Context, db internal.Database, email string) (in
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL", email)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.User{}, errors.New("record not found")
+		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.email=%s", email))
 	}
 	return user, err
 }
@@ -53,12 +53,12 @@ func getUnscopedUserByEmail(ctx context.Context, db internal.Database, email str
 	var user internal.User
 	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1", email)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.User{}, errors.New("record not found")
+		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.email=%s", email))
 	}
 	return user, err
 }
 
-func insertUserInTx(ctx context.Context, tx *sqlx.Tx, user internal.User) (internal.User, error) {
+func insertUserInTx(ctx context.Context, tx internal.Tx, user internal.User) (internal.User, error) {
 	newUser := user
 	newUser.CreatedAt = time.Now()
 	newUser.DeletedAt = nil
@@ -96,7 +96,7 @@ func insertUser(ctx context.Context, db internal.Database, user internal.User) (
 	return result, nil
 }
 
-func updateUserInTx(ctx context.Context, tx *sqlx.Tx, newUser internal.User) (internal.User, error) {
+func updateUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) (internal.User, error) {
 	updatedUser := newUser
 	result, err := tx.ExecContext(
 		ctx,
@@ -132,7 +132,7 @@ func updateUser(ctx context.Context, db internal.Database, user internal.User) (
 	return result, nil
 }
 
-func deleteUserInTx(ctx context.Context, tx *sqlx.Tx, newUser internal.User) (internal.User, error) {
+func deleteUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) (internal.User, error) {
 	deletedUser := newUser
 	now := time.Now()
 	deletedUser.DeletedAt = &now

@@ -1,11 +1,11 @@
 package sqlx_migration
 
-import "github.com/jmoiron/sqlx"
+import "anime-skip.com/timestamps-service/internal"
 
 type Migration struct {
 	ID   string
-	Up   func(tx *sqlx.Tx) error
-	Down func(tx *sqlx.Tx) error
+	Up   func(tx internal.Tx) error
+	Down func(tx internal.Tx) error
 }
 
 type ExistingMigration struct {

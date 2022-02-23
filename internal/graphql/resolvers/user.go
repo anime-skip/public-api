@@ -42,5 +42,5 @@ func (r *queryResolver) FindUserByUsername(ctx context.Context, username string)
 // Fields
 
 func (r *userResolver) AdminOfShows(ctx context.Context, obj *graphql.User) ([]*graphql.ShowAdmin, error) {
-	panic("userResolver.AdminOfShows not implemented")
+	return r.getShowAdminsByUserId(ctx, obj.ID)
 }

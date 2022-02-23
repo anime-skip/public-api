@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func getEpisodeURLByURL(ctx context.Context, db internal.Database, url string) (
 	var episodeURL internal.EpisodeURL
 	err := db.GetContext(ctx, &episodeURL, "SELECT * FROM episode_urls WHERE url=$1", url)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.EpisodeURL{}, errors.New("record not found")
+		return internal.EpisodeURL{}, errors1.NewRecordNotFound(fmt.Sprintf("EpisodeURL.url=%s", url))
 	}
 	return episodeURL, err
 }
@@ -42,16 +42,16 @@ func getEpisodeURLsByEpisodeID(ctx context.Context, db internal.Database, episod
 	return episodeURLs, nil
 }
 
-func insertEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+func insertEpisodeURLInTx(ctx context.Context, tx internal.Tx, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
 	newEpisodeURL := episodeURL
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 	newEpisodeURL.CreatedAt = time.Now()
-	newEpisodeURL.CreatedByUserID = auth.UserID
+	newEpisodeURL.CreatedByUserID = claims.UserID
 	newEpisodeURL.UpdatedAt = time.Now()
-	newEpisodeURL.UpdatedByUserID = auth.UserID
+	newEpisodeURL.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"INSERT INTO episode_urls(url, created_at, created_by_user_id, updated_at, updated_by_user_id, source, duration, timestamps_offset, episode_id) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)",
@@ -86,14 +86,14 @@ func insertEpisodeURL(ctx context.Context, db internal.Database, episodeURL inte
 	return result, nil
 }
 
-func updateEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+func updateEpisodeURLInTx(ctx context.Context, tx internal.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
 	updatedEpisodeURL := newEpisodeURL
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 	updatedEpisodeURL.UpdatedAt = time.Now()
-	updatedEpisodeURL.UpdatedByUserID = auth.UserID
+	updatedEpisodeURL.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE episode_urls SET url=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, source=$6, duration=$7, timestamps_offset=$8, episode_id=$9",
@@ -128,14 +128,14 @@ func updateEpisodeURL(ctx context.Context, db internal.Database, episodeURL inte
 	return result, nil
 }
 
-func deleteEpisodeURLInTx(ctx context.Context, tx *sqlx.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+func deleteEpisodeURLInTx(ctx context.Context, tx internal.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
 	deletedEpisodeURL := newEpisodeURL
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 	deletedEpisodeURL.UpdatedAt = time.Now()
-	deletedEpisodeURL.UpdatedByUserID = auth.UserID
+	deletedEpisodeURL.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM episode_urls WHERE url=$1", deletedEpisodeURL.URL)
 	if err != nil {
 		return internal.EpisodeURL{}, err

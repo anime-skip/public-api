@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func getEpisodeByID(ctx context.Context, db internal.Database, id uuid.UUID) (in
 	var episode internal.Episode
 	err := db.GetContext(ctx, &episode, "SELECT * FROM episodes WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Episode{}, errors.New("record not found")
+		return internal.Episode{}, errors1.NewRecordNotFound(fmt.Sprintf("Episode.id=%s", id))
 	}
 	return episode, err
 }
@@ -61,16 +61,16 @@ func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, show
 	return episodes, nil
 }
 
-func insertEpisodeInTx(ctx context.Context, tx *sqlx.Tx, episode internal.Episode) (internal.Episode, error) {
+func insertEpisodeInTx(ctx context.Context, tx internal.Tx, episode internal.Episode) (internal.Episode, error) {
 	newEpisode := episode
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 	newEpisode.CreatedAt = time.Now()
-	newEpisode.CreatedByUserID = auth.UserID
+	newEpisode.CreatedByUserID = claims.UserID
 	newEpisode.UpdatedAt = time.Now()
-	newEpisode.UpdatedByUserID = auth.UserID
+	newEpisode.UpdatedByUserID = claims.UserID
 	newEpisode.DeletedAt = nil
 	newEpisode.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -107,14 +107,14 @@ func insertEpisode(ctx context.Context, db internal.Database, episode internal.E
 	return result, nil
 }
 
-func updateEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Episode) (internal.Episode, error) {
+func updateEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.Episode) (internal.Episode, error) {
 	updatedEpisode := newEpisode
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 	updatedEpisode.UpdatedAt = time.Now()
-	updatedEpisode.UpdatedByUserID = auth.UserID
+	updatedEpisode.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE episodes SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, season=$8, number=$9, absolute_number=$10, name=$11, base_duration=$12, show_id=$13",
@@ -149,17 +149,17 @@ func updateEpisode(ctx context.Context, db internal.Database, episode internal.E
 	return result, nil
 }
 
-func deleteEpisodeInTx(ctx context.Context, tx *sqlx.Tx, newEpisode internal.Episode) (internal.Episode, error) {
+func deleteEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.Episode) (internal.Episode, error) {
 	deletedEpisode := newEpisode
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 	deletedEpisode.UpdatedAt = time.Now()
-	deletedEpisode.UpdatedByUserID = auth.UserID
+	deletedEpisode.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedEpisode.DeletedAt = &now
-	deletedEpisode.DeletedByUserID = &auth.UserID
+	deletedEpisode.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM episodes WHERE id=$1", deletedEpisode.ID)
 	if err != nil {
 		return internal.Episode{}, err

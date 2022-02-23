@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func getTimestampByID(ctx context.Context, db internal.Database, id uuid.UUID) (
 	var timestamp internal.Timestamp
 	err := db.GetContext(ctx, &timestamp, "SELECT * FROM timestamps WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Timestamp{}, errors.New("record not found")
+		return internal.Timestamp{}, errors1.NewRecordNotFound(fmt.Sprintf("Timestamp.id=%s", id))
 	}
 	return timestamp, err
 }
@@ -61,16 +61,16 @@ func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database,
 	return timestamps, nil
 }
 
-func insertTimestampInTx(ctx context.Context, tx *sqlx.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
+func insertTimestampInTx(ctx context.Context, tx internal.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
 	newTimestamp := timestamp
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
 	newTimestamp.CreatedAt = time.Now()
-	newTimestamp.CreatedByUserID = auth.UserID
+	newTimestamp.CreatedByUserID = claims.UserID
 	newTimestamp.UpdatedAt = time.Now()
-	newTimestamp.UpdatedByUserID = auth.UserID
+	newTimestamp.UpdatedByUserID = claims.UserID
 	newTimestamp.DeletedAt = nil
 	newTimestamp.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -107,14 +107,14 @@ func insertTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	return result, nil
 }
 
-func updateTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
+func updateTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
 	updatedTimestamp := newTimestamp
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
 	updatedTimestamp.UpdatedAt = time.Now()
-	updatedTimestamp.UpdatedByUserID = auth.UserID
+	updatedTimestamp.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE timestamps SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, at=$8, source=$9, type_id=$10, episode_id=$11",
@@ -149,17 +149,17 @@ func updateTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	return result, nil
 }
 
-func deleteTimestampInTx(ctx context.Context, tx *sqlx.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
+func deleteTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
 	deletedTimestamp := newTimestamp
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
 	deletedTimestamp.UpdatedAt = time.Now()
-	deletedTimestamp.UpdatedByUserID = auth.UserID
+	deletedTimestamp.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedTimestamp.DeletedAt = &now
-	deletedTimestamp.DeletedByUserID = &auth.UserID
+	deletedTimestamp.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM timestamps WHERE id=$1", deletedTimestamp.ID)
 	if err != nil {
 		return internal.Timestamp{}, err

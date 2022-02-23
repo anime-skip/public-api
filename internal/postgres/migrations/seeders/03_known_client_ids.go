@@ -3,7 +3,6 @@ package seeders
 import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
-	"github.com/jmoiron/sqlx"
 )
 
 var rateLimit60 uint = 60
@@ -45,7 +44,7 @@ var clients = []internal.APIClient{
 // SeedKnownClientIDs inserts the basic client IDs
 var SeedKnownClientIDs = &sqlx_migration.Migration{
 	ID: "SEED_KNOWN_CLIENT_IDS",
-	Up: func(tx *sqlx.Tx) error {
+	Up: func(tx internal.Tx) error {
 		for _, client := range clients {
 			err := insertAPIClient(tx, client)
 			if err != nil {
@@ -54,7 +53,7 @@ var SeedKnownClientIDs = &sqlx_migration.Migration{
 		}
 		return nil
 	},
-	Down: func(tx *sqlx.Tx) error {
+	Down: func(tx internal.Tx) error {
 		for _, client := range clients {
 			err := insertAPIClient(tx, client)
 			if err != nil {

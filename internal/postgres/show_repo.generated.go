@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,21 +18,21 @@ func getShowByID(ctx context.Context, db internal.Database, id uuid.UUID) (inter
 	var show internal.Show
 	err := db.GetContext(ctx, &show, "SELECT * FROM shows WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.Show{}, errors.New("record not found")
+		return internal.Show{}, errors1.NewRecordNotFound(fmt.Sprintf("Show.id=%s", id))
 	}
 	return show, err
 }
 
-func insertShowInTx(ctx context.Context, tx *sqlx.Tx, show internal.Show) (internal.Show, error) {
+func insertShowInTx(ctx context.Context, tx internal.Tx, show internal.Show) (internal.Show, error) {
 	newShow := show
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err
 	}
 	newShow.CreatedAt = time.Now()
-	newShow.CreatedByUserID = auth.UserID
+	newShow.CreatedByUserID = claims.UserID
 	newShow.UpdatedAt = time.Now()
-	newShow.UpdatedByUserID = auth.UserID
+	newShow.UpdatedByUserID = claims.UserID
 	newShow.DeletedAt = nil
 	newShow.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -69,14 +69,14 @@ func insertShow(ctx context.Context, db internal.Database, show internal.Show) (
 	return result, nil
 }
 
-func updateShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (internal.Show, error) {
+func updateShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) (internal.Show, error) {
 	updatedShow := newShow
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err
 	}
 	updatedShow.UpdatedAt = time.Now()
-	updatedShow.UpdatedByUserID = auth.UserID
+	updatedShow.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE shows SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, original_name=$9, website=$10, image=$11",
@@ -111,17 +111,17 @@ func updateShow(ctx context.Context, db internal.Database, show internal.Show) (
 	return result, nil
 }
 
-func deleteShowInTx(ctx context.Context, tx *sqlx.Tx, newShow internal.Show) (internal.Show, error) {
+func deleteShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) (internal.Show, error) {
 	deletedShow := newShow
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err
 	}
 	deletedShow.UpdatedAt = time.Now()
-	deletedShow.UpdatedByUserID = auth.UserID
+	deletedShow.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedShow.DeletedAt = &now
-	deletedShow.DeletedByUserID = &auth.UserID
+	deletedShow.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM shows WHERE id=$1", deletedShow.ID)
 	if err != nil {
 		return internal.Show{}, err

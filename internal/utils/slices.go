@@ -7,3 +7,12 @@ func SliceOrNil(array []string) []string {
 	}
 	return array
 }
+
+func StringSliceIncludes(slice []string, str string) bool {
+	for _, item := range slice {
+		if item == str {
+			return true
+		}
+	}
+	return false
+}

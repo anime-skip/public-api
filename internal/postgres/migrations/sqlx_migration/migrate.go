@@ -1,17 +1,17 @@
 package sqlx_migration
 
 import (
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/log"
-	"github.com/jmoiron/sqlx"
 )
 
 const migrationTableName = ""
 
-func RunAllMigrations(tx *sqlx.Tx, name string, migrations []*Migration) error {
+func RunAllMigrations(tx internal.Tx, name string, migrations []*Migration) error {
 	return RunMigrations(tx, name, migrations, len(migrations))
 }
 
-func RunMigrations(tx *sqlx.Tx, name string, migrations []*Migration, targetVersion int) error {
+func RunMigrations(tx internal.Tx, name string, migrations []*Migration, targetVersion int) error {
 	tx.MustExec(`CREATE TABLE IF NOT EXISTS migrations (id text PRIMARY KEY)`)
 	existing, err := getExistingMigrationIds(tx)
 	if err != nil {
@@ -65,7 +65,7 @@ func RunMigrations(tx *sqlx.Tx, name string, migrations []*Migration, targetVers
 	return nil
 }
 
-func getExistingMigrationIds(tx *sqlx.Tx) ([]ExistingMigration, error) {
+func getExistingMigrationIds(tx internal.Tx) ([]ExistingMigration, error) {
 	rows, err := tx.Queryx("SELECT * FROM migrations")
 	if err != nil {
 		return nil, err
@@ -93,12 +93,12 @@ func hasRanMigration(existing []ExistingMigration, migration *Migration) bool {
 	return false
 }
 
-func insertMigration(tx *sqlx.Tx, id string) error {
+func insertMigration(tx internal.Tx, id string) error {
 	_, err := tx.Exec("INSERT INTO migrations (id) VALUES ($1)", id)
 	return err
 }
 
-func deleteMigration(tx *sqlx.Tx, id string) error {
+func deleteMigration(tx internal.Tx, id string) error {
 	_, err := tx.Exec("DELETE FROM migrations WHERE id=$1", id)
 	return err
 }

@@ -5,12 +5,12 @@ package postgres
 import (
 	internal "anime-skip.com/timestamps-service/internal"
 	context1 "anime-skip.com/timestamps-service/internal/context"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
-	sqlx "github.com/jmoiron/sqlx"
 	"time"
 )
 
@@ -18,7 +18,7 @@ func getAPIClientByID(ctx context.Context, db internal.Database, id string) (int
 	var apiClient internal.APIClient
 	err := db.GetContext(ctx, &apiClient, "SELECT * FROM api_clients WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
-		return internal.APIClient{}, errors.New("record not found")
+		return internal.APIClient{}, errors1.NewRecordNotFound(fmt.Sprintf("APIClient.id=%s", id))
 	}
 	return apiClient, err
 }
@@ -61,16 +61,16 @@ func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, us
 	return apiClients, nil
 }
 
-func insertAPIClientInTx(ctx context.Context, tx *sqlx.Tx, apiClient internal.APIClient) (internal.APIClient, error) {
+func insertAPIClientInTx(ctx context.Context, tx internal.Tx, apiClient internal.APIClient) (internal.APIClient, error) {
 	newAPIClient := apiClient
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
 	newAPIClient.CreatedAt = time.Now()
-	newAPIClient.CreatedByUserID = auth.UserID
+	newAPIClient.CreatedByUserID = claims.UserID
 	newAPIClient.UpdatedAt = time.Now()
-	newAPIClient.UpdatedByUserID = auth.UserID
+	newAPIClient.UpdatedByUserID = claims.UserID
 	newAPIClient.DeletedAt = nil
 	newAPIClient.DeletedByUserID = nil
 	result, err := tx.ExecContext(
@@ -107,14 +107,14 @@ func insertAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	return result, nil
 }
 
-func updateAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
+func updateAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
 	updatedAPIClient := newAPIClient
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
 	updatedAPIClient.UpdatedAt = time.Now()
-	updatedAPIClient.UpdatedByUserID = auth.UserID
+	updatedAPIClient.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE api_clients SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, user_id=$8, app_name=$9, description=$10, allowed_origins=$11, rate_limit_rpm=$12",
@@ -149,17 +149,17 @@ func updateAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	return result, nil
 }
 
-func deleteAPIClientInTx(ctx context.Context, tx *sqlx.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
+func deleteAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
 	deletedAPIClient := newAPIClient
-	auth, err := context1.GetAuthenticationDetails(ctx)
+	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
 	deletedAPIClient.UpdatedAt = time.Now()
-	deletedAPIClient.UpdatedByUserID = auth.UserID
+	deletedAPIClient.UpdatedByUserID = claims.UserID
 	now := time.Now()
 	deletedAPIClient.DeletedAt = &now
-	deletedAPIClient.DeletedByUserID = &auth.UserID
+	deletedAPIClient.DeletedByUserID = &claims.UserID
 	result, err := tx.ExecContext(ctx, "DELETE FROM api_clients WHERE id=$1", deletedAPIClient.ID)
 	if err != nil {
 		return internal.APIClient{}, err

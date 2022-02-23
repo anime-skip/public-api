@@ -10,6 +10,7 @@ import (
 type Resolver struct {
 	// Give resolvers access to all the services
 	*internal.Services
+	DB internal.Database
 }
 
 // Account returns graphql.AccountResolver implementation.
