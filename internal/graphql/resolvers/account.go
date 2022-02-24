@@ -173,11 +173,11 @@ func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetTo
 }
 
 func (r *mutationResolver) DeleteAccountRequest(ctx go_context.Context, passwordHash string) (*graphql.Account, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("mutationResolver.DeleteAccountRequest not implemented")
 }
 
 func (r *mutationResolver) DeleteAccount(ctx go_context.Context, deleteToken string) (*graphql.Account, error) {
-	return nil, fmt.Errorf("not implemented")
+	return nil, fmt.Errorf("mutationResolver.DeleteAccount not implemented")
 }
 
 // Queries

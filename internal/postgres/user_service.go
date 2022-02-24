@@ -42,3 +42,11 @@ func (s *userService) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail 
 func (s *userService) CreateInTx(ctx context.Context, tx internal.Tx, user internal.User) (internal.User, error) {
 	return insertUserInTx(ctx, tx, user)
 }
+
+func (s *userService) Update(ctx context.Context, newUser internal.User) (internal.User, error) {
+	return updateUser(ctx, s.db, newUser)
+}
+
+func (s *userService) Delete(ctx context.Context, user internal.User) (internal.User, error) {
+	panic("userService.Delete not implemented")
+}

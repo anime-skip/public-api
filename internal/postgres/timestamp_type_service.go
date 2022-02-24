@@ -37,3 +37,15 @@ func (s *timestampTypeService) GetAll(ctx context.Context) ([]internal.Timestamp
 	}
 	return types, nil
 }
+
+func (s *timestampTypeService) Create(ctx context.Context, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
+	return insertTimestampType(ctx, s.db, newTimestampType)
+}
+
+func (s *timestampTypeService) Update(ctx context.Context, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
+	return updateTimestampType(ctx, s.db, newTimestampType)
+}
+
+func (s *timestampTypeService) Delete(ctx context.Context, timestampType internal.TimestampType) (internal.TimestampType, error) {
+	panic("timestampTypeService.Delete not implemented")
+}

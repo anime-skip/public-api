@@ -26,3 +26,15 @@ func (s *templateService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]
 func (s *templateService) GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (internal.Template, error) {
 	panic("templateService.GetByEpisodeID not implemented")
 }
+
+func (s *templateService) Create(ctx context.Context, newTemplate internal.Template) (internal.Template, error) {
+	return insertTemplate(ctx, s.db, newTemplate)
+}
+
+func (s *templateService) Update(ctx context.Context, newTemplate internal.Template) (internal.Template, error) {
+	return updateTemplate(ctx, s.db, newTemplate)
+}
+
+func (s *templateService) Delete(ctx context.Context, template internal.Template) (internal.Template, error) {
+	panic("templateService.Delete not implemented")
+}

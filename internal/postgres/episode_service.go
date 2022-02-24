@@ -26,3 +26,15 @@ func (s *episodeService) GetByID(ctx context.Context, id uuid.UUID) (internal.Ep
 func (s *episodeService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]internal.Episode, error) {
 	return getEpisodesByShowID(ctx, s.db, showID)
 }
+
+func (s *episodeService) Create(ctx context.Context, newEpisode internal.Episode) (internal.Episode, error) {
+	return insertEpisode(ctx, s.db, newEpisode)
+}
+
+func (s *episodeService) Update(ctx context.Context, newEpisode internal.Episode) (internal.Episode, error) {
+	return updateEpisode(ctx, s.db, newEpisode)
+}
+
+func (s *episodeService) Delete(ctx context.Context, episode internal.Episode) (internal.Episode, error) {
+	panic("episodeService.Delete not implemented")
+}

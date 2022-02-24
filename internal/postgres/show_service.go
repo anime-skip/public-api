@@ -18,3 +18,15 @@ func NewShowService(db internal.Database) internal.ShowService {
 func (s *showService) GetByID(ctx context.Context, id uuid.UUID) (internal.Show, error) {
 	return getShowByID(ctx, s.db, id)
 }
+
+func (s *showService) Create(ctx context.Context, newShow internal.Show) (internal.Show, error) {
+	return insertShow(ctx, s.db, newShow)
+}
+
+func (s *showService) Update(ctx context.Context, newShow internal.Show) (internal.Show, error) {
+	return updateShow(ctx, s.db, newShow)
+}
+
+func (s *showService) Delete(ctx context.Context, show internal.Show) (internal.Show, error) {
+	panic("showService.Delete not implemented")
+}

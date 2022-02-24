@@ -26,3 +26,15 @@ func (s *showAdminService) GetByUserID(ctx context.Context, userID uuid.UUID) ([
 func (s *showAdminService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]internal.ShowAdmin, error) {
 	return getShowAdminsByShowID(ctx, s.db, showID)
 }
+
+func (s *showAdminService) Create(ctx context.Context, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	return insertShowAdmin(ctx, s.db, newShowAdmin)
+}
+
+func (s *showAdminService) Update(ctx context.Context, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	return updateShowAdmin(ctx, s.db, newShowAdmin)
+}
+
+func (s *showAdminService) Delete(ctx context.Context, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	panic("showAdminService.Delete not implemented")
+}

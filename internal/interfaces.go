@@ -15,6 +15,10 @@ type RecaptchaService interface {
 }
 
 type APIClientService interface {
+	GetByUserID(ctx context.Context, userID uuid.UUID) ([]APIClient, error)
+	Create(ctx context.Context, newAPIClient APIClient) (APIClient, error)
+	Update(ctx context.Context, newAPIClient APIClient) (APIClient, error)
+	Delete(ctx context.Context, apiClient APIClient) (APIClient, error)
 }
 
 type AuthClaims struct {
@@ -23,7 +27,6 @@ type AuthClaims struct {
 	UserID  uuid.UUID
 }
 type AuthService interface {
-	// ValidateAccessToken returns AuthenticationDetails or errors out if the token is invalid
 	ValidateAccessToken(token string) (AuthClaims, error)
 	ValidateRefreshToken(token string) (AuthClaims, error)
 	ValidateVerifyEmailToken(token string) (AuthClaims, error)
@@ -48,11 +51,17 @@ type EpisodeService interface {
 	GetRecentlyAdded(ctx context.Context, params GetRecentlyAddedParams) ([]Episode, error)
 	GetByID(ctx context.Context, id uuid.UUID) (Episode, error)
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Episode, error)
+	Create(ctx context.Context, newEpisode Episode) (Episode, error)
+	Update(ctx context.Context, newEpisode Episode) (Episode, error)
+	Delete(ctx context.Context, episode Episode) (Episode, error)
 }
 
 type EpisodeURLService interface {
 	GetByURL(ctx context.Context, url string) (EpisodeURL, error)
 	GetByEpisodeId(ctx context.Context, episodeID uuid.UUID) ([]EpisodeURL, error)
+	Create(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
+	Update(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
+	Delete(ctx context.Context, episodeURL EpisodeURL) (EpisodeURL, error)
 }
 
 type PreferencesService interface {
@@ -65,19 +74,31 @@ type ShowAdminService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
 	GetByUserID(ctx context.Context, userID uuid.UUID) ([]ShowAdmin, error)
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]ShowAdmin, error)
+	Create(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
+	Update(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
+	Delete(ctx context.Context, showAdmin ShowAdmin) (ShowAdmin, error)
 }
 
 type ShowService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
+	Create(ctx context.Context, newShow Show) (Show, error)
+	Update(ctx context.Context, newShow Show) (Show, error)
+	Delete(ctx context.Context, show Show) (Show, error)
 }
 
 type TemplateService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Template, error)
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Template, error)
 	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (Template, error)
+	Create(ctx context.Context, newTemplate Template) (Template, error)
+	Update(ctx context.Context, newTemplate Template) (Template, error)
+	Delete(ctx context.Context, template Template) (Template, error)
 }
 
 type TemplateTimestampService interface {
+	Create(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
+	Update(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
+	Delete(ctx context.Context, templateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
 }
 
 type ThirdPartyEpisodeService interface {
@@ -89,11 +110,17 @@ type ThirdPartyTimestampService interface {
 type TimestampService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Timestamp, error)
 	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) ([]Timestamp, error)
+	Create(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
+	Update(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
+	Delete(ctx context.Context, timestamp Timestamp) (Timestamp, error)
 }
 
 type TimestampTypeService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (TimestampType, error)
 	GetAll(ctx context.Context) ([]TimestampType, error)
+	Create(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
+	Update(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
+	Delete(ctx context.Context, timestampType TimestampType) (TimestampType, error)
 }
 
 type UserService interface {
@@ -102,7 +129,8 @@ type UserService interface {
 	GetByEmail(ctx context.Context, email string) (User, error)
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (User, error)
 	CreateInTx(ctx context.Context, tx Tx, newUser User) (User, error)
-	// DeleteInTx(ctx context.Context, tx Tx, user User) (EpisodeURL, error)
+	Update(ctx context.Context, user User) (User, error)
+	Delete(ctx context.Context, user User) (User, error)
 }
 
 type Services struct {
