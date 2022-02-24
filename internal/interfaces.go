@@ -66,6 +66,7 @@ type EpisodeURLService interface {
 
 type PreferencesService interface {
 	GetByUserID(ctx context.Context, userID uuid.UUID) (Preferences, error)
+	NewDefault(ctx context.Context, userID uuid.UUID) Preferences
 	CreateInTx(ctx context.Context, tx Tx, newPreferences Preferences) (Preferences, error)
 	Update(ctx context.Context, newPreferences Preferences) (Preferences, error)
 }

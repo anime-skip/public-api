@@ -100,10 +100,8 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}
 
 	log.V("Creating Preferences")
-	_, err = r.PreferencesService.CreateInTx(ctx, tx, internal.Preferences{
-		ID:     utils.RandomID(),
-		UserID: createdUser.ID,
-	})
+	defaultPreferences := r.PreferencesService.NewDefault(ctx, createdUser.ID)
+	_, err = r.PreferencesService.CreateInTx(ctx, tx, defaultPreferences)
 	if err != nil {
 		return nil, err
 	}
@@ -221,7 +219,6 @@ func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string
 // Fields
 
 func (r *queryResolver) Account(ctx go_context.Context) (*graphql.Account, error) {
-	log.V("account query")
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err

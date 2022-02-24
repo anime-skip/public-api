@@ -15,7 +15,7 @@ import (
 var day time.Duration = 24 * time.Hour
 
 type jwtAuthService struct {
-	secret string
+	secret []byte
 }
 
 // TODO: simplify audiences, switch to including permissions in the token instead
@@ -39,7 +39,7 @@ const ISSUER = "anime-skip.com"
 func NewJWTAuthService(secret string) internal.AuthService {
 	log.D("Using Custom JWT Authentication...")
 	return &jwtAuthService{
-		secret: secret,
+		secret: []byte(secret),
 	}
 }
 
@@ -59,7 +59,7 @@ func (s *jwtAuthService) createToken(
 		claims[key] = value
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(s.secret))
+	tokenString, err := token.SignedString(s.secret)
 	if err != nil {
 		log.E("%v", err)
 		return "", fmt.Errorf("Internal error: failed to generate %s token", audience)
@@ -98,7 +98,7 @@ func (s *jwtAuthService) validateToken(token string, audience string) (jwt.MapCl
 }
 
 func (s *jwtAuthService) mapAuthClaims(claims jwt.MapClaims) (internal.AuthClaims, error) {
-	role := claims["role"].(int)
+	role := claims["role"].(float64)
 	userID, err := uuid.FromString(claims["userId"].(string))
 	if err != nil {
 		return internal.AuthClaims{}, err
