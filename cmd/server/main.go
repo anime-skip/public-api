@@ -17,6 +17,7 @@ func main() {
 		config.RequireEnvString("DATABASE_URL"),
 		config.EnvBool("DATABASE_DISABLE_SSL"),
 		config.EnvInt("DATABASE_VERSION"),
+		config.EnvBool("DATABASE_ENABLE_SEEDING"),
 	)
 
 	authService := jwt.NewJWTAuthService(

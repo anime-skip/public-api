@@ -17,6 +17,7 @@ services:
       - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps
       - DATABASE_DISABLE_SSL=true
       - DATABASE_VERSION=20
+      - DATABASE_ENABLE_SEEDING=true
       - ENABLE_INTROSPECTION=true
       - ENABLE_PLAYGROUND=true
       - LOG_LEVEL=0

@@ -11,7 +11,7 @@ import (
 
 //go:generate go run ../../cmd/sql-gen/main.go
 
-func Open(url string, disableSsl bool, targetVersion int) internal.Database {
+func Open(url string, disableSsl bool, targetVersion int, enableSeeding bool) internal.Database {
 	log.D("Connecting to postgres...")
 	sslmode := "require"
 	if disableSsl {
@@ -25,7 +25,7 @@ func Open(url string, disableSsl bool, targetVersion int) internal.Database {
 	db.SetMaxIdleConns(5)
 	db.SetMaxOpenConns(10)
 
-	err = migrate(db, targetVersion)
+	err = migrate(db, targetVersion, enableSeeding)
 	if err != nil {
 		panic(err)
 	}

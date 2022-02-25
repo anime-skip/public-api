@@ -8,7 +8,7 @@ import (
 )
 
 // migrate all the migrations and seeders
-func migrate(db internal.Database, dbVersion int) error {
+func migrate(db internal.Database, dbVersion int, enableSeeding bool) error {
 	tx := db.MustBegin()
 	defer tx.Rollback()
 
@@ -37,6 +37,10 @@ func migrate(db internal.Database, dbVersion int) error {
 	}, dbVersion)
 	if err != nil {
 		return err
+	}
+
+	if !enableSeeding {
+		return nil
 	}
 
 	err = sqlx_migration.RunAllMigrations(tx, "seeders", []*sqlx_migration.Migration{
