@@ -83,6 +83,7 @@ type ShowAdminService interface {
 
 type ShowService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
+	GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error)
 	Create(ctx context.Context, newShow Show) (Show, error)
 	Update(ctx context.Context, newShow Show) (Show, error)
 	Delete(ctx context.Context, show Show) (Show, error)

@@ -6,6 +6,7 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/log"
 	"anime-skip.com/timestamps-service/internal/utils"
 	"github.com/gofrs/uuid"
 )
@@ -36,11 +37,39 @@ func (r *Resolver) getEpisodesByShowID(ctx context.Context, showID *uuid.UUID) (
 // Mutations
 
 func (r *mutationResolver) CreateEpisode(ctx context.Context, showID *uuid.UUID, episodeInput graphql.InputEpisode) (*graphql.Episode, error) {
-	panic("mutationResolver.CreateEpisode not implemented")
+	internalInput := internal.Episode{
+		BaseEntity: internal.BaseEntity{
+			ID: utils.RandomID(),
+		},
+		ShowID: *showID,
+	}
+	mappers.ApplyGraphqlInputEpisode(episodeInput, &internalInput)
+
+	created, err := r.EpisodeService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisode(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID *uuid.UUID, newEpisode graphql.InputEpisode) (*graphql.Episode, error) {
-	panic("mutationResolver.UpdateEpisode not implemented")
+	log.V("Updating: %v", episodeID)
+	existing, err := r.EpisodeService.GetByID(ctx, *episodeID)
+	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputEpisode(newEpisode, &existing)
+	log.V("Updating to %+v", existing)
+	created, err := r.EpisodeService.Update(ctx, existing)
+	if err != nil {
+		log.V("Failed to update: %v", err)
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisode(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {

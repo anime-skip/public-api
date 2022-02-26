@@ -3207,7 +3207,7 @@ input InputTemplateTimestamp {
   createEpisode(
     showId: UUID! @isShowAdmin
     episodeInput: InputEpisode!
-  ): Episode!
+  ): Episode! @authenticated
   """
   Update episode info
 
@@ -3216,13 +3216,13 @@ input InputTemplateTimestamp {
   updateEpisode(
     episodeId: UUID! @isShowAdmin
     newEpisode: InputEpisode!
-  ): Episode!
+  ): Episode! @authenticated
   """
   Delete an episode and all it's child data
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode!
+  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode! @authenticated
 
   # Episode Urls
   """
@@ -3233,13 +3233,13 @@ input InputTemplateTimestamp {
   createEpisodeUrl(
     episodeId: UUID! @isShowAdmin
     episodeUrlInput: InputEpisodeUrl!
-  ): EpisodeUrl!
+  ): EpisodeUrl! @authenticated
   """
   Unlink an ` + "`" + `Episode` + "`" + ` to from service URL
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl!
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl! @authenticated
   """
   Update episode url info
 
@@ -3248,7 +3248,7 @@ input InputTemplateTimestamp {
   updateEpisodeUrl(
     episodeUrl: String! @isShowAdmin
     newEpisodeUrl: InputEpisodeUrl!
-  ): EpisodeUrl!
+  ): EpisodeUrl! @authenticated
 
   # Timestamps
   """
@@ -3259,7 +3259,7 @@ input InputTemplateTimestamp {
   createTimestamp(
     episodeId: UUID! @isShowAdmin
     timestampInput: InputTimestamp!
-  ): Timestamp!
+  ): Timestamp! @authenticated
   """
   Update timestamp data
   """
@@ -7129,8 +7129,28 @@ func (ec *executionContext) _Mutation_createEpisode(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(*uuid.UUID), args["episodeInput"].(InputEpisode))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateEpisode(rctx, args["showId"].(*uuid.UUID), args["episodeInput"].(InputEpisode))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Episode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7171,8 +7191,28 @@ func (ec *executionContext) _Mutation_updateEpisode(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(*uuid.UUID), args["newEpisode"].(InputEpisode))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateEpisode(rctx, args["episodeId"].(*uuid.UUID), args["newEpisode"].(InputEpisode))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Episode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7213,8 +7253,28 @@ func (ec *executionContext) _Mutation_deleteEpisode(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(*uuid.UUID))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteEpisode(rctx, args["episodeId"].(*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Episode); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Episode`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7255,8 +7315,28 @@ func (ec *executionContext) _Mutation_createEpisodeUrl(ctx context.Context, fiel
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(*uuid.UUID), args["episodeUrlInput"].(InputEpisodeURL))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateEpisodeURL(rctx, args["episodeId"].(*uuid.UUID), args["episodeUrlInput"].(InputEpisodeURL))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*EpisodeURL); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.EpisodeURL`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7297,8 +7377,28 @@ func (ec *executionContext) _Mutation_deleteEpisodeUrl(ctx context.Context, fiel
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteEpisodeURL(rctx, args["episodeUrl"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*EpisodeURL); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.EpisodeURL`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7339,8 +7439,28 @@ func (ec *executionContext) _Mutation_updateEpisodeUrl(ctx context.Context, fiel
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateEpisodeURL(rctx, args["episodeUrl"].(string), args["newEpisodeUrl"].(InputEpisodeURL))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateEpisodeURL(rctx, args["episodeUrl"].(string), args["newEpisodeUrl"].(InputEpisodeURL))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*EpisodeURL); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.EpisodeURL`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7381,8 +7501,28 @@ func (ec *executionContext) _Mutation_createTimestamp(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(*uuid.UUID), args["timestampInput"].(InputTimestamp))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTimestamp(rctx, args["episodeId"].(*uuid.UUID), args["timestampInput"].(InputTimestamp))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Timestamp); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Timestamp`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

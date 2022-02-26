@@ -98,7 +98,7 @@ type Mutation {
   createEpisode(
     showId: UUID! @isShowAdmin
     episodeInput: InputEpisode!
-  ): Episode!
+  ): Episode! @authenticated
   """
   Update episode info
 
@@ -107,13 +107,13 @@ type Mutation {
   updateEpisode(
     episodeId: UUID! @isShowAdmin
     newEpisode: InputEpisode!
-  ): Episode!
+  ): Episode! @authenticated
   """
   Delete an episode and all it's child data
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode!
+  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode! @authenticated
 
   # Episode Urls
   """
@@ -124,13 +124,13 @@ type Mutation {
   createEpisodeUrl(
     episodeId: UUID! @isShowAdmin
     episodeUrlInput: InputEpisodeUrl!
-  ): EpisodeUrl!
+  ): EpisodeUrl! @authenticated
   """
   Unlink an `Episode` to from service URL
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl!
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl! @authenticated
   """
   Update episode url info
 
@@ -139,7 +139,7 @@ type Mutation {
   updateEpisodeUrl(
     episodeUrl: String! @isShowAdmin
     newEpisodeUrl: InputEpisodeUrl!
-  ): EpisodeUrl!
+  ): EpisodeUrl! @authenticated
 
   # Timestamps
   """
@@ -150,7 +150,7 @@ type Mutation {
   createTimestamp(
     episodeId: UUID! @isShowAdmin
     timestampInput: InputTimestamp!
-  ): Timestamp!
+  ): Timestamp! @authenticated
   """
   Update timestamp data
   """

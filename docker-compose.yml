@@ -42,8 +42,8 @@ services:
       interval: 0.5s
       timeout: 0s
       retries: 10
-    logging:
-        driver: none
+    # logging:
+    #     driver: none
       
   postgres_ui:
     image: sosedoff/pgweb

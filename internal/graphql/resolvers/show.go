@@ -103,7 +103,7 @@ func (r *showResolver) Templates(ctx context.Context, obj *graphql.Show) ([]*gra
 }
 
 func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("showResolver.SeasonCount not implemented")
+	return r.ShowService.GetSeasonCount(ctx, *obj.ID)
 }
 
 func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int, error) {

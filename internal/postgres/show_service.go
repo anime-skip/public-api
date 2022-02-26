@@ -19,6 +19,10 @@ func (s *showService) GetByID(ctx context.Context, id uuid.UUID) (internal.Show,
 	return getShowByID(ctx, s.db, id)
 }
 
+func (s *showService) GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error) {
+	return getEpisodeSeasonCountByShowID(ctx, s.db, id)
+}
+
 func (s *showService) Create(ctx context.Context, newShow internal.Show) (internal.Show, error) {
 	return insertShow(ctx, s.db, newShow)
 }
