@@ -99,14 +99,10 @@ type TemplateService interface {
 }
 
 type TemplateTimestampService interface {
+	GetByTimestampID(ctx context.Context, timestampID uuid.UUID) (TemplateTimestamp, error)
+	GetByTemplateID(ctx context.Context, templateID uuid.UUID) ([]TemplateTimestamp, error)
 	Create(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
 	Delete(ctx context.Context, templateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
-}
-
-type ThirdPartyEpisodeService interface {
-}
-
-type ThirdPartyTimestampService interface {
 }
 
 type TimestampService interface {

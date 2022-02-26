@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal"
+	uuid "github.com/gofrs/uuid"
 )
 
 type templateTimestampService struct {
@@ -20,4 +21,12 @@ func (s *templateTimestampService) Create(ctx context.Context, newTemplateTimest
 
 func (s *templateTimestampService) Delete(ctx context.Context, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	panic("templateService.Delete not implemented")
+}
+
+func (s *templateTimestampService) GetByTimestampID(ctx context.Context, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
+	return getTemplateTimestampByTimestampID(ctx, s.db, timestampID)
+}
+
+func (s *templateTimestampService) GetByTemplateID(ctx context.Context, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
+	return getTemplateTimestampsByTemplateID(ctx, s.db, templateID)
 }

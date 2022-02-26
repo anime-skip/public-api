@@ -3,8 +3,11 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/timestamps-service/internal/utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -43,11 +46,38 @@ func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) 
 // Mutations
 
 func (r *mutationResolver) CreateTemplate(ctx context.Context, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
-	panic("mutationResolver.CreateTemplate not implemented")
+	internalInput := internal.Template{
+		BaseEntity: internal.BaseEntity{
+			ID: utils.RandomID(),
+		},
+	}
+	mappers.ApplyGraphqlInputTemplate(newTemplate, &internalInput)
+
+	created, err := r.TemplateService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTemplate(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID *uuid.UUID, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
-	panic("mutationResolver.UpdateTemplate not implemented")
+	log.V("Updating: %v", templateID)
+	existing, err := r.TemplateService.GetByID(ctx, *templateID)
+	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputTemplate(newTemplate, &existing)
+	log.V("Updating to %+v", existing)
+	created, err := r.TemplateService.Update(ctx, existing)
+	if err != nil {
+		log.V("Failed to update: %v", err)
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTemplate(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
@@ -91,9 +121,31 @@ func (r *templateResolver) SourceEpisode(ctx context.Context, obj *graphql.Templ
 }
 
 func (r *templateResolver) Timestamps(ctx context.Context, obj *graphql.Template) ([]*graphql.Timestamp, error) {
-	panic("templareResolver.Timestamps not implemented")
+	templateTimestamps, err := r.TemplateTimestampService.GetByTemplateID(ctx, *obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	timestamps := []internal.Timestamp{}
+	for _, templateTimestamp := range templateTimestamps {
+		timestamp, err := r.TimestampService.GetByID(ctx, templateTimestamp.TimestampID)
+		if err != nil {
+			return nil, err
+		}
+		timestamps = append(timestamps, timestamp)
+	}
+	return mappers.ToGraphqlTimestampPointers(timestamps), nil
 }
 
 func (r *templateResolver) TimestampIds(ctx context.Context, obj *graphql.Template) ([]*uuid.UUID, error) {
-	panic("templareResolver.TimestampIds not implemented")
+	templateTimestamps, err := r.TemplateTimestampService.GetByTemplateID(ctx, *obj.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	ids := []*uuid.UUID{}
+	for _, timestamp := range templateTimestamps {
+		ids = append(ids, &timestamp.TimestampID)
+	}
+	return ids, nil
 }

@@ -4,31 +4,24 @@ package postgres
 
 import (
 	internal "anime-skip.com/timestamps-service/internal"
+	errors1 "anime-skip.com/timestamps-service/internal/errors"
 	"context"
+	"database/sql"
+	"errors"
 	"fmt"
 	uuid "github.com/gofrs/uuid"
 )
 
-func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM template_timestamps")
-	if err != nil {
-		return nil, err
+func getTemplateTimestampByTimestampID(ctx context.Context, db internal.Database, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
+	var templateTimestamp internal.TemplateTimestamp
+	err := db.GetContext(ctx, &templateTimestamp, "SELECT * FROM template_timestamps WHERE timestamp_id=$1", timestampID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.TemplateTimestamp{}, errors1.NewRecordNotFound(fmt.Sprintf("TemplateTimestamp.timestampID=%s", timestampID))
 	}
-	defer rows.Close()
-
-	templateTimestamps := []internal.TemplateTimestamp{}
-	for rows.Next() {
-		var templateTimestamp internal.TemplateTimestamp
-		err = rows.StructScan(&templateTimestamp)
-		if err != nil {
-			return nil, err
-		}
-		templateTimestamps = append(templateTimestamps, templateTimestamp)
-	}
-	return templateTimestamps, nil
+	return templateTimestamp, err
 }
 
-func getTemplateTimestampsByTimestampID(ctx context.Context, db internal.Database, timestampID uuid.UUID) ([]internal.TemplateTimestamp, error) {
+func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
 	rows, err := db.QueryxContext(ctx, "SELECT * FROM template_timestamps")
 	if err != nil {
 		return nil, err
