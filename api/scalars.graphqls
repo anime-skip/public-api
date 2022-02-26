@@ -8,14 +8,3 @@ Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
 ```
 """
 scalar Time
-
-"""
-A [v4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random))
-
-### Example
-
-```
-"6c4ade53-4fee-447f-89e4-3bb29184e87a"
-```
-"""
-scalar UUID

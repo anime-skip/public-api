@@ -3,8 +3,11 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/timestamps-service/internal/utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -34,11 +37,39 @@ func (r *Resolver) getTimestampsByEpisodeID(ctx context.Context, episodeID *uuid
 // Mutations
 
 func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID *uuid.UUID, timestampInput graphql.InputTimestamp) (*graphql.Timestamp, error) {
-	panic("mutationResolver.CreateTimestamp not implemented")
+	internalInput := internal.Timestamp{
+		BaseEntity: internal.BaseEntity{
+			ID: utils.RandomID(),
+		},
+		EpisodeID: *episodeID,
+	}
+	mappers.ApplyGraphqlInputTimestamp(timestampInput, &internalInput)
+
+	created, err := r.TimestampService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTimestamp(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID *uuid.UUID, newTimestamp graphql.InputTimestamp) (*graphql.Timestamp, error) {
-	panic("mutationResolver.UpdateTimestamp not implemented")
+	log.V("Updating: %v", timestampID)
+	existing, err := r.TimestampService.GetByID(ctx, *timestampID)
+	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputTimestamp(newTimestamp, &existing)
+	log.V("Updating to %+v", existing)
+	created, err := r.TimestampService.Update(ctx, existing)
+	if err != nil {
+		log.V("Failed to update: %v", err)
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTimestamp(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {

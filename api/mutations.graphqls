@@ -66,14 +66,14 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: UUID! @isShowAdmin, newShow: InputShow!): Show!
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
     @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  deleteShow(showId: UUID!): Show! @hasRole(role: ADMIN)
+  deleteShow(showId: ID!): Show! @hasRole(role: ADMIN)
 
   # Show Admins
   """
@@ -87,7 +87,7 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteShowAdmin(showAdminId: UUID! @isShowAdmin): ShowAdmin!
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin!
 
   # Episodes
   """
@@ -96,7 +96,7 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   createEpisode(
-    showId: UUID! @isShowAdmin
+    showId: ID! @isShowAdmin
     episodeInput: InputEpisode!
   ): Episode! @authenticated
   """
@@ -105,7 +105,7 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateEpisode(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     newEpisode: InputEpisode!
   ): Episode! @authenticated
   """
@@ -113,7 +113,7 @@ type Mutation {
 
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode! @authenticated
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode! @authenticated
 
   # Episode Urls
   """
@@ -122,7 +122,7 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   createEpisodeUrl(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     episodeUrlInput: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
   """
@@ -148,27 +148,25 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   createTimestamp(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     timestampInput: InputTimestamp!
   ): Timestamp! @authenticated
   """
   Update timestamp data
   """
-  updateTimestamp(
-    timestampId: UUID!
-    newTimestamp: InputTimestamp!
-  ): Timestamp! @authenticated
+  updateTimestamp(timestampId: ID!, newTimestamp: InputTimestamp!): Timestamp!
+    @authenticated
   """
   Delete a timestamp
   """
-  deleteTimestamp(timestampId: UUID!): Timestamp! @authenticated
+  deleteTimestamp(timestampId: ID!): Timestamp! @authenticated
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
   """
   updateTimestamps(
     create: [InputTimestampOn!]!
     update: [InputExistingTimestamp!]!
-    delete: [UUID!]!
+    delete: [ID!]!
   ): UpdatedTimestamps! @authenticated
 
   # Timestamp Types
@@ -185,7 +183,7 @@ type Mutation {
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
   updateTimestampType(
-    timestampTypeId: UUID!
+    timestampTypeId: ID!
     newTimestampType: InputTimestampType!
   ): TimestampType! @hasRole(role: ADMIN)
   """
@@ -193,7 +191,7 @@ type Mutation {
 
   > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
   """
-  deleteTimestampType(timestampTypeId: UUID!): TimestampType!
+  deleteTimestampType(timestampTypeId: ID!): TimestampType!
     @hasRole(role: ADMIN)
 
   # Templates
@@ -203,11 +201,11 @@ type Mutation {
     @authenticated
   "Make changes to an existing template"
   updateTemplate(
-    templateId: UUID! @isShowAdmin
+    templateId: ID! @isShowAdmin
     newTemplate: InputTemplate!
   ): Template! @authenticated
   "Delete an existing template"
-  deleteTemplate(templateId: UUID! @isShowAdmin): Template! @authenticated
+  deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
   addTimestampToTemplate(
     templateTimestamp: InputTemplateTimestamp!

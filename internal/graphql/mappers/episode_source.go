@@ -26,6 +26,8 @@ func ToEpisodeSourceInt(source graphql.EpisodeSource) int {
 		return internal.EPISODE_SOURCE_FUNIMATION
 	case graphql.EpisodeSourceVrv:
 		return internal.EPISODE_SOURCE_VRV
+	case graphql.EpisodeSourceCrunchyroll:
+		return internal.EPISODE_SOURCE_CRUNCHYROLL
 	}
 	return internal.EPISODE_SOURCE_UNKNOWN
 }
@@ -36,6 +38,8 @@ func ToEpisodeSourceEnum(value int) graphql.EpisodeSource {
 		return graphql.EpisodeSourceFunimation
 	case internal.EPISODE_SOURCE_VRV:
 		return graphql.EpisodeSourceVrv
+	case internal.EPISODE_SOURCE_CRUNCHYROLL:
+		return graphql.EpisodeSourceCrunchyroll
 	}
 	return graphql.EpisodeSourceUnknown
 }

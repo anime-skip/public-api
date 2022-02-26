@@ -15,7 +15,7 @@ resolver:
   filename: internal/graphql/resolvers/interfaces.go
 
 models:
-  UUID:
+  ID:
     model: anime-skip.com/timestamps-service/internal/graphql/scalars.UUID
   Episode:
     fields:

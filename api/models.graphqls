@@ -4,23 +4,23 @@ have. It is used to track who create, updated, and deleted items
 """
 interface BaseModel {
   "Unique, v4 UUID. When asked for an `id` of an object, use this field"
-  id: UUID!
+  id: ID!
   "Time that the item was created at"
   createdAt: Time!
   "The user's `id` that created the item"
-  createdByUserId: UUID!
+  createdByUserId: ID!
   "The entire user that created the item"
   createdBy: User!
   "Time that the item was updated at"
   updatedAt: Time!
   "The user's `id` that last updated the item"
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   "The entire user that last updated the item"
   updatedBy: User!
   "Time that the item was updated at. If this value is present, the item is considered deleted"
   deletedAt: Time
   "The user's `id` that deleted the item"
-  deletedByUserId: UUID
+  deletedByUserId: ID
   "The entire user that deleted the item"
   deletedBy: User
 }
@@ -30,15 +30,15 @@ Basic information about an episode, including season, numbers, a list of timesta
 it can be watched at
 """
 type Episode implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   """
@@ -81,7 +81,7 @@ type Episode implements BaseModel {
   "The show that the episode belongs to"
   show: Show!
   "The id of the show that the episode blongs to"
-  showId: UUID!
+  showId: ID!
   """
   The list of current timestamps.
 
@@ -108,7 +108,7 @@ have muliple timestamp sources.
 """
 type ThirdPartyEpisode {
   "The Anime Skip `Episode.id` when the `source` is `ANIME_SKIP`, otherwise this is null"
-  id: UUID
+  id: ID
   season: String
   number: String
   absoluteNumber: String
@@ -144,10 +144,10 @@ type EpisodeUrl {
   """
   url: String!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
 
   """
@@ -164,7 +164,7 @@ type EpisodeUrl {
   """
   timestampsOffset: Float
   "The `Episode.id` that this url belongs to"
-  episodeId: UUID!
+  episodeId: ID!
   "The `Episode` that this url belongs to"
   episode: Episode!
   "What service this url points to. This is computed when the `EpisodeUrl` is created"
@@ -180,7 +180,7 @@ input InputEpisodeUrl {
 
 "Account info that should only be accessible by the authorised user"
 type Account {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   deletedAt: Time
 
@@ -209,13 +209,13 @@ Where all the user preferences are stored. This includes what timestamps the use
 watch
 """
 type Preferences {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time
 
   "The `User.id` that this preferences object belongs to"
-  userId: UUID!
+  userId: ID!
   "The `User` that the preferences belong to"
   user: User!
   "Whether or not the user wants to automatically skip section. Default: `true`"
@@ -290,15 +290,15 @@ input PreferenceChanges {
 
 "A show containing a list of episodes and relevant links"
 type Show implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   """
@@ -361,75 +361,75 @@ show/episode will have temporary access to editing the data until someone become
 Admins can be created using the API and will soon come to the Anime Skip player/website.
 """
 type ShowAdmin implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The `Show.id` that the admin has elevated privileges for"
-  showId: UUID!
+  showId: ID!
   "The `Show` that the admin has elevated privileges for"
   show: Show!
   "The `User.id` that the admin privileges belong to"
-  userId: UUID!
+  userId: ID!
   "The `User` that the admin privileges belong to"
   user: User!
 }
 
 "Data required to create a new `ShowAdmin`. See `ShowAdmin` for a description of each field"
 input InputShowAdmin {
-  showId: UUID!
-  userId: UUID!
+  showId: ID!
+  userId: ID!
 }
 
 type Timestamp implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The actual time the timestamp is at"
   at: Float!
   source: TimestampSource!
   "The id specifying the type the timestamp is"
-  typeId: UUID!
+  typeId: ID!
   """
   The type the timestamp is. Thid field is a constant string so including it has no effect on
   performance or query complexity.
   """
   type: TimestampType!
   "The `Episode.id` that the timestamp belongs to"
-  episodeId: UUID!
+  episodeId: ID!
   "The `Episode` that the timestamp belongs to"
   episode: Episode!
 }
 
 type ThirdPartyTimestamp {
   "The Anime Skip `Timestamp.id` when the `Episode.source` is `ANIME_SKIP`, otherwise this is null"
-  id: UUID
+  id: ID
   "The actual time the timestamp is at"
   at: Float!
   "The id specifying the type the timestamp is"
-  typeId: UUID!
+  typeId: ID!
   type: TimestampType!
 }
 
 "Data required to create a new `Timestamp`. See `Timestamp` for a description of each field"
 input InputTimestamp {
   at: Float!
-  typeId: UUID!
+  typeId: ID!
   source: TimestampSource
 }
 
@@ -440,15 +440,15 @@ data, but a third party might want to fetch and cache this instead since you won
 Skip adds timestamps
 """
 type TimestampType implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The name of the timestamp type"
@@ -465,7 +465,7 @@ input InputTimestampType {
 
 "Information about a user that is public. See `Account` for a description of each field"
 type User {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   deletedAt: Time
 
@@ -478,19 +478,19 @@ type User {
 When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
 """
 type Template implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The id of the show that this template is for"
-  showId: UUID!
+  showId: ID!
   "The show that this template is for"
   show: Show!
   "Specify the scope of the template, if it's for the entire show, or just for a set of seasons"
@@ -498,7 +498,7 @@ type Template implements BaseModel {
   "When the template is for a set of seasons, this is the set of seasons it is applied to"
   seasons: [String!]
   "The id of the episode used to create the template. All the timestamps are from this episode"
-  sourceEpisodeId: UUID!
+  sourceEpisodeId: ID!
   "The episode used to create the template. All the timestamps are from this episode"
   sourceEpisode: Episode!
   "The list of timestamps that are apart of this template"
@@ -511,25 +511,25 @@ type Template implements BaseModel {
   This is useful when you already got the episode and timestamps, and you just need to know what
   timestamps are apart of the template
   """
-  timestampIds: [UUID!]!
+  timestampIds: [ID!]!
 }
 "Data required to create a new template. See `Template` for a description of each field"
 input InputTemplate {
-  showId: UUID!
+  showId: ID!
   type: TemplateType!
   seasons: [String!]
-  sourceEpisodeId: UUID!
+  sourceEpisodeId: ID!
 }
 
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
-  templateId: UUID!
+  templateId: ID!
   template: Template!
-  timestampId: UUID!
+  timestampId: ID!
   timestamp: Timestamp!
 }
 "Data required to modify the timestamps on a template"
 input InputTemplateTimestamp {
-  templateId: UUID!
-  timestampId: UUID!
+  templateId: ID!
+  timestampId: ID!
 }

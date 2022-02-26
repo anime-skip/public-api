@@ -12,13 +12,13 @@ type Query {
 
   # Users
   "Find user with a matching `User.id`"
-  findUser(userId: UUID!): User!
+  findUser(userId: ID!): User!
   "Find user with a matching `User.username`"
   findUserByUsername(username: String!): User!
 
   # Shows
   "Find show with a matching `Show.id`"
-  findShow(showId: UUID!): Show!
+  findShow(showId: ID!): Show!
   """
   Search for shows that include the `search` in the `Show.name`. Results are sorted by `Show.name`
   as `ASC` or `DESC`
@@ -32,11 +32,11 @@ type Query {
 
   # Show Admins
   "Find show admin with a matching `ShowAdmin.id`"
-  findShowAdmin(showAdminId: UUID!): ShowAdmin!
+  findShowAdmin(showAdminId: ID!): ShowAdmin!
   "Get a list of admins for a given `Show.id`"
-  findShowAdminsByShowId(showId: UUID!): [ShowAdmin!]!
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]!
   "Get a list of show admins for a given `User.id`"
-  findShowAdminsByUserId(userId: UUID!): [ShowAdmin!]!
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]!
 
   # Episodes
   """
@@ -47,9 +47,9 @@ type Query {
   """
   recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]!
   "Find episode with a matching `Episode.id`"
-  findEpisode(episodeId: UUID!): Episode!
+  findEpisode(episodeId: ID!): Episode!
   "Get a list of episodes for a given `Show.id`"
-  findEpisodesByShowId(showId: UUID!): [Episode!]!
+  findEpisodesByShowId(showId: ID!): [Episode!]!
   """
   Search for episodes that include the `search` in the `Episode.name`. Results are sorted by
   `Show.name`as `ASC` or `DESC`
@@ -58,7 +58,7 @@ type Query {
   """
   searchEpisodes(
     search: String = ""
-    showId: UUID
+    showId: ID
     offset: Int = 0
     limit: Int = 25
     sort: String = "ASC"
@@ -81,25 +81,25 @@ type Query {
   """
   findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the `EpisodeUrl`s for a given `Episode.id`"
-  findEpisodeUrlsByEpisodeId(episodeId: UUID!): [EpisodeUrl!]!
+  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
 
   # Timestamps
   "Get timestamp info based on a `Timestamp.id`"
-  findTimestamp(timestampId: UUID!): Timestamp!
+  findTimestamp(timestampId: ID!): Timestamp!
   "Get all the timestamps for an episode"
-  findTimestampsByEpisodeId(episodeId: UUID!): [Timestamp!]!
+  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]!
 
   # Timestamp Types
   "Get timestamp type info based on a `TimestampType.id`"
-  findTimestampType(timestampTypeId: UUID!): TimestampType!
+  findTimestampType(timestampTypeId: ID!): TimestampType!
   "List all the `TimestampType`s. Items come back in a random order"
   allTimestampTypes: [TimestampType!]!
 
   # Templates
   "Get template info based on a `Template.id`"
-  findTemplate(templateId: UUID!): Template!
+  findTemplate(templateId: ID!): Template!
   "Get a list of templates based on the `Template.showId`"
-  findTemplatesByShowId(showId: UUID!): [Template!]!
+  findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -109,7 +109,7 @@ type Query {
   3. Matching show name (case sensitive)
   """
   findTemplateByDetails(
-    episodeId: UUID
+    episodeId: ID
     showName: String
     season: String
   ): Template!

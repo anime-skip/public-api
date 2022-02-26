@@ -2545,6 +2545,8 @@ enum EpisodeSource {
   VRV
   "Data is from <funimation.com>"
   FUNIMATION
+  "Data is from <crunchyroll.com> and <beta.crunchyroll.com>"
+  CRUNCHYROLL
 }
 
 "Where a timestamp originated from"
@@ -2577,23 +2579,23 @@ have. It is used to track who create, updated, and deleted items
 """
 interface BaseModel {
   "Unique, v4 UUID. When asked for an ` + "`" + `id` + "`" + ` of an object, use this field"
-  id: UUID!
+  id: ID!
   "Time that the item was created at"
   createdAt: Time!
   "The user's ` + "`" + `id` + "`" + ` that created the item"
-  createdByUserId: UUID!
+  createdByUserId: ID!
   "The entire user that created the item"
   createdBy: User!
   "Time that the item was updated at"
   updatedAt: Time!
   "The user's ` + "`" + `id` + "`" + ` that last updated the item"
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   "The entire user that last updated the item"
   updatedBy: User!
   "Time that the item was updated at. If this value is present, the item is considered deleted"
   deletedAt: Time
   "The user's ` + "`" + `id` + "`" + ` that deleted the item"
-  deletedByUserId: UUID
+  deletedByUserId: ID
   "The entire user that deleted the item"
   deletedBy: User
 }
@@ -2603,15 +2605,15 @@ Basic information about an episode, including season, numbers, a list of timesta
 it can be watched at
 """
 type Episode implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   """
@@ -2654,7 +2656,7 @@ type Episode implements BaseModel {
   "The show that the episode belongs to"
   show: Show!
   "The id of the show that the episode blongs to"
-  showId: UUID!
+  showId: ID!
   """
   The list of current timestamps.
 
@@ -2681,7 +2683,7 @@ have muliple timestamp sources.
 """
 type ThirdPartyEpisode {
   "The Anime Skip ` + "`" + `Episode.id` + "`" + ` when the ` + "`" + `source` + "`" + ` is ` + "`" + `ANIME_SKIP` + "`" + `, otherwise this is null"
-  id: UUID
+  id: ID
   season: String
   number: String
   absoluteNumber: String
@@ -2717,10 +2719,10 @@ type EpisodeUrl {
   """
   url: String!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
 
   """
@@ -2737,7 +2739,7 @@ type EpisodeUrl {
   """
   timestampsOffset: Float
   "The ` + "`" + `Episode.id` + "`" + ` that this url belongs to"
-  episodeId: UUID!
+  episodeId: ID!
   "The ` + "`" + `Episode` + "`" + ` that this url belongs to"
   episode: Episode!
   "What service this url points to. This is computed when the ` + "`" + `EpisodeUrl` + "`" + ` is created"
@@ -2753,7 +2755,7 @@ input InputEpisodeUrl {
 
 "Account info that should only be accessible by the authorised user"
 type Account {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   deletedAt: Time
 
@@ -2782,13 +2784,13 @@ Where all the user preferences are stored. This includes what timestamps the use
 watch
 """
 type Preferences {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   updatedAt: Time!
   deletedAt: Time
 
   "The ` + "`" + `User.id` + "`" + ` that this preferences object belongs to"
-  userId: UUID!
+  userId: ID!
   "The ` + "`" + `User` + "`" + ` that the preferences belong to"
   user: User!
   "Whether or not the user wants to automatically skip section. Default: ` + "`" + `true` + "`" + `"
@@ -2863,15 +2865,15 @@ input PreferenceChanges {
 
 "A show containing a list of episodes and relevant links"
 type Show implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   """
@@ -2934,75 +2936,75 @@ show/episode will have temporary access to editing the data until someone become
 Admins can be created using the API and will soon come to the Anime Skip player/website.
 """
 type ShowAdmin implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The ` + "`" + `Show.id` + "`" + ` that the admin has elevated privileges for"
-  showId: UUID!
+  showId: ID!
   "The ` + "`" + `Show` + "`" + ` that the admin has elevated privileges for"
   show: Show!
   "The ` + "`" + `User.id` + "`" + ` that the admin privileges belong to"
-  userId: UUID!
+  userId: ID!
   "The ` + "`" + `User` + "`" + ` that the admin privileges belong to"
   user: User!
 }
 
 "Data required to create a new ` + "`" + `ShowAdmin` + "`" + `. See ` + "`" + `ShowAdmin` + "`" + ` for a description of each field"
 input InputShowAdmin {
-  showId: UUID!
-  userId: UUID!
+  showId: ID!
+  userId: ID!
 }
 
 type Timestamp implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The actual time the timestamp is at"
   at: Float!
   source: TimestampSource!
   "The id specifying the type the timestamp is"
-  typeId: UUID!
+  typeId: ID!
   """
   The type the timestamp is. Thid field is a constant string so including it has no effect on
   performance or query complexity.
   """
   type: TimestampType!
   "The ` + "`" + `Episode.id` + "`" + ` that the timestamp belongs to"
-  episodeId: UUID!
+  episodeId: ID!
   "The ` + "`" + `Episode` + "`" + ` that the timestamp belongs to"
   episode: Episode!
 }
 
 type ThirdPartyTimestamp {
   "The Anime Skip ` + "`" + `Timestamp.id` + "`" + ` when the ` + "`" + `Episode.source` + "`" + ` is ` + "`" + `ANIME_SKIP` + "`" + `, otherwise this is null"
-  id: UUID
+  id: ID
   "The actual time the timestamp is at"
   at: Float!
   "The id specifying the type the timestamp is"
-  typeId: UUID!
+  typeId: ID!
   type: TimestampType!
 }
 
 "Data required to create a new ` + "`" + `Timestamp` + "`" + `. See ` + "`" + `Timestamp` + "`" + ` for a description of each field"
 input InputTimestamp {
   at: Float!
-  typeId: UUID!
+  typeId: ID!
   source: TimestampSource
 }
 
@@ -3013,15 +3015,15 @@ data, but a third party might want to fetch and cache this instead since you won
 Skip adds timestamps
 """
 type TimestampType implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The name of the timestamp type"
@@ -3038,7 +3040,7 @@ input InputTimestampType {
 
 "Information about a user that is public. See ` + "`" + `Account` + "`" + ` for a description of each field"
 type User {
-  id: UUID!
+  id: ID!
   createdAt: Time!
   deletedAt: Time
 
@@ -3051,19 +3053,19 @@ type User {
 When no timestamps exist for a specific episode, templates are setup to provide fallback timestamps
 """
 type Template implements BaseModel {
-  id: UUID!
+  id: ID!
   createdAt: Time!
-  createdByUserId: UUID!
+  createdByUserId: ID!
   createdBy: User!
   updatedAt: Time!
-  updatedByUserId: UUID!
+  updatedByUserId: ID!
   updatedBy: User!
   deletedAt: Time
-  deletedByUserId: UUID
+  deletedByUserId: ID
   deletedBy: User
 
   "The id of the show that this template is for"
-  showId: UUID!
+  showId: ID!
   "The show that this template is for"
   show: Show!
   "Specify the scope of the template, if it's for the entire show, or just for a set of seasons"
@@ -3071,7 +3073,7 @@ type Template implements BaseModel {
   "When the template is for a set of seasons, this is the set of seasons it is applied to"
   seasons: [String!]
   "The id of the episode used to create the template. All the timestamps are from this episode"
-  sourceEpisodeId: UUID!
+  sourceEpisodeId: ID!
   "The episode used to create the template. All the timestamps are from this episode"
   sourceEpisode: Episode!
   "The list of timestamps that are apart of this template"
@@ -3084,27 +3086,27 @@ type Template implements BaseModel {
   This is useful when you already got the episode and timestamps, and you just need to know what
   timestamps are apart of the template
   """
-  timestampIds: [UUID!]!
+  timestampIds: [ID!]!
 }
 "Data required to create a new template. See ` + "`" + `Template` + "`" + ` for a description of each field"
 input InputTemplate {
-  showId: UUID!
+  showId: ID!
   type: TemplateType!
   seasons: [String!]
-  sourceEpisodeId: UUID!
+  sourceEpisodeId: ID!
 }
 
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
-  templateId: UUID!
+  templateId: ID!
   template: Template!
-  timestampId: UUID!
+  timestampId: ID!
   timestamp: Timestamp!
 }
 "Data required to modify the timestamps on a template"
 input InputTemplateTimestamp {
-  templateId: UUID!
-  timestampId: UUID!
+  templateId: ID!
+  timestampId: ID!
 }
 `, BuiltIn: false},
 	{Name: "api/mutations.graphqls", Input: `type Mutation {
@@ -3175,14 +3177,14 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: UUID! @isShowAdmin, newShow: InputShow!): Show!
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
     @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
-  deleteShow(showId: UUID!): Show! @hasRole(role: ADMIN)
+  deleteShow(showId: ID!): Show! @hasRole(role: ADMIN)
 
   # Show Admins
   """
@@ -3196,7 +3198,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteShowAdmin(showAdminId: UUID! @isShowAdmin): ShowAdmin!
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin!
 
   # Episodes
   """
@@ -3205,7 +3207,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createEpisode(
-    showId: UUID! @isShowAdmin
+    showId: ID! @isShowAdmin
     episodeInput: InputEpisode!
   ): Episode! @authenticated
   """
@@ -3214,7 +3216,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateEpisode(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     newEpisode: InputEpisode!
   ): Episode! @authenticated
   """
@@ -3222,7 +3224,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteEpisode(episodeId: UUID! @isShowAdmin): Episode! @authenticated
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode! @authenticated
 
   # Episode Urls
   """
@@ -3231,7 +3233,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createEpisodeUrl(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     episodeUrlInput: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
   """
@@ -3257,27 +3259,25 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createTimestamp(
-    episodeId: UUID! @isShowAdmin
+    episodeId: ID! @isShowAdmin
     timestampInput: InputTimestamp!
   ): Timestamp! @authenticated
   """
   Update timestamp data
   """
-  updateTimestamp(
-    timestampId: UUID!
-    newTimestamp: InputTimestamp!
-  ): Timestamp! @authenticated
+  updateTimestamp(timestampId: ID!, newTimestamp: InputTimestamp!): Timestamp!
+    @authenticated
   """
   Delete a timestamp
   """
-  deleteTimestamp(timestampId: UUID!): Timestamp! @authenticated
+  deleteTimestamp(timestampId: ID!): Timestamp! @authenticated
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
   """
   updateTimestamps(
     create: [InputTimestampOn!]!
     update: [InputExistingTimestamp!]!
-    delete: [UUID!]!
+    delete: [ID!]!
   ): UpdatedTimestamps! @authenticated
 
   # Timestamp Types
@@ -3294,7 +3294,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
   updateTimestampType(
-    timestampTypeId: UUID!
+    timestampTypeId: ID!
     newTimestampType: InputTimestampType!
   ): TimestampType! @hasRole(role: ADMIN)
   """
@@ -3302,7 +3302,7 @@ input InputTemplateTimestamp {
 
   > ` + "`" + `@hasRole(role: ADMIN)` + "`" + ` - The user must have the ` + "`" + `ADMIN` + "`" + ` role to perform this action
   """
-  deleteTimestampType(timestampTypeId: UUID!): TimestampType!
+  deleteTimestampType(timestampTypeId: ID!): TimestampType!
     @hasRole(role: ADMIN)
 
   # Templates
@@ -3312,11 +3312,11 @@ input InputTemplateTimestamp {
     @authenticated
   "Make changes to an existing template"
   updateTemplate(
-    templateId: UUID! @isShowAdmin
+    templateId: ID! @isShowAdmin
     newTemplate: InputTemplate!
   ): Template! @authenticated
   "Delete an existing template"
-  deleteTemplate(templateId: UUID! @isShowAdmin): Template! @authenticated
+  deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
   addTimestampToTemplate(
     templateTimestamp: InputTemplateTimestamp!
@@ -3341,13 +3341,13 @@ input InputTemplateTimestamp {
 
   # Users
   "Find user with a matching ` + "`" + `User.id` + "`" + `"
-  findUser(userId: UUID!): User!
+  findUser(userId: ID!): User!
   "Find user with a matching ` + "`" + `User.username` + "`" + `"
   findUserByUsername(username: String!): User!
 
   # Shows
   "Find show with a matching ` + "`" + `Show.id` + "`" + `"
-  findShow(showId: UUID!): Show!
+  findShow(showId: ID!): Show!
   """
   Search for shows that include the ` + "`" + `search` + "`" + ` in the ` + "`" + `Show.name` + "`" + `. Results are sorted by ` + "`" + `Show.name` + "`" + `
   as ` + "`" + `ASC` + "`" + ` or ` + "`" + `DESC` + "`" + `
@@ -3361,11 +3361,11 @@ input InputTemplateTimestamp {
 
   # Show Admins
   "Find show admin with a matching ` + "`" + `ShowAdmin.id` + "`" + `"
-  findShowAdmin(showAdminId: UUID!): ShowAdmin!
+  findShowAdmin(showAdminId: ID!): ShowAdmin!
   "Get a list of admins for a given ` + "`" + `Show.id` + "`" + `"
-  findShowAdminsByShowId(showId: UUID!): [ShowAdmin!]!
+  findShowAdminsByShowId(showId: ID!): [ShowAdmin!]!
   "Get a list of show admins for a given ` + "`" + `User.id` + "`" + `"
-  findShowAdminsByUserId(userId: UUID!): [ShowAdmin!]!
+  findShowAdminsByUserId(userId: ID!): [ShowAdmin!]!
 
   # Episodes
   """
@@ -3376,9 +3376,9 @@ input InputTemplateTimestamp {
   """
   recentlyAddedEpisodes(limit: Int = 10, offset: Int = 0): [Episode!]!
   "Find episode with a matching ` + "`" + `Episode.id` + "`" + `"
-  findEpisode(episodeId: UUID!): Episode!
+  findEpisode(episodeId: ID!): Episode!
   "Get a list of episodes for a given ` + "`" + `Show.id` + "`" + `"
-  findEpisodesByShowId(showId: UUID!): [Episode!]!
+  findEpisodesByShowId(showId: ID!): [Episode!]!
   """
   Search for episodes that include the ` + "`" + `search` + "`" + ` in the ` + "`" + `Episode.name` + "`" + `. Results are sorted by
   ` + "`" + `Show.name` + "`" + `as ` + "`" + `ASC` + "`" + ` or ` + "`" + `DESC` + "`" + `
@@ -3387,7 +3387,7 @@ input InputTemplateTimestamp {
   """
   searchEpisodes(
     search: String = ""
-    showId: UUID
+    showId: ID
     offset: Int = 0
     limit: Int = 25
     sort: String = "ASC"
@@ -3410,25 +3410,25 @@ input InputTemplateTimestamp {
   """
   findEpisodeUrl(episodeUrl: String!): EpisodeUrl!
   "List all the ` + "`" + `EpisodeUrl` + "`" + `s for a given ` + "`" + `Episode.id` + "`" + `"
-  findEpisodeUrlsByEpisodeId(episodeId: UUID!): [EpisodeUrl!]!
+  findEpisodeUrlsByEpisodeId(episodeId: ID!): [EpisodeUrl!]!
 
   # Timestamps
   "Get timestamp info based on a ` + "`" + `Timestamp.id` + "`" + `"
-  findTimestamp(timestampId: UUID!): Timestamp!
+  findTimestamp(timestampId: ID!): Timestamp!
   "Get all the timestamps for an episode"
-  findTimestampsByEpisodeId(episodeId: UUID!): [Timestamp!]!
+  findTimestampsByEpisodeId(episodeId: ID!): [Timestamp!]!
 
   # Timestamp Types
   "Get timestamp type info based on a ` + "`" + `TimestampType.id` + "`" + `"
-  findTimestampType(timestampTypeId: UUID!): TimestampType!
+  findTimestampType(timestampTypeId: ID!): TimestampType!
   "List all the ` + "`" + `TimestampType` + "`" + `s. Items come back in a random order"
   allTimestampTypes: [TimestampType!]!
 
   # Templates
   "Get template info based on a ` + "`" + `Template.id` + "`" + `"
-  findTemplate(templateId: UUID!): Template!
+  findTemplate(templateId: ID!): Template!
   "Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `"
-  findTemplatesByShowId(showId: UUID!): [Template!]!
+  findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -3438,7 +3438,7 @@ input InputTemplateTimestamp {
   3. Matching show name (case sensitive)
   """
   findTemplateByDetails(
-    episodeId: UUID
+    episodeId: ID
     showName: String
     season: String
   ): Template!
@@ -3472,17 +3472,6 @@ Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
 ` + "`" + `` + "`" + `` + "`" + `
 """
 scalar Time
-
-"""
-A [v4 UUID](https://en.wikipedia.org/wiki/Universally_unique_identifier#Version_4_(random))
-
-### Example
-
-` + "`" + `` + "`" + `` + "`" + `
-"6c4ade53-4fee-447f-89e4-3bb29184e87a"
-` + "`" + `` + "`" + `` + "`" + `
-"""
-scalar UUID
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -3603,7 +3592,7 @@ func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Con
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3644,7 +3633,7 @@ func (ec *executionContext) field_Mutation_createEpisode_args(ctx context.Contex
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3784,7 +3773,7 @@ func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Cont
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3883,7 +3872,7 @@ func (ec *executionContext) field_Mutation_deleteEpisode_args(ctx context.Contex
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3915,7 +3904,7 @@ func (ec *executionContext) field_Mutation_deleteShowAdmin_args(ctx context.Cont
 	if tmp, ok := rawArgs["showAdminId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showAdminId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3946,7 +3935,7 @@ func (ec *executionContext) field_Mutation_deleteShow_args(ctx context.Context, 
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3962,7 +3951,7 @@ func (ec *executionContext) field_Mutation_deleteTemplate_args(ctx context.Conte
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -3993,7 +3982,7 @@ func (ec *executionContext) field_Mutation_deleteTimestampType_args(ctx context.
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4008,7 +3997,7 @@ func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4163,7 +4152,7 @@ func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Contex
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -4204,7 +4193,7 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -4245,7 +4234,7 @@ func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Conte
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
 		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.IsShowAdmin == nil {
@@ -4285,7 +4274,7 @@ func (ec *executionContext) field_Mutation_updateTimestampType_args(ctx context.
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4309,7 +4298,7 @@ func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4351,7 +4340,7 @@ func (ec *executionContext) field_Mutation_updateTimestamps_args(ctx context.Con
 	var arg2 []*uuid.UUID
 	if tmp, ok := rawArgs["delete"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("delete"))
-		arg2, err = ec.unmarshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, tmp)
+		arg2, err = ec.unmarshalNID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4426,7 +4415,7 @@ func (ec *executionContext) field_Query_findEpisodeUrlsByEpisodeId_args(ctx cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4441,7 +4430,7 @@ func (ec *executionContext) field_Query_findEpisode_args(ctx context.Context, ra
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4456,7 +4445,7 @@ func (ec *executionContext) field_Query_findEpisodesByShowId_args(ctx context.Co
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4471,7 +4460,7 @@ func (ec *executionContext) field_Query_findShowAdmin_args(ctx context.Context, 
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showAdminId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showAdminId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4486,7 +4475,7 @@ func (ec *executionContext) field_Query_findShowAdminsByShowId_args(ctx context.
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4501,7 +4490,7 @@ func (ec *executionContext) field_Query_findShowAdminsByUserId_args(ctx context.
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["userId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4516,7 +4505,7 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4531,7 +4520,7 @@ func (ec *executionContext) field_Query_findTemplateByDetails_args(ctx context.C
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4564,7 +4553,7 @@ func (ec *executionContext) field_Query_findTemplate_args(ctx context.Context, r
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4579,7 +4568,7 @@ func (ec *executionContext) field_Query_findTemplatesByShowId_args(ctx context.C
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4594,7 +4583,7 @@ func (ec *executionContext) field_Query_findTimestampType_args(ctx context.Conte
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampTypeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampTypeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4609,7 +4598,7 @@ func (ec *executionContext) field_Query_findTimestamp_args(ctx context.Context, 
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4624,7 +4613,7 @@ func (ec *executionContext) field_Query_findTimestampsByEpisodeId_args(ctx conte
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4654,7 +4643,7 @@ func (ec *executionContext) field_Query_findUser_args(ctx context.Context, rawAr
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["userId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4741,7 +4730,7 @@ func (ec *executionContext) field_Query_searchEpisodes_args(ctx context.Context,
 	var arg1 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg1, err = ec.unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		arg1, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -4889,7 +4878,7 @@ func (ec *executionContext) _Account_id(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Account_createdAt(ctx context.Context, field graphql.CollectedField, obj *Account) (ret graphql.Marshaler) {
@@ -5236,7 +5225,7 @@ func (ec *executionContext) _Episode_id(ctx context.Context, field graphql.Colle
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_createdAt(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5306,7 +5295,7 @@ func (ec *executionContext) _Episode_createdByUserId(ctx context.Context, field 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_createdBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5411,7 +5400,7 @@ func (ec *executionContext) _Episode_updatedByUserId(ctx context.Context, field 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5510,7 +5499,7 @@ func (ec *executionContext) _Episode_deletedByUserId(ctx context.Context, field 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5772,7 +5761,7 @@ func (ec *executionContext) _Episode_showId(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_timestamps(ctx context.Context, field graphql.CollectedField, obj *Episode) (ret graphql.Marshaler) {
@@ -5979,7 +5968,7 @@ func (ec *executionContext) _EpisodeUrl_createdByUserId(ctx context.Context, fie
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_createdBy(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -6084,7 +6073,7 @@ func (ec *executionContext) _EpisodeUrl_updatedByUserId(ctx context.Context, fie
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_updatedBy(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -6218,7 +6207,7 @@ func (ec *executionContext) _EpisodeUrl_episodeId(ctx context.Context, field gra
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _EpisodeUrl_episode(ctx context.Context, field graphql.CollectedField, obj *EpisodeURL) (ret graphql.Marshaler) {
@@ -8265,7 +8254,7 @@ func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_createdAt(ctx context.Context, field graphql.CollectedField, obj *Preferences) (ret graphql.Marshaler) {
@@ -8402,7 +8391,7 @@ func (ec *executionContext) _Preferences_userId(ctx context.Context, field graph
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Preferences_user(ctx context.Context, field graphql.CollectedField, obj *Preferences) (ret graphql.Marshaler) {
@@ -10187,7 +10176,7 @@ func (ec *executionContext) _Show_id(ctx context.Context, field graphql.Collecte
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_createdAt(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10257,7 +10246,7 @@ func (ec *executionContext) _Show_createdByUserId(ctx context.Context, field gra
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_createdBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10362,7 +10351,7 @@ func (ec *executionContext) _Show_updatedByUserId(ctx context.Context, field gra
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10461,7 +10450,7 @@ func (ec *executionContext) _Show_deletedByUserId(ctx context.Context, field gra
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Show_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Show) (ret graphql.Marshaler) {
@@ -10834,7 +10823,7 @@ func (ec *executionContext) _ShowAdmin_id(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_createdAt(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -10904,7 +10893,7 @@ func (ec *executionContext) _ShowAdmin_createdByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_createdBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11009,7 +10998,7 @@ func (ec *executionContext) _ShowAdmin_updatedByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_updatedBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11108,7 +11097,7 @@ func (ec *executionContext) _ShowAdmin_deletedByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_deletedBy(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11175,7 +11164,7 @@ func (ec *executionContext) _ShowAdmin_showId(ctx context.Context, field graphql
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_show(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11245,7 +11234,7 @@ func (ec *executionContext) _ShowAdmin_userId(ctx context.Context, field graphql
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ShowAdmin_user(ctx context.Context, field graphql.CollectedField, obj *ShowAdmin) (ret graphql.Marshaler) {
@@ -11315,7 +11304,7 @@ func (ec *executionContext) _Template_id(ctx context.Context, field graphql.Coll
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_createdAt(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11385,7 +11374,7 @@ func (ec *executionContext) _Template_createdByUserId(ctx context.Context, field
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_createdBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11490,7 +11479,7 @@ func (ec *executionContext) _Template_updatedByUserId(ctx context.Context, field
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11589,7 +11578,7 @@ func (ec *executionContext) _Template_deletedByUserId(ctx context.Context, field
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11656,7 +11645,7 @@ func (ec *executionContext) _Template_showId(ctx context.Context, field graphql.
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_show(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11793,7 +11782,7 @@ func (ec *executionContext) _Template_sourceEpisodeId(ctx context.Context, field
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Template_sourceEpisode(ctx context.Context, field graphql.CollectedField, obj *Template) (ret graphql.Marshaler) {
@@ -11898,7 +11887,7 @@ func (ec *executionContext) _Template_timestampIds(ctx context.Context, field gr
 	}
 	res := resTmp.([]*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
+	return ec.marshalNID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_templateId(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -11933,7 +11922,7 @@ func (ec *executionContext) _TemplateTimestamp_templateId(ctx context.Context, f
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_template(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -12003,7 +11992,7 @@ func (ec *executionContext) _TemplateTimestamp_timestampId(ctx context.Context, 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TemplateTimestamp_timestamp(ctx context.Context, field graphql.CollectedField, obj *TemplateTimestamp) (ret graphql.Marshaler) {
@@ -12070,7 +12059,7 @@ func (ec *executionContext) _ThirdPartyEpisode_id(ctx context.Context, field gra
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyEpisode_season(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyEpisode) (ret graphql.Marshaler) {
@@ -12498,7 +12487,7 @@ func (ec *executionContext) _ThirdPartyTimestamp_id(ctx context.Context, field g
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyTimestamp_at(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyTimestamp) (ret graphql.Marshaler) {
@@ -12568,7 +12557,7 @@ func (ec *executionContext) _ThirdPartyTimestamp_typeId(ctx context.Context, fie
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyTimestamp_type(ctx context.Context, field graphql.CollectedField, obj *ThirdPartyTimestamp) (ret graphql.Marshaler) {
@@ -12638,7 +12627,7 @@ func (ec *executionContext) _Timestamp_id(ctx context.Context, field graphql.Col
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_createdAt(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12708,7 +12697,7 @@ func (ec *executionContext) _Timestamp_createdByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_createdBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12813,7 +12802,7 @@ func (ec *executionContext) _Timestamp_updatedByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_updatedBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -12912,7 +12901,7 @@ func (ec *executionContext) _Timestamp_deletedByUserId(ctx context.Context, fiel
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_deletedBy(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -13049,7 +13038,7 @@ func (ec *executionContext) _Timestamp_typeId(ctx context.Context, field graphql
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_type(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -13119,7 +13108,7 @@ func (ec *executionContext) _Timestamp_episodeId(ctx context.Context, field grap
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Timestamp_episode(ctx context.Context, field graphql.CollectedField, obj *Timestamp) (ret graphql.Marshaler) {
@@ -13189,7 +13178,7 @@ func (ec *executionContext) _TimestampType_id(ctx context.Context, field graphql
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_createdAt(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13259,7 +13248,7 @@ func (ec *executionContext) _TimestampType_createdByUserId(ctx context.Context, 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_createdBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13364,7 +13353,7 @@ func (ec *executionContext) _TimestampType_updatedByUserId(ctx context.Context, 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_updatedBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13463,7 +13452,7 @@ func (ec *executionContext) _TimestampType_deletedByUserId(ctx context.Context, 
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TimestampType_deletedBy(ctx context.Context, field graphql.CollectedField, obj *TimestampType) (ret graphql.Marshaler) {
@@ -13705,7 +13694,7 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	}
 	res := resTmp.(*uuid.UUID)
 	fc.Result = res
-	return ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_createdAt(ctx context.Context, field graphql.CollectedField, obj *User) (ret graphql.Marshaler) {
@@ -15109,7 +15098,7 @@ func (ec *executionContext) unmarshalInputInputExistingTimestamp(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
-			it.ID, err = ec.unmarshalNID2string(ctx, v)
+			it.ID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15187,7 +15176,7 @@ func (ec *executionContext) unmarshalInputInputShowAdmin(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-			it.ShowID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.ShowID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15195,7 +15184,7 @@ func (ec *executionContext) unmarshalInputInputShowAdmin(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("userId"))
-			it.UserID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.UserID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15218,7 +15207,7 @@ func (ec *executionContext) unmarshalInputInputTemplate(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-			it.ShowID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.ShowID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15242,7 +15231,7 @@ func (ec *executionContext) unmarshalInputInputTemplate(ctx context.Context, obj
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sourceEpisodeId"))
-			it.SourceEpisodeID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.SourceEpisodeID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15265,7 +15254,7 @@ func (ec *executionContext) unmarshalInputInputTemplateTimestamp(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-			it.TemplateID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.TemplateID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15273,7 +15262,7 @@ func (ec *executionContext) unmarshalInputInputTemplateTimestamp(ctx context.Con
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-			it.TimestampID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.TimestampID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15304,7 +15293,7 @@ func (ec *executionContext) unmarshalInputInputTimestamp(ctx context.Context, ob
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("typeId"))
-			it.TypeID, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			it.TypeID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15335,7 +15324,7 @@ func (ec *executionContext) unmarshalInputInputTimestampOn(ctx context.Context, 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-			it.EpisodeID, err = ec.unmarshalNID2string(ctx, v)
+			it.EpisodeID, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -19432,13 +19421,51 @@ func (ec *executionContext) marshalNFloat2float64(ctx context.Context, sel ast.S
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	res, err := graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]*uuid.UUID, error) {
+	var vSlice []interface{}
+	if v != nil {
+		vSlice = graphql.CoerceList(v)
+	}
+	var err error
+	res := make([]*uuid.UUID, len(vSlice))
+	for i := range vSlice {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
+		res[i], err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, vSlice[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return res, nil
+}
+
+func (ec *executionContext) marshalNID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []*uuid.UUID) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	for i := range v {
+		ret[i] = ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, sel, v[i])
+	}
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	res, err := scalars.UnmarshalUUID(v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := scalars.MarshalUUID(v)
 	if res == graphql.Null {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -20069,59 +20096,6 @@ func (ec *executionContext) marshalNTimestampType2ᚖanimeᚑskipᚗcomᚋtimest
 	return ec._TimestampType(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, v interface{}) ([]*uuid.UUID, error) {
-	var vSlice []interface{}
-	if v != nil {
-		vSlice = graphql.CoerceList(v)
-	}
-	var err error
-	res := make([]*uuid.UUID, len(vSlice))
-	for i := range vSlice {
-		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithIndex(i))
-		res[i], err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalNUUID2ᚕᚖgithubᚗcomᚋgofrsᚋuuidᚐUUIDᚄ(ctx context.Context, sel ast.SelectionSet, v []*uuid.UUID) graphql.Marshaler {
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, sel, v[i])
-	}
-
-	for _, e := range ret {
-		if e == graphql.Null {
-			return graphql.Null
-		}
-	}
-
-	return ret
-}
-
-func (ec *executionContext) unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
-	res, err := scalars.UnmarshalUUID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := scalars.MarshalUUID(v)
-	if res == graphql.Null {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-	}
-	return res
-}
-
 func (ec *executionContext) marshalNUpdatedTimestamps2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐUpdatedTimestamps(ctx context.Context, sel ast.SelectionSet, v UpdatedTimestamps) graphql.Marshaler {
 	return ec._UpdatedTimestamps(ctx, sel, &v)
 }
@@ -20461,6 +20435,22 @@ func (ec *executionContext) marshalOFloat2ᚖfloat64(ctx context.Context, sel as
 	return graphql.WrapContextMarshaler(ctx, res)
 }
 
+func (ec *executionContext) unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := scalars.UnmarshalUUID(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := scalars.MarshalUUID(v)
+	return res
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -20578,22 +20568,6 @@ func (ec *executionContext) marshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋtime
 		return graphql.Null
 	}
 	return v
-}
-
-func (ec *executionContext) unmarshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, v interface{}) (*uuid.UUID, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := scalars.UnmarshalUUID(v)
-	return res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx context.Context, sel ast.SelectionSet, v *uuid.UUID) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	res := scalars.MarshalUUID(v)
-	return res
 }
 
 func (ec *executionContext) marshalOUser2ᚖanimeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {

@@ -150,7 +150,7 @@ type InputEpisodeURL struct {
 
 type InputExistingTimestamp struct {
 	// The id of the timestamp you want to modify
-	ID string `json:"id"`
+	ID *uuid.UUID `json:"id"`
 	// The new values for the timestamp
 	Timestamp *InputTimestamp `json:"timestamp"`
 }
@@ -192,7 +192,7 @@ type InputTimestamp struct {
 
 type InputTimestampOn struct {
 	// The episode id the timestamp will be created on
-	EpisodeID string `json:"episodeId"`
+	EpisodeID *uuid.UUID `json:"episodeId"`
 	// The new values for the timestamp
 	Timestamp *InputTimestamp `json:"timestamp"`
 }
@@ -549,17 +549,20 @@ const (
 	EpisodeSourceVrv EpisodeSource = "VRV"
 	// Data is from <funimation.com>
 	EpisodeSourceFunimation EpisodeSource = "FUNIMATION"
+	// Data is from <crunchyroll.com> and <beta.crunchyroll.com>
+	EpisodeSourceCrunchyroll EpisodeSource = "CRUNCHYROLL"
 )
 
 var AllEpisodeSource = []EpisodeSource{
 	EpisodeSourceUnknown,
 	EpisodeSourceVrv,
 	EpisodeSourceFunimation,
+	EpisodeSourceCrunchyroll,
 }
 
 func (e EpisodeSource) IsValid() bool {
 	switch e {
-	case EpisodeSourceUnknown, EpisodeSourceVrv, EpisodeSourceFunimation:
+	case EpisodeSourceUnknown, EpisodeSourceVrv, EpisodeSourceFunimation, EpisodeSourceCrunchyroll:
 		return true
 	}
 	return false

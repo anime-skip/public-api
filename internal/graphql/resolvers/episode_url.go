@@ -6,6 +6,7 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/log"
 	"github.com/gofrs/uuid"
 )
 
@@ -32,7 +33,9 @@ func (r *Resolver) getEpisodeURLsByEpisodeID(ctx context.Context, episodeID *uui
 // Mutations
 
 func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid.UUID, episodeURLInput graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
-	internalInput := internal.EpisodeURL{}
+	internalInput := internal.EpisodeURL{
+		EpisodeID: *episodeID,
+	}
 	mappers.ApplyGraphqlInputEpisodeURL(episodeURLInput, &internalInput)
 
 	created, err := r.EpisodeURLService.Create(ctx, internalInput)
@@ -49,11 +52,16 @@ func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL stri
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
-	internalInput := internal.EpisodeURL{}
-	mappers.ApplyGraphqlInputEpisodeURL(newEpisodeURL, &internalInput)
-
-	created, err := r.EpisodeURLService.Create(ctx, internalInput)
+	log.V("Updating: %v", episodeURL)
+	existing, err := r.EpisodeURLService.GetByURL(ctx, episodeURL)
 	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputEpisodeURL(newEpisodeURL, &existing)
+	log.V("Updating to %+v", existing)
+	created, err := r.EpisodeURLService.Update(ctx, existing)
+	if err != nil {
+		log.V("Failed to update: %v", err)
 		return nil, err
 	}
 

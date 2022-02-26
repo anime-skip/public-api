@@ -22,6 +22,8 @@ enum EpisodeSource {
   VRV
   "Data is from <funimation.com>"
   FUNIMATION
+  "Data is from <crunchyroll.com> and <beta.crunchyroll.com>"
+  CRUNCHYROLL
 }
 
 "Where a timestamp originated from"
