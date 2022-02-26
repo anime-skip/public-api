@@ -18,10 +18,6 @@ func (s *templateTimestampService) Create(ctx context.Context, newTemplateTimest
 	return insertTemplateTimestamp(ctx, s.db, newTemplateTimestamp)
 }
 
-func (s *templateTimestampService) Update(ctx context.Context, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	return updateTemplateTimestamp(ctx, s.db, newTemplateTimestamp)
-}
-
 func (s *templateTimestampService) Delete(ctx context.Context, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	panic("templateService.Delete not implemented")
 }

@@ -6,12 +6,12 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 )
 
-var authServiceKey = &contextKey{"auth_service"}
+var directiveServicesKey = &contextKey{"directive_services"}
 
-func WithAuthService(ctx context.Context, authenticator internal.AuthService) context.Context {
-	return context.WithValue(ctx, authServiceKey, authenticator)
+func WithDirectiveServices(ctx context.Context, services internal.DirectiveServices) context.Context {
+	return context.WithValue(ctx, directiveServicesKey, services)
 }
 
-func GetAuthService(ctx context.Context) internal.AuthService {
-	return ctx.Value(authServiceKey).(internal.AuthService)
+func GetDirectiveServices(ctx context.Context) internal.DirectiveServices {
+	return ctx.Value(directiveServicesKey).(internal.DirectiveServices)
 }

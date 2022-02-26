@@ -67,6 +67,7 @@ type Mutation {
   > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateShow(showId: UUID! @isShowAdmin, newShow: InputShow!): Show!
+    @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
@@ -152,29 +153,23 @@ type Mutation {
   ): Timestamp!
   """
   Update timestamp data
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateTimestamp(
-    timestampId: UUID! @isShowAdmin
+    timestampId: UUID!
     newTimestamp: InputTimestamp!
-  ): Timestamp!
+  ): Timestamp! @authenticated
   """
   Delete a timestamp
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  deleteTimestamp(timestampId: UUID! @isShowAdmin): Timestamp!
+  deleteTimestamp(timestampId: UUID!): Timestamp! @authenticated
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateTimestamps(
     create: [InputTimestampOn!]!
     update: [InputExistingTimestamp!]!
     delete: [UUID!]!
-  ): UpdatedTimestamps!
+  ): UpdatedTimestamps! @authenticated
 
   # Timestamp Types
   """
@@ -202,7 +197,7 @@ type Mutation {
     @hasRole(role: ADMIN)
 
   # Templates
-  # TODO: Add case to isShowAdmin for `newTemplate` and `templateId`
+
   "Make changes to an existing template"
   createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template!
     @authenticated
@@ -221,9 +216,4 @@ type Mutation {
   removeTimestampFromTemplate(
     templateTimestamp: InputTemplateTimestamp!
   ): TemplateTimestamp! @authenticated
-  # """
-  # Add and/or remove a set of timestamps from an existing template. Partial failures are completely
-  # rolled back
-  # """
-  # updateTemplateTimestamps(templateId: UUID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
 }

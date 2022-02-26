@@ -79,8 +79,8 @@ func updateShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) 
 	updatedShow.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE shows SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, original_name=$9, website=$10, image=$11",
-		updatedShow.ID, updatedShow.CreatedAt, updatedShow.CreatedByUserID, updatedShow.UpdatedAt, updatedShow.UpdatedByUserID, updatedShow.DeletedAt, updatedShow.DeletedByUserID, updatedShow.Name, updatedShow.OriginalName, updatedShow.Website, updatedShow.Image,
+		"UPDATE shows SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, name=$7, original_name=$8, website=$9, image=$10 WHERE id = $11",
+		updatedShow.CreatedAt, updatedShow.CreatedByUserID, updatedShow.UpdatedAt, updatedShow.UpdatedByUserID, updatedShow.DeletedAt, updatedShow.DeletedByUserID, updatedShow.Name, updatedShow.OriginalName, updatedShow.Website, updatedShow.Image, updatedShow.ID,
 	)
 	if err != nil {
 		return internal.Show{}, err

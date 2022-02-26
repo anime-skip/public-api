@@ -100,8 +100,8 @@ func updateUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) 
 	updatedUser := newUser
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE users SET id=$1, created_at=$2, deleted_at=$3, username=$4, email=$5, password_hash=$6, profile_url=$7, email_verified=$8, role=$9",
-		updatedUser.ID, updatedUser.CreatedAt, updatedUser.DeletedAt, updatedUser.Username, updatedUser.Email, updatedUser.PasswordHash, updatedUser.ProfileURL, updatedUser.EmailVerified, updatedUser.Role,
+		"UPDATE users SET created_at=$1, deleted_at=$2, username=$3, email=$4, password_hash=$5, profile_url=$6, email_verified=$7, role=$8 WHERE id = $9",
+		updatedUser.CreatedAt, updatedUser.DeletedAt, updatedUser.Username, updatedUser.Email, updatedUser.PasswordHash, updatedUser.ProfileURL, updatedUser.EmailVerified, updatedUser.Role, updatedUser.ID,
 	)
 	if err != nil {
 		return internal.User{}, err

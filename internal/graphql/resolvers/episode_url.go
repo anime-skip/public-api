@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
@@ -31,7 +32,16 @@ func (r *Resolver) getEpisodeURLsByEpisodeID(ctx context.Context, episodeID *uui
 // Mutations
 
 func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid.UUID, episodeURLInput graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
-	panic("mutationResolver.CreateEpisodeURL not implemented")
+	internalInput := internal.EpisodeURL{}
+	mappers.ApplyGraphqlInputEpisodeURL(episodeURLInput, &internalInput)
+
+	created, err := r.EpisodeURLService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisodeURL(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL string) (*graphql.EpisodeURL, error) {
@@ -39,7 +49,16 @@ func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL stri
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {
-	panic("mutationResolver.UpdateEpisodeURL not implemented")
+	internalInput := internal.EpisodeURL{}
+	mappers.ApplyGraphqlInputEpisodeURL(newEpisodeURL, &internalInput)
+
+	created, err := r.EpisodeURLService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisodeURL(created)
+	return &result, nil
 }
 
 // Queries

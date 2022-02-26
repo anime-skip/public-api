@@ -32,3 +32,8 @@ func ToGraphqlShowAdminPointers(showAdmins []internal.ShowAdmin) []*graphql.Show
 	}
 	return result
 }
+
+func ApplyGraphqlInputShowAdmin(input graphql.InputShowAdmin, output *internal.ShowAdmin) {
+	output.ShowID = *input.ShowID
+	output.UserID = *input.UserID
+}

@@ -35,3 +35,10 @@ func ToGraphqlTemplatePointers(templates []internal.Template) []*graphql.Templat
 	}
 	return result
 }
+
+func ApplyGraphqlInputTemplate(input graphql.InputTemplate, output *internal.Template) {
+	output.ShowID = *input.ShowID
+	output.Type = ToTemplateTypeInt(input.Type)
+	output.Seasons = input.Seasons
+	output.SourceEpisodeID = *input.SourceEpisodeID
+}

@@ -117,8 +117,8 @@ func updateEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.
 	updatedEpisode.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE episodes SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, season=$8, number=$9, absolute_number=$10, name=$11, base_duration=$12, show_id=$13",
-		updatedEpisode.ID, updatedEpisode.CreatedAt, updatedEpisode.CreatedByUserID, updatedEpisode.UpdatedAt, updatedEpisode.UpdatedByUserID, updatedEpisode.DeletedAt, updatedEpisode.DeletedByUserID, updatedEpisode.Season, updatedEpisode.Number, updatedEpisode.AbsoluteNumber, updatedEpisode.Name, updatedEpisode.BaseDuration, updatedEpisode.ShowID,
+		"UPDATE episodes SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, season=$7, number=$8, absolute_number=$9, name=$10, base_duration=$11, show_id=$12 WHERE id = $13",
+		updatedEpisode.CreatedAt, updatedEpisode.CreatedByUserID, updatedEpisode.UpdatedAt, updatedEpisode.UpdatedByUserID, updatedEpisode.DeletedAt, updatedEpisode.DeletedByUserID, updatedEpisode.Season, updatedEpisode.Number, updatedEpisode.AbsoluteNumber, updatedEpisode.Name, updatedEpisode.BaseDuration, updatedEpisode.ShowID, updatedEpisode.ID,
 	)
 	if err != nil {
 		return internal.Episode{}, err

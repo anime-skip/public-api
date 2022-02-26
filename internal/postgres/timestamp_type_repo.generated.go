@@ -79,8 +79,8 @@ func updateTimestampTypeInTx(ctx context.Context, tx internal.Tx, newTimestampTy
 	updatedTimestampType.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE timestamp_types SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, name=$8, description=$9",
-		updatedTimestampType.ID, updatedTimestampType.CreatedAt, updatedTimestampType.CreatedByUserID, updatedTimestampType.UpdatedAt, updatedTimestampType.UpdatedByUserID, updatedTimestampType.DeletedAt, updatedTimestampType.DeletedByUserID, updatedTimestampType.Name, updatedTimestampType.Description,
+		"UPDATE timestamp_types SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, name=$7, description=$8 WHERE id = $9",
+		updatedTimestampType.CreatedAt, updatedTimestampType.CreatedByUserID, updatedTimestampType.UpdatedAt, updatedTimestampType.UpdatedByUserID, updatedTimestampType.DeletedAt, updatedTimestampType.DeletedByUserID, updatedTimestampType.Name, updatedTimestampType.Description, updatedTimestampType.ID,
 	)
 	if err != nil {
 		return internal.TimestampType{}, err

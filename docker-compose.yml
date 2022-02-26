@@ -14,13 +14,13 @@ services:
       - 8081:8081
     environment:
       - PORT=8081
+      - LOG_LEVEL=0
       - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps
       - DATABASE_DISABLE_SSL=true
       - DATABASE_VERSION=20
       - DATABASE_ENABLE_SEEDING=true
       - ENABLE_INTROSPECTION=true
       - ENABLE_PLAYGROUND=true
-      - LOG_LEVEL=0
       - JWT_SECRET=some-secret
       - EMAIL_SERVICE_HOST=email-service
       - EMAIL_SERVICE_SECRET=some-secret

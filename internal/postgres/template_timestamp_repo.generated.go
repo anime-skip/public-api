@@ -83,42 +83,6 @@ func insertTemplateTimestamp(ctx context.Context, db internal.Database, template
 	return result, nil
 }
 
-func updateTemplateTimestampInTx(ctx context.Context, tx internal.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	updatedTemplateTimestamp := newTemplateTimestamp
-	result, err := tx.ExecContext(
-		ctx,
-		"UPDATE template_timestamps SET template_id=$1, timestamp_id=$2",
-		updatedTemplateTimestamp.TemplateID, updatedTemplateTimestamp.TimestampID,
-	)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	changedRows, err := result.RowsAffected()
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	if changedRows != 1 {
-		return internal.TemplateTimestamp{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
-	}
-	return updatedTemplateTimestamp, err
-}
-
-func updateTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := updateTemplateTimestampInTx(ctx, tx, templateTimestamp)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-
-	tx.Commit()
-	return result, nil
-}
-
 func deleteTemplateTimestampInTx(ctx context.Context, tx internal.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
 	deletedTemplateTimestamp := newTemplateTimestamp
 	result, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", deletedTemplateTimestamp.TemplateID, deletedTemplateTimestamp.TimestampID)

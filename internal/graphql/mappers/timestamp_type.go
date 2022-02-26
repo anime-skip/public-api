@@ -32,3 +32,8 @@ func ToGraphqlTimestampTypePointers(timestampTypes []internal.TimestampType) []*
 	}
 	return result
 }
+
+func ApplyGraphqlInputTimestampType(input graphql.InputTimestampType, output *internal.TimestampType) {
+	output.Name = input.Name
+	output.Description = input.Description
+}

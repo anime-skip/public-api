@@ -96,8 +96,8 @@ func updateEpisodeURLInTx(ctx context.Context, tx internal.Tx, newEpisodeURL int
 	updatedEpisodeURL.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE episode_urls SET url=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, source=$6, duration=$7, timestamps_offset=$8, episode_id=$9",
-		updatedEpisodeURL.URL, updatedEpisodeURL.CreatedAt, updatedEpisodeURL.CreatedByUserID, updatedEpisodeURL.UpdatedAt, updatedEpisodeURL.UpdatedByUserID, updatedEpisodeURL.Source, updatedEpisodeURL.Duration, updatedEpisodeURL.TimestampsOffset, updatedEpisodeURL.EpisodeID,
+		"UPDATE episode_urls SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, source=$5, duration=$6, timestamps_offset=$7, episode_id=$8 WHERE url = $9",
+		updatedEpisodeURL.CreatedAt, updatedEpisodeURL.CreatedByUserID, updatedEpisodeURL.UpdatedAt, updatedEpisodeURL.UpdatedByUserID, updatedEpisodeURL.Source, updatedEpisodeURL.Duration, updatedEpisodeURL.TimestampsOffset, updatedEpisodeURL.EpisodeID, updatedEpisodeURL.URL,
 	)
 	if err != nil {
 		return internal.EpisodeURL{}, err

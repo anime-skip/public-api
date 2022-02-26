@@ -90,7 +90,7 @@ func generateModelSqlMethods(model interface{}) {
 	insertInTx(file, modelType)
 	insert(file, modelType)
 
-	updateInTx(file, modelType)
+	updateInTx(file, modelType, modelDetails)
 	update(file, modelType)
 
 	if len(modelDetails.primaryKeys) > 0 {
@@ -173,30 +173,37 @@ func pluralize(str string) string {
 	return str + "s"
 }
 
-func getSqlColumns(model reflect.Type) []string {
+func getSqlColumns(model reflect.Type, excludePrimaryKeys bool) []string {
 	fields := getModelFields(model)
 	columns := []string{}
 	for _, field := range fields {
-		columns = append(columns, strcase.ToSnake(field.Name))
+		if !excludePrimaryKeys || !strings.Contains(field.Tag.Get(SQL_GEN_TAG), PRIMARY_KEY) {
+			columns = append(columns, strcase.ToSnake(field.Name))
+		}
 	}
 	return columns
 }
 
-func getSqlPlaceholders(model reflect.Type) []string {
+func getSqlPlaceholders(model reflect.Type, excludePrimaryKeys bool) []string {
 	fields := getModelFields(model)
 	placeholders := []string{}
-	for i := 1; i <= len(fields); i++ {
-		placeholders = append(placeholders, fmt.Sprintf("$%d", i))
+	i := 1
+	for _, field := range fields {
+		if !excludePrimaryKeys || !strings.Contains(field.Tag.Get(SQL_GEN_TAG), PRIMARY_KEY) {
+			placeholders = append(placeholders, fmt.Sprintf("$%d", i))
+			i++
+		}
 	}
 	return placeholders
 }
 
-func getSqlParamValues(varName string, model reflect.Type) []Code {
+func getSqlParamValues(varName string, model reflect.Type, excludePrimaryKeys bool) []Code {
 	fields := getModelFields(model)
 	values := []Code{}
 	for _, field := range fields {
-
-		values = append(values, Id(varName).Dot(field.Name))
+		if !excludePrimaryKeys || !strings.Contains(field.Tag.Get(SQL_GEN_TAG), PRIMARY_KEY) {
+			values = append(values, Id(varName).Dot(field.Name))
+		}
 	}
 	return values
 }
@@ -405,9 +412,9 @@ func insertInTx(file *File, model reflect.Type) {
 	argName := strcase.ToGoCamel(modelName)
 	newModelName := strcase.ToGoCamel("new" + modelName)
 	tableName := pluralize(strcase.ToSnake(modelName))
-	columns := getSqlColumns(model)
-	placeholders := getSqlPlaceholders(model)
-	paramValues := getSqlParamValues(newModelName, model)
+	columns := getSqlColumns(model, false)
+	placeholders := getSqlPlaceholders(model, false)
+	paramValues := getSqlParamValues(newModelName, model, false)
 	sql := fmt.Sprintf(
 		"INSERT INTO %s(%s) VALUES (%s)",
 		tableName,
@@ -477,26 +484,32 @@ func insert(file *File, model reflect.Type) {
 
 // Update
 
-func updateInTx(file *File, model reflect.Type) {
+func updateInTx(file *File, model reflect.Type, details ModelDetails) {
 	modelName := model.Name()
 	funcName := fmt.Sprintf("update%sInTx", modelName)
 	argName := strcase.ToGoCamel("new" + modelName)
 	updatedModelName := strcase.ToGoCamel("updated" + modelName)
 	tableName := pluralize(strcase.ToSnake(modelName))
-	columns := getSqlColumns(model)
-	placeholders := getSqlPlaceholders(model)
+	columns := getSqlColumns(model, true)
+	if len(columns) == 0 {
+		return
+	}
+	placeholders := getSqlPlaceholders(model, true)
 	sqlSets := []string{}
 	for i := 0; i < len(columns); i++ {
 		sqlSets = append(sqlSets, fmt.Sprintf("%s=%s", columns[i], placeholders[i]))
 	}
-	paramValues := getSqlParamValues(updatedModelName, model)
+	paramValues := getSqlParamValues(updatedModelName, model, true)
 	sql := fmt.Sprintf(
-		"UPDATE %s SET %s",
+		"UPDATE %s SET %s WHERE %s = $%d",
 		tableName,
 		strings.Join(sqlSets, ", "),
+		getColumnName(details.primaryKeys[0]),
+		len(sqlSets)+1,
 	)
 	execParams := []Code{Line().Id("ctx"), Line().Lit(sql)}
 	execParams = append(execParams, Line().List(paramValues...))
+	execParams = append(execParams, Id(updatedModelName).Dot(details.primaryKeys[0].Name))
 	execParams = append(execParams, Line())
 	emptyModel := Qual(internalPkg, modelName).Block()
 	ifErrReturn := If(Err().Op("!=").Nil()).Block(
@@ -537,6 +550,10 @@ func updateInTx(file *File, model reflect.Type) {
 
 func update(file *File, model reflect.Type) {
 	inTxFuncName := fmt.Sprintf("update%sInTx", model.Name())
+	columns := getSqlColumns(model, true)
+	if len(columns) == 0 {
+		return
+	}
 	unwrapInTxFunc(file, model, inTxFuncName)
 }
 

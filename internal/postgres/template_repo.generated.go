@@ -117,8 +117,8 @@ func updateTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate interna
 	updatedTemplate.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE templates SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, show_id=$8, type=$9, seasons=$10, source_episode_id=$11",
-		updatedTemplate.ID, updatedTemplate.CreatedAt, updatedTemplate.CreatedByUserID, updatedTemplate.UpdatedAt, updatedTemplate.UpdatedByUserID, updatedTemplate.DeletedAt, updatedTemplate.DeletedByUserID, updatedTemplate.ShowID, updatedTemplate.Type, updatedTemplate.Seasons, updatedTemplate.SourceEpisodeID,
+		"UPDATE templates SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, show_id=$7, type=$8, seasons=$9, source_episode_id=$10 WHERE id = $11",
+		updatedTemplate.CreatedAt, updatedTemplate.CreatedByUserID, updatedTemplate.UpdatedAt, updatedTemplate.UpdatedByUserID, updatedTemplate.DeletedAt, updatedTemplate.DeletedByUserID, updatedTemplate.ShowID, updatedTemplate.Type, updatedTemplate.Seasons, updatedTemplate.SourceEpisodeID, updatedTemplate.ID,
 	)
 	if err != nil {
 		return internal.Template{}, err

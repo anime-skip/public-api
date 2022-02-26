@@ -32,6 +32,7 @@ func main() {
 		config.RequireEnvString("RECAPTCHA_SECRET"),
 		config.EnvStringArray("RECAPTCHA_RESPONSE_ALLOWLIST"),
 	)
+	showAdminService := postgres.NewShowAdminService(db)
 	services := internal.Services{
 		APIClientService:         postgres.NewAPIClientService(db),
 		AuthService:              authService,
@@ -40,7 +41,7 @@ func main() {
 		EpisodeURLService:        postgres.NewEpisodeURLService(db),
 		PreferencesService:       postgres.NewPreferencesService(db),
 		RecaptchaService:         recaptchaService,
-		ShowAdminService:         postgres.NewShowAdminService(db),
+		ShowAdminService:         showAdminService,
 		ShowService:              postgres.NewShowService(db),
 		TemplateService:          postgres.NewTemplateService(db),
 		TemplateTimestampService: postgres.NewTemplateTimestampService(db),
@@ -48,11 +49,16 @@ func main() {
 		TimestampTypeService:     postgres.NewTimestampTypeService(db),
 		UserService:              postgres.NewUserService(db),
 	}
+	directiveServices := internal.DirectiveServices{
+		AuthService:      authService,
+		ShowAdminService: showAdminService,
+	}
 
 	graphqlHandler := handler.NewGraphqlHandler(
 		db,
 		services,
 		config.EnvBool("ENABLE_INTROSPECTION"),
+		config.EnvBool("ENABLE_SHOW_ADMIN_DIRECTIVE"),
 	)
 
 	server := http.NewChiServer(
@@ -60,7 +66,7 @@ func main() {
 		config.EnvBool("ENABLE_PLAYGROUND"),
 		"/graphql",
 		graphqlHandler,
-		authService,
+		directiveServices,
 	)
 
 	err := server.Start()

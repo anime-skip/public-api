@@ -117,8 +117,8 @@ func updateAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient inter
 	updatedAPIClient.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE api_clients SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, user_id=$8, app_name=$9, description=$10, allowed_origins=$11, rate_limit_rpm=$12",
-		updatedAPIClient.ID, updatedAPIClient.CreatedAt, updatedAPIClient.CreatedByUserID, updatedAPIClient.UpdatedAt, updatedAPIClient.UpdatedByUserID, updatedAPIClient.DeletedAt, updatedAPIClient.DeletedByUserID, updatedAPIClient.UserID, updatedAPIClient.AppName, updatedAPIClient.Description, updatedAPIClient.AllowedOrigins, updatedAPIClient.RateLimitRPM,
+		"UPDATE api_clients SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, user_id=$7, app_name=$8, description=$9, allowed_origins=$10, rate_limit_rpm=$11 WHERE id = $12",
+		updatedAPIClient.CreatedAt, updatedAPIClient.CreatedByUserID, updatedAPIClient.UpdatedAt, updatedAPIClient.UpdatedByUserID, updatedAPIClient.DeletedAt, updatedAPIClient.DeletedByUserID, updatedAPIClient.UserID, updatedAPIClient.AppName, updatedAPIClient.Description, updatedAPIClient.AllowedOrigins, updatedAPIClient.RateLimitRPM, updatedAPIClient.ID,
 	)
 	if err != nil {
 		return internal.APIClient{}, err

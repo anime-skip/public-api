@@ -117,8 +117,8 @@ func updateTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp inter
 	updatedTimestamp.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE timestamps SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, at=$8, source=$9, type_id=$10, episode_id=$11",
-		updatedTimestamp.ID, updatedTimestamp.CreatedAt, updatedTimestamp.CreatedByUserID, updatedTimestamp.UpdatedAt, updatedTimestamp.UpdatedByUserID, updatedTimestamp.DeletedAt, updatedTimestamp.DeletedByUserID, updatedTimestamp.At, updatedTimestamp.Source, updatedTimestamp.TypeID, updatedTimestamp.EpisodeID,
+		"UPDATE timestamps SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, at=$7, source=$8, type_id=$9, episode_id=$10 WHERE id = $11",
+		updatedTimestamp.CreatedAt, updatedTimestamp.CreatedByUserID, updatedTimestamp.UpdatedAt, updatedTimestamp.UpdatedByUserID, updatedTimestamp.DeletedAt, updatedTimestamp.DeletedByUserID, updatedTimestamp.At, updatedTimestamp.Source, updatedTimestamp.TypeID, updatedTimestamp.EpisodeID, updatedTimestamp.ID,
 	)
 	if err != nil {
 		return internal.Timestamp{}, err

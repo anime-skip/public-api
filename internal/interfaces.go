@@ -99,7 +99,6 @@ type TemplateService interface {
 
 type TemplateTimestampService interface {
 	Create(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
-	Update(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
 	Delete(ctx context.Context, templateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
 }
 
@@ -150,4 +149,9 @@ type Services struct {
 	TimestampService         TimestampService
 	TimestampTypeService     TimestampTypeService
 	UserService              UserService
+}
+
+type DirectiveServices struct {
+	AuthService      AuthService
+	ShowAdminService ShowAdminService
 }

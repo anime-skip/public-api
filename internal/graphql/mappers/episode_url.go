@@ -32,3 +32,10 @@ func ToGraphqlEpisodeURLPointers(episodeURLs []internal.EpisodeURL) []*graphql.E
 	}
 	return result
 }
+
+func ApplyGraphqlInputEpisodeURL(input graphql.InputEpisodeURL, output *internal.EpisodeURL) {
+	output.URL = input.URL
+	output.Duration = input.Duration
+	output.TimestampsOffset = input.TimestampsOffset
+	output.Source = urlToEpisodeSourceInt(input.URL)
+}

@@ -3176,6 +3176,7 @@ input InputTemplateTimestamp {
   > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateShow(showId: UUID! @isShowAdmin, newShow: InputShow!): Show!
+    @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
@@ -3261,29 +3262,23 @@ input InputTemplateTimestamp {
   ): Timestamp!
   """
   Update timestamp data
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateTimestamp(
-    timestampId: UUID! @isShowAdmin
+    timestampId: UUID!
     newTimestamp: InputTimestamp!
-  ): Timestamp!
+  ): Timestamp! @authenticated
   """
   Delete a timestamp
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  deleteTimestamp(timestampId: UUID! @isShowAdmin): Timestamp!
+  deleteTimestamp(timestampId: UUID!): Timestamp! @authenticated
   """
   Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateTimestamps(
     create: [InputTimestampOn!]!
     update: [InputExistingTimestamp!]!
     delete: [UUID!]!
-  ): UpdatedTimestamps!
+  ): UpdatedTimestamps! @authenticated
 
   # Timestamp Types
   """
@@ -3311,7 +3306,7 @@ input InputTemplateTimestamp {
     @hasRole(role: ADMIN)
 
   # Templates
-  # TODO: Add case to isShowAdmin for ` + "`" + `newTemplate` + "`" + ` and ` + "`" + `templateId` + "`" + `
+
   "Make changes to an existing template"
   createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template!
     @authenticated
@@ -3330,11 +3325,6 @@ input InputTemplateTimestamp {
   removeTimestampFromTemplate(
     templateTimestamp: InputTemplateTimestamp!
   ): TemplateTimestamp! @authenticated
-  # """
-  # Add and/or remove a set of timestamps from an existing template. Partial failures are completely
-  # rolled back
-  # """
-  # updateTemplateTimestamps(templateId: UUID!, add: [InputTemplateTimestamp!], remove: [InputTemplateTimestamp!]): [TemplateTimestamp!]!
 }
 `, BuiltIn: false},
 	{Name: "api/queries.graphqls", Input: `type Query {
@@ -4018,26 +4008,9 @@ func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["timestampId"] = arg0
@@ -4336,26 +4309,9 @@ func (ec *executionContext) field_Mutation_updateTimestamp_args(ctx context.Cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["timestampId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNUUID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["timestampId"] = arg0
@@ -6961,8 +6917,28 @@ func (ec *executionContext) _Mutation_updateShow(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(*uuid.UUID), args["newShow"].(InputShow))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateShow(rctx, args["showId"].(*uuid.UUID), args["newShow"].(InputShow))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Show); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Show`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7447,8 +7423,28 @@ func (ec *executionContext) _Mutation_updateTimestamp(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(*uuid.UUID), args["newTimestamp"].(InputTimestamp))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTimestamp(rctx, args["timestampId"].(*uuid.UUID), args["newTimestamp"].(InputTimestamp))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Timestamp); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Timestamp`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7489,8 +7485,28 @@ func (ec *executionContext) _Mutation_deleteTimestamp(ctx context.Context, field
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(*uuid.UUID))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTimestamp(rctx, args["timestampId"].(*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*Timestamp); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.Timestamp`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7531,8 +7547,28 @@ func (ec *executionContext) _Mutation_updateTimestamps(ctx context.Context, fiel
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTimestamps(rctx, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]*uuid.UUID))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTimestamps(rctx, args["create"].([]*InputTimestampOn), args["update"].([]*InputExistingTimestamp), args["delete"].([]*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*UpdatedTimestamps); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.UpdatedTimestamps`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

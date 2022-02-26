@@ -3,8 +3,11 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
 	"anime-skip.com/timestamps-service/internal/graphql/mappers"
+	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/timestamps-service/internal/utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -25,11 +28,38 @@ func (r *Resolver) getShowById(ctx context.Context, id *uuid.UUID) (*graphql.Sho
 // Mutations
 
 func (r *mutationResolver) CreateShow(ctx context.Context, showInput graphql.InputShow, becomeAdmin bool) (*graphql.Show, error) {
-	panic("mutationResolver.CreateShow not implemented")
+	internalInput := internal.Show{
+		BaseEntity: internal.BaseEntity{
+			ID: utils.RandomID(),
+		},
+	}
+	mappers.ApplyGraphqlInputShow(showInput, &internalInput)
+
+	created, err := r.ShowService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlShow(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateShow(ctx context.Context, showID *uuid.UUID, newShow graphql.InputShow) (*graphql.Show, error) {
-	panic("mutationResolver.UpdateShow not implemented")
+	log.V("Updating: %v", showID)
+	existing, err := r.ShowService.GetByID(ctx, *showID)
+	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputShow(newShow, &existing)
+	log.V("Updating to %+v", existing)
+	created, err := r.ShowService.Update(ctx, existing)
+	if err != nil {
+		log.V("Failed to update: %v", err)
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlShow(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {

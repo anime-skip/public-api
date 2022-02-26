@@ -155,8 +155,8 @@ func updateShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin inter
 	updatedShowAdmin.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
-		"UPDATE show_admins SET id=$1, created_at=$2, created_by_user_id=$3, updated_at=$4, updated_by_user_id=$5, deleted_at=$6, deleted_by_user_id=$7, show_id=$8, user_id=$9",
-		updatedShowAdmin.ID, updatedShowAdmin.CreatedAt, updatedShowAdmin.CreatedByUserID, updatedShowAdmin.UpdatedAt, updatedShowAdmin.UpdatedByUserID, updatedShowAdmin.DeletedAt, updatedShowAdmin.DeletedByUserID, updatedShowAdmin.ShowID, updatedShowAdmin.UserID,
+		"UPDATE show_admins SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, show_id=$7, user_id=$8 WHERE id = $9",
+		updatedShowAdmin.CreatedAt, updatedShowAdmin.CreatedByUserID, updatedShowAdmin.UpdatedAt, updatedShowAdmin.UpdatedByUserID, updatedShowAdmin.DeletedAt, updatedShowAdmin.DeletedByUserID, updatedShowAdmin.ShowID, updatedShowAdmin.UserID, updatedShowAdmin.ID,
 	)
 	if err != nil {
 		return internal.ShowAdmin{}, err
