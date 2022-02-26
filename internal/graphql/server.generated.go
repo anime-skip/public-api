@@ -2841,7 +2841,7 @@ type Preferences {
 Data used to update a user's ` + "`" + `Preferences` + "`" + `. See ` + "`" + `Preferences` + "`" + ` for a description of each field. If a
 field is not passed or passed as ` + "`" + `null` + "`" + `, it will leave the value as is and skip updating it
 """
-input PreferenceChanges {
+input InputPreferences {
   enableAutoSkip: Boolean
   enableAutoPlay: Boolean
   minimizeToolbarWhenEditing: Boolean
@@ -3167,7 +3167,7 @@ input InputTemplateTimestamp {
 
   # Preferences
   "Update user preferences"
-  savePreferences(preferences: PreferenceChanges!): Preferences! @authenticated
+  savePreferences(preferences: InputPreferences!): Preferences! @authenticated
 
   # Shows
   "Create a show and optionally become an admin"
@@ -4099,7 +4099,7 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 	var arg0 map[string]interface{}
 	if tmp, ok := rawArgs["preferences"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("preferences"))
-		arg0, err = ec.unmarshalNPreferenceChanges2map(ctx, tmp)
+		arg0, err = ec.unmarshalNInputPreferences2map(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -19506,6 +19506,10 @@ func (ec *executionContext) unmarshalNInputExistingTimestamp2ᚖanimeᚑskipᚗc
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNInputPreferences2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	return v.(map[string]interface{}), nil
+}
+
 func (ec *executionContext) unmarshalNInputShow2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputShow(ctx context.Context, v interface{}) (InputShow, error) {
 	res, err := ec.unmarshalInputInputShow(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19590,10 +19594,6 @@ func (ec *executionContext) marshalNLoginData2ᚖanimeᚑskipᚗcomᚋtimestamps
 		return graphql.Null
 	}
 	return ec._LoginData(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalNPreferenceChanges2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
-	return v.(map[string]interface{}), nil
 }
 
 func (ec *executionContext) marshalNPreferences2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐPreferences(ctx context.Context, sel ast.SelectionSet, v Preferences) graphql.Marshaler {

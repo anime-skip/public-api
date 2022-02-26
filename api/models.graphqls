@@ -266,7 +266,7 @@ type Preferences {
 Data used to update a user's `Preferences`. See `Preferences` for a description of each field. If a
 field is not passed or passed as `null`, it will leave the value as is and skip updating it
 """
-input PreferenceChanges {
+input InputPreferences {
   enableAutoSkip: Boolean
   enableAutoPlay: Boolean
   minimizeToolbarWhenEditing: Boolean
