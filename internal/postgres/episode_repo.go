@@ -8,15 +8,18 @@ import (
 )
 
 func getEpisodeSeasonCountByShowID(ctx context.Context, db internal.Database, id uuid.UUID) (int, error) {
-	row, err := db.QueryContext(ctx, "SELECT count(season) FROM episodes WHERE show_id=$1 GROUP BY season", id)
+	row, err := db.QueryContext(ctx, "SELECT DISTINCT count(season) FROM episodes WHERE show_id=$1", id)
 	if err != nil {
 		return 0, err
 	}
+
 	var count int
-	row.Scan(&count)
+	row.Next()
+	err = row.Scan(&count)
 	if err != nil {
 		return 0, err
 	}
+
 	return count, nil
 }
 
