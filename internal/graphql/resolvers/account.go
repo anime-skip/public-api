@@ -151,23 +151,148 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 }
 
 func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*graphql.LoginData, error) {
-	panic("mutationResolver.ChangePassword not implemented")
+	if newPassword != confirmNewPassword {
+		return nil, errors.New("New passwords do not match")
+	}
+	if newPassword == "" {
+		return nil, errors.New("New password is not valid, it cannot be empty")
+	}
+
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := r.UserService.GetByID(ctx, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	oldPasswordHash := utils.MD5(oldPassword)
+	if err = r.AuthService.ValidatePassword(oldPasswordHash, user.PasswordHash); err != nil {
+		return nil, fmt.Errorf("Old password is not correct")
+	}
+
+	newPasswordHash := utils.MD5(newPassword)
+	newEncryptedPasswordHash, err := r.AuthService.CreateEncryptedPassword(newPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	userWithNewPassword := user
+	userWithNewPassword.PasswordHash = newEncryptedPasswordHash
+	newUser, err := r.UserService.Update(ctx, userWithNewPassword)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.getLoginData(ctx, newUser)
 }
 
 func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recaptchaResponse string) (*bool, error) {
-	panic("mutationResolver.ResendVerificationEmail not implemented")
+	err := r.RecaptchaService.Verify(ctx, recaptchaResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.UserService.GetByID(ctx, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+	token, err := r.AuthService.CreateVerifyEmailToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.EmailService.SendVerification(user, token)
+	isSent := err == nil
+	return &isSent, err
 }
 
 func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validationToken string) (*graphql.Account, error) {
-	panic("mutationResolver.VerifyEmailAddress not implemented")
+	claims, err := r.AuthService.ValidateVerifyEmailToken(validationToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user to have their email verified
+	existingUser, err := r.UserService.GetByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+	existingUser.EmailVerified = true
+	updatedUser, err := r.UserService.Update(ctx, existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	account := mappers.ToGraphqlAccount(updatedUser)
+	return &account, nil
 }
 
 func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptchaResponse string, email string) (bool, error) {
-	panic("mutationResolver.RequestPasswordReset not implemented")
+	email = strings.TrimSpace(email)
+	err := validation.AccountEmail(email)
+	if err != nil {
+		return false, err
+	}
+	err = r.RecaptchaService.Verify(ctx, recaptchaResponse)
+	if err != nil {
+		return false, err
+	}
+
+	user, err := r.UserService.GetByEmail(ctx, email)
+	if errors.IsRecordNotFound(err) {
+		// Don't provide hints to if a user has an account or not
+		return true, nil
+	} else if err != nil {
+		return false, err
+	}
+
+	token, err := r.AuthService.CreateResetPasswordToken(user)
+	if err != nil {
+		return false, err
+	}
+	err = r.EmailService.SendResetPassword(user, token)
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
 }
 
 func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*graphql.LoginData, error) {
-	panic("mutationResolver.ResetPassword not implemented")
+	if newPassword != confirmNewPassword {
+		return nil, errors.New("New passwords don't match")
+	}
+
+	claims, err := r.AuthService.ValidateResetPasswordToken(passwordResetToken)
+	if err != nil {
+		return nil, err
+	}
+
+	newPasswordHash := utils.MD5(newPassword)
+	newEncryptedPasswordHash, err := r.AuthService.CreateEncryptedPassword(newPasswordHash)
+	if err != nil {
+		return nil, err
+	}
+
+	existingUser, err := r.UserService.GetByID(ctx, claims.UserID)
+	if err != nil {
+		return nil, err
+	}
+	existingUser.PasswordHash = newEncryptedPasswordHash
+
+	newUser, err := r.UserService.Update(ctx, existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.getLoginData(ctx, newUser)
 }
 
 func (r *mutationResolver) DeleteAccountRequest(ctx go_context.Context, passwordHash string) (*graphql.Account, error) {
