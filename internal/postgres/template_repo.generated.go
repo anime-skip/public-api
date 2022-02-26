@@ -23,6 +23,24 @@ func getTemplateByID(ctx context.Context, db internal.Database, id uuid.UUID) (i
 	return template, err
 }
 
+func getTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, sourceEpisodeID uuid.UUID) (internal.Template, error) {
+	var template internal.Template
+	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1 AND deleted_at IS NULL", sourceEpisodeID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.sourceEpisodeID=%s", sourceEpisodeID))
+	}
+	return template, err
+}
+
+func getUnscopedTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, sourceEpisodeID uuid.UUID) (internal.Template, error) {
+	var template internal.Template
+	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1", sourceEpisodeID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.sourceEpisodeID=%s", sourceEpisodeID))
+	}
+	return template, err
+}
+
 func getTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Template, error) {
 	rows, err := db.QueryxContext(ctx, "SELECT * FROM templates WHERE deleted_at IS NULL")
 	if err != nil {

@@ -130,10 +130,10 @@ type TemplateTimestamp struct {
 
 type Template struct {
 	BaseEntity
-	ShowID          uuid.UUID `db:"show_id"            sql_gen:"get_many"`
+	ShowID          uuid.UUID `db:"show_id"           sql_gen:"get_many"`
 	Type            int
 	Seasons         pq.StringArray
-	SourceEpisodeID uuid.UUID `db:"source_episode_id"`
+	SourceEpisodeID uuid.UUID `db:"source_episode_id" sql_gen:"get_one"`
 }
 
 type TimestampType struct {

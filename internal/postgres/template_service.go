@@ -24,7 +24,7 @@ func (s *templateService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]
 }
 
 func (s *templateService) GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (internal.Template, error) {
-	panic("templateService.GetByEpisodeID not implemented")
+	return getTemplateBySourceEpisodeID(ctx, s.db, episodeID)
 }
 
 func (s *templateService) Create(ctx context.Context, newTemplate internal.Template) (internal.Template, error) {
