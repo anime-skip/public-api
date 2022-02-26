@@ -29,18 +29,12 @@ var showIDGetters = map[string]showIDGetter{
 		showAdmin := arg.(*graphql.InputShowAdmin)
 		return *showAdmin.ShowID, nil
 	},
-	"showAdminId": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
-	) (uuid.UUID, error) {
-		log.V("@isShowAdmin.showAdminId: (%T) %+v", arg, arg)
-		// showAdminId := arg.(*uuid.UUID)
-		// return *showAdmin.ShowID, nil
-		panic("not implemented")
-	},
-	// episodeId: UUID
-	// episodeUrl: String
+	// Fields to add to this map:
+	// showAdminId: string
+	// episodeId: string
+	// episodeUrl: string
 	// newTemplate: InputTemplate
-	// templateId: UUID
+	// templateId: string
 }
 
 func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, services internal.DirectiveServices) (uuid.UUID, error) {

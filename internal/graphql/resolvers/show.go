@@ -107,5 +107,9 @@ func (r *showResolver) SeasonCount(ctx context.Context, obj *graphql.Show) (int,
 }
 
 func (r *showResolver) EpisodeCount(ctx context.Context, obj *graphql.Show) (int, error) {
-	panic("showResolver.EpisodeCount not implemented, use count query")
+	episodes, err := r.EpisodeService.GetByShowID(ctx, *obj.ID)
+	if err != nil {
+		return 0, err
+	}
+	return len(episodes), nil
 }

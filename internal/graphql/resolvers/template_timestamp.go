@@ -3,7 +3,9 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/timestamps-service/internal/graphql/mappers"
 )
 
 // Helpers
@@ -11,7 +13,16 @@ import (
 // Mutations
 
 func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {
-	panic("mutationResolver.AddTimestampToTemplate not implemented")
+	internalInput := internal.TemplateTimestamp{}
+	mappers.ApplyGraphqlInputTemplateTimestamp(templateTimestamp, &internalInput)
+
+	created, err := r.TemplateTimestampService.Create(ctx, internalInput)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTemplateTimestamp(created)
+	return &result, nil
 }
 
 func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {

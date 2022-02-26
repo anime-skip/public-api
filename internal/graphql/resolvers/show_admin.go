@@ -31,11 +31,11 @@ func (r *Resolver) getShowAdminsByUserId(ctx context.Context, userID *uuid.UUID)
 // Mutations
 
 func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput graphql.InputShowAdmin) (*graphql.ShowAdmin, error) {
-	panic("mutationResolver.CreateShowAdmin not implemented")
+	panic("TODO - show admins are disabled")
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {
-	panic("mutationResolver.DeleteShowAdmin not implemented")
+	panic("TODO - show admins are disabled")
 }
 
 // Queries

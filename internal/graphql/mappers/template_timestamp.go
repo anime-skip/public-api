@@ -5,10 +5,10 @@ import (
 	"anime-skip.com/timestamps-service/internal/graphql"
 )
 
-func TemplateTimestampEntityToModel(entity *internal.TemplateTimestamp) *graphql.TemplateTimestamp {
-	return &graphql.TemplateTimestamp{
-		TemplateID:  &entity.TemplateID,
-		TimestampID: &entity.TimestampID,
+func ToGraphqlTemplateTimestamp(templateTimestamp internal.TemplateTimestamp) graphql.TemplateTimestamp {
+	return graphql.TemplateTimestamp{
+		TemplateID:  &templateTimestamp.TemplateID,
+		TimestampID: &templateTimestamp.TimestampID,
 	}
 }
 
