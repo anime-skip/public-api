@@ -63,11 +63,8 @@ type Mutation {
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authenticated
   """
   Update show data
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
-    @authenticated
+  updateShow(showId: ID!, newShow: InputShow!): Show! @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
@@ -92,22 +89,14 @@ type Mutation {
   # Episodes
   """
   Create an episode under a `Show`
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createEpisode(
-    showId: ID! @isShowAdmin
-    episodeInput: InputEpisode!
-  ): Episode! @authenticated
+  createEpisode(showId: ID!, episodeInput: InputEpisode!): Episode!
+    @authenticated
   """
   Update episode info
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateEpisode(
-    episodeId: ID! @isShowAdmin
-    newEpisode: InputEpisode!
-  ): Episode! @authenticated
+  updateEpisode(episodeId: ID!, newEpisode: InputEpisode!): Episode!
+    @authenticated
   """
   Delete an episode and all it's child data
 
@@ -118,11 +107,9 @@ type Mutation {
   # Episode Urls
   """
   Link an `Episode` to a service URL
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   createEpisodeUrl(
-    episodeId: ID! @isShowAdmin
+    episodeId: ID!
     episodeUrlInput: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
   """
@@ -133,24 +120,18 @@ type Mutation {
   deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl! @authenticated
   """
   Update episode url info
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
   updateEpisodeUrl(
-    episodeUrl: String! @isShowAdmin
+    episodeUrl: String!
     newEpisodeUrl: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
 
   # Timestamps
   """
   Add a timestamp to an `Episode`
-
-  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  createTimestamp(
-    episodeId: ID! @isShowAdmin
-    timestampInput: InputTimestamp!
-  ): Timestamp! @authenticated
+  createTimestamp(episodeId: ID!, timestampInput: InputTimestamp!): Timestamp!
+    @authenticated
   """
   Update timestamp data
   """
@@ -197,13 +178,10 @@ type Mutation {
   # Templates
 
   "Make changes to an existing template"
-  createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template!
-    @authenticated
+  createTemplate(newTemplate: InputTemplate!): Template! @authenticated
   "Make changes to an existing template"
-  updateTemplate(
-    templateId: ID! @isShowAdmin
-    newTemplate: InputTemplate!
-  ): Template! @authenticated
+  updateTemplate(templateId: ID!, newTemplate: InputTemplate!): Template!
+    @authenticated
   "Delete an existing template"
   deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"

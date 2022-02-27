@@ -3174,11 +3174,8 @@ input InputTemplateTimestamp {
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authenticated
   """
   Update show data
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show!
-    @authenticated
+  updateShow(showId: ID!, newShow: InputShow!): Show! @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
@@ -3203,22 +3200,14 @@ input InputTemplateTimestamp {
   # Episodes
   """
   Create an episode under a ` + "`" + `Show` + "`" + `
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  createEpisode(
-    showId: ID! @isShowAdmin
-    episodeInput: InputEpisode!
-  ): Episode! @authenticated
+  createEpisode(showId: ID!, episodeInput: InputEpisode!): Episode!
+    @authenticated
   """
   Update episode info
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  updateEpisode(
-    episodeId: ID! @isShowAdmin
-    newEpisode: InputEpisode!
-  ): Episode! @authenticated
+  updateEpisode(episodeId: ID!, newEpisode: InputEpisode!): Episode!
+    @authenticated
   """
   Delete an episode and all it's child data
 
@@ -3229,11 +3218,9 @@ input InputTemplateTimestamp {
   # Episode Urls
   """
   Link an ` + "`" + `Episode` + "`" + ` to a service URL
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   createEpisodeUrl(
-    episodeId: ID! @isShowAdmin
+    episodeId: ID!
     episodeUrlInput: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
   """
@@ -3244,24 +3231,18 @@ input InputTemplateTimestamp {
   deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl! @authenticated
   """
   Update episode url info
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
   updateEpisodeUrl(
-    episodeUrl: String! @isShowAdmin
+    episodeUrl: String!
     newEpisodeUrl: InputEpisodeUrl!
   ): EpisodeUrl! @authenticated
 
   # Timestamps
   """
   Add a timestamp to an ` + "`" + `Episode` + "`" + `
-
-  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  createTimestamp(
-    episodeId: ID! @isShowAdmin
-    timestampInput: InputTimestamp!
-  ): Timestamp! @authenticated
+  createTimestamp(episodeId: ID!, timestampInput: InputTimestamp!): Timestamp!
+    @authenticated
   """
   Update timestamp data
   """
@@ -3308,13 +3289,10 @@ input InputTemplateTimestamp {
   # Templates
 
   "Make changes to an existing template"
-  createTemplate(newTemplate: InputTemplate! @isShowAdmin): Template!
-    @authenticated
+  createTemplate(newTemplate: InputTemplate!): Template! @authenticated
   "Make changes to an existing template"
-  updateTemplate(
-    templateId: ID! @isShowAdmin
-    newTemplate: InputTemplate!
-  ): Template! @authenticated
+  updateTemplate(templateId: ID!, newTemplate: InputTemplate!): Template!
+    @authenticated
   "Delete an existing template"
   deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
@@ -3591,26 +3569,9 @@ func (ec *executionContext) field_Mutation_createEpisodeUrl_args(ctx context.Con
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["episodeId"] = arg0
@@ -3632,26 +3593,9 @@ func (ec *executionContext) field_Mutation_createEpisode_args(ctx context.Contex
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["showId"] = arg0
@@ -3727,24 +3671,9 @@ func (ec *executionContext) field_Mutation_createTemplate_args(ctx context.Conte
 	var arg0 InputTemplate
 	if tmp, ok := rawArgs["newTemplate"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("newTemplate"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNInputTemplate2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputTemplate(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNInputTemplate2animeᚑskipᚗcomᚋtimestampsᚑserviceᚋinternalᚋgraphqlᚐInputTemplate(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(InputTemplate); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be anime-skip.com/timestamps-service/internal/graphql.InputTemplate`, tmp))
+			return nil, err
 		}
 	}
 	args["newTemplate"] = arg0
@@ -3772,26 +3701,9 @@ func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Cont
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["episodeId"] = arg0
@@ -4114,22 +4026,9 @@ func (ec *executionContext) field_Mutation_updateEpisodeUrl_args(ctx context.Con
 	var arg0 string
 	if tmp, ok := rawArgs["episodeUrl"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeUrl"))
-		directive0 := func(ctx context.Context) (interface{}, error) { return ec.unmarshalNString2string(ctx, tmp) }
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(string); ok {
-			arg0 = data
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be string`, tmp))
+			return nil, err
 		}
 	}
 	args["episodeUrl"] = arg0
@@ -4151,26 +4050,9 @@ func (ec *executionContext) field_Mutation_updateEpisode_args(ctx context.Contex
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["episodeId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["episodeId"] = arg0
@@ -4192,26 +4074,9 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["showId"] = arg0
@@ -4233,26 +4098,9 @@ func (ec *executionContext) field_Mutation_updateTemplate_args(ctx context.Conte
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["templateId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("templateId"))
-		directive0 := func(ctx context.Context) (interface{}, error) {
-			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.IsShowAdmin == nil {
-				return nil, errors.New("directive isShowAdmin is not implemented")
-			}
-			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
-		}
-
-		tmp, err = directive1(ctx)
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
 		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if data, ok := tmp.(*uuid.UUID); ok {
-			arg0 = data
-		} else if tmp == nil {
-			arg0 = nil
-		} else {
-			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
+			return nil, err
 		}
 	}
 	args["templateId"] = arg0
