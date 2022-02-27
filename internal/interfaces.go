@@ -148,6 +148,9 @@ type Services struct {
 }
 
 type DirectiveServices struct {
-	AuthService      AuthService
-	ShowAdminService ShowAdminService
+	AuthService       AuthService
+	EpisodeService    EpisodeService
+	EpisodeURLService EpisodeURLService
+	ShowAdminService  ShowAdminService
+	TemplateService   TemplateService
 }

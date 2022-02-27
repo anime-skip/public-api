@@ -30,24 +30,9 @@ There are minor changes to the GraphQL schema, none of which should introduce br
   > Instead, I'm using [sqlx](http://jmoiron.github.io/sqlx/) to help with the only thing generating code doesn't help with - scanning queries into structs.
 - [ ] Implement authorizer that matches v1 authorization
   > The new injectable authorizor needs to match the existing logic so no-one gets logged out
-- [ ] Re-implement resolvers (delete as completed)
-  - `mutationResolver.DeleteAccountRequest`
-  - `mutationResolver.DeleteAccount`
-  - `mutationResolver.DeleteEpisodeURL`
-  - `mutationResolver.DeleteEpisode`
-  - `queryResolver.SearchEpisodes`
-  - `queryResolver.FindEpisodeByName`
-  - `mutationResolver.DeleteShowAdmin`
-  - `mutationResolver.DeleteShow`
-  - `queryResolver.SearchShows`
-  - `mutationResolver.DeleteTemplate`
-  - `queryResolver.FindTemplateByDetails`
-  - `thirdPartyEpisodeResolver.Timestamps`
-  - `thirdPartyEpisodeResolver.Show`
-  - `thirdPartyTimestampResolver.Type`
-  - `mutationResolver.DeleteTimestampType`
-  - `mutationResolver.DeleteTimestamp`
+- [x] Re-implement resolvers (delete as completed)
 - [ ] `ctrl+shift+f` "not implemented"
+- [ ] `ctrl+shift+f` "TODO"
 - [ ] Track Client IDs
 
 ### Todo Before Publishing

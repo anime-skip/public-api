@@ -182,7 +182,11 @@ type Mutation {
   "Make changes to an existing template"
   updateTemplate(templateId: ID!, newTemplate: InputTemplate!): Template!
     @authenticated
-  "Delete an existing template"
+  """
+  Delete an existing template
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
   deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
   addTimestampToTemplate(

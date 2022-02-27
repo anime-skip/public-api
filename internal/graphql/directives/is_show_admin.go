@@ -29,12 +29,63 @@ var showIDGetters = map[string]showIDGetter{
 		showAdmin := arg.(*graphql.InputShowAdmin)
 		return *showAdmin.ShowID, nil
 	},
-	// Fields to add to this map:
-	// showAdminId: string
-	// episodeId: string
-	// episodeUrl: string
-	// newTemplate: InputTemplate
-	// templateId: string
+	"showAdminId": func(
+		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.showAdminId: (%T) %+v", arg, arg)
+		showAdminId, err := uuid.FromString(arg.(string))
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		showAdmin, err := s.ShowAdminService.GetByID(ctx, showAdminId)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		return showAdmin.ID, nil
+	},
+	"episodeId": func(
+		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.episodeId: (%T) %+v", arg, arg)
+		episodeID, err := uuid.FromString(arg.(string))
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		episode, err := s.EpisodeService.GetByID(ctx, episodeID)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		return episode.ShowID, nil
+	},
+	"episodeUrl": func(
+		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.episodeUrl: (%T) %+v", arg, arg)
+		url := arg.(string)
+		episodeURL, err := s.EpisodeURLService.GetByURL(ctx, url)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		episode, err := s.EpisodeService.GetByID(ctx, episodeURL.EpisodeID)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		return episode.ShowID, nil
+	},
+	"templateId": func(
+		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.templateId: (%T) %+v", arg, arg)
+		templateID, err := uuid.FromString(arg.(string))
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		template, err := s.TemplateService.GetByID(ctx, templateID)
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		return template.ShowID, nil
+	},
 }
 
 func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, services internal.DirectiveServices) (uuid.UUID, error) {
@@ -82,13 +133,4 @@ func IsShowAdmin(ctx context2.Context, params interface{}, next graphql2.Resolve
 		}
 	}
 	return nil, fmt.Errorf("You are is not an admin of this show (id=%s)", showID)
-}
-
-func AllowShowAdmin(ctx context2.Context, params interface{}, next graphql2.Resolver) (interface{}, error) {
-	// Authenticate first, arg directives run before field directives (notably, `@authenticated``)
-	ctx, err := authenticate(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return next(ctx)
 }

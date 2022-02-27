@@ -13,52 +13,59 @@ import (
 func main() {
 	log.I("Starting anime-skip/timestamps-service")
 
-	db := postgres.Open(
+	pg := postgres.Open(
 		config.RequireEnvString("DATABASE_URL"),
 		config.EnvBool("DATABASE_DISABLE_SSL"),
 		config.EnvInt("DATABASE_VERSION"),
 		config.EnvBool("DATABASE_ENABLE_SEEDING"),
 	)
 
-	authService := jwt.NewJWTAuthService(
+	pgEpisodeService := postgres.NewEpisodeService(pg)
+	pgEpisodeURLService := postgres.NewEpisodeURLService(pg)
+	pgShowAdminService := postgres.NewShowAdminService(pg)
+	pgTemplateService := postgres.NewTemplateService(pg)
+
+	jwtAuthService := jwt.NewJWTAuthService(
 		config.RequireEnvString("JWT_SECRET"),
 	)
-	emailService := http.NewAnimeSkipEmailService(
+	httpEmailService := http.NewAnimeSkipEmailService(
 		config.RequireEnvString("EMAIL_SERVICE_HOST"),
 		config.RequireEnvString("EMAIL_SERVICE_SECRET"),
 		config.EnvBool("EMAIL_SERVICE_ENABLED"),
 	)
-	recaptchaService := http.NewGoogleRecaptchaService(
+	httpRecaptchaService := http.NewGoogleRecaptchaService(
 		config.RequireEnvString("RECAPTCHA_SECRET"),
 		config.EnvStringArray("RECAPTCHA_RESPONSE_ALLOWLIST"),
 	)
-	showAdminService := postgres.NewShowAdminService(db)
+
 	services := internal.Services{
-		APIClientService:         postgres.NewAPIClientService(db),
-		AuthService:              authService,
-		EmailService:             emailService,
-		EpisodeService:           postgres.NewEpisodeService(db),
-		EpisodeURLService:        postgres.NewEpisodeURLService(db),
-		PreferencesService:       postgres.NewPreferencesService(db),
-		RecaptchaService:         recaptchaService,
-		ShowAdminService:         showAdminService,
-		ShowService:              postgres.NewShowService(db),
-		TemplateService:          postgres.NewTemplateService(db),
-		TemplateTimestampService: postgres.NewTemplateTimestampService(db),
-		TimestampService:         postgres.NewTimestampService(db),
-		TimestampTypeService:     postgres.NewTimestampTypeService(db),
-		UserService:              postgres.NewUserService(db),
+		APIClientService:         postgres.NewAPIClientService(pg),
+		AuthService:              jwtAuthService,
+		EmailService:             httpEmailService,
+		EpisodeService:           pgEpisodeService,
+		EpisodeURLService:        pgEpisodeURLService,
+		PreferencesService:       postgres.NewPreferencesService(pg),
+		RecaptchaService:         httpRecaptchaService,
+		ShowAdminService:         pgShowAdminService,
+		ShowService:              postgres.NewShowService(pg),
+		TemplateService:          pgTemplateService,
+		TemplateTimestampService: postgres.NewTemplateTimestampService(pg),
+		TimestampService:         postgres.NewTimestampService(pg),
+		TimestampTypeService:     postgres.NewTimestampTypeService(pg),
+		UserService:              postgres.NewUserService(pg),
 	}
 	directiveServices := internal.DirectiveServices{
-		AuthService:      authService,
-		ShowAdminService: showAdminService,
+		AuthService:       jwtAuthService,
+		EpisodeService:    pgEpisodeService,
+		EpisodeURLService: pgEpisodeURLService,
+		ShowAdminService:  pgShowAdminService,
+		TemplateService:   pgTemplateService,
 	}
 
 	graphqlHandler := handler.NewGraphqlHandler(
-		db,
+		pg,
 		services,
 		config.EnvBool("ENABLE_INTROSPECTION"),
-		config.EnvBool("ENABLE_SHOW_ADMIN_DIRECTIVE"),
 	)
 
 	server := http.NewChiServer(

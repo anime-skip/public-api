@@ -13,14 +13,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
-func NewGraphqlHandler(db internal.Database, services internal.Services, enableIntrospection bool, enableShowAdminDirective bool) internal.GraphQLHandler {
+func NewGraphqlHandler(db internal.Database, services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
 	log.D("Building GraphQL Server...")
-	isShowAdmin := directives.AllowShowAdmin
-	if enableShowAdminDirective {
-		log.I("Enabling the @isShowAdmin directive")
-		isShowAdmin = directives.IsShowAdmin
-	}
-
 	config := graphql.Config{
 		Resolvers: &resolvers.Resolver{
 			Services: &services,
@@ -29,7 +23,7 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 		Directives: graphql.DirectiveRoot{
 			Authenticated: directives.Authenticated,
 			HasRole:       directives.HasRole,
-			IsShowAdmin:   isShowAdmin,
+			IsShowAdmin:   directives.IsShowAdmin,
 		},
 	}
 	srv := handler.New(graphql.NewExecutableSchema(config))
