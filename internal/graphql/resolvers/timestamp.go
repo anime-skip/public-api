@@ -73,7 +73,13 @@ func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID *uui
 }
 
 func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
-	panic("mutationResolver.DeleteTimestamp not implemented")
+	deleted, err := r.TimestampService.Delete(ctx, *timestampID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTimestamp(deleted)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graphql.InputTimestampOn, update []*graphql.InputExistingTimestamp, delete []*uuid.UUID) (*graphql.UpdatedTimestamps, error) {

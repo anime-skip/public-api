@@ -81,7 +81,13 @@ func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID *uuid.
 }
 
 func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
-	panic("mutationResolver.DeleteTemplate not implemented")
+	deleted, err := r.TemplateService.Delete(ctx, *templateID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTemplate(deleted)
+	return &result, nil
 }
 
 // Queries

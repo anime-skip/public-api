@@ -13,37 +13,86 @@ import (
 	"time"
 )
 
-func getPreferencesByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Preferences, error) {
+func getPreferencesByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
-	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE id=$1", id)
+	err := tx.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.id=%s", id))
 	}
 	return preferences, err
 }
 
-func getPreferencesByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) (internal.Preferences, error) {
+func getPreferencesByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getPreferencesByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getPreferencesByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
-	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1 AND deleted_at IS NULL", userID)
+	err := tx.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1 AND deleted_at IS NULL", userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.userID=%s", userID))
 	}
 	return preferences, err
 }
 
-func getUnscopedPreferencesByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) (internal.Preferences, error) {
+func getPreferencesByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getPreferencesByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedPreferencesByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) (internal.Preferences, error) {
 	var preferences internal.Preferences
-	err := db.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1", userID)
+	err := tx.GetContext(ctx, &preferences, "SELECT * FROM preferences WHERE user_id=$1", userID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Preferences{}, errors1.NewRecordNotFound(fmt.Sprintf("Preferences.userID=%s", userID))
 	}
 	return preferences, err
+}
+
+func getUnscopedPreferencesByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) (internal.Preferences, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedPreferencesByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return internal.Preferences{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertPreferencesInTx(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
 	newPreferences := preferences
-	newPreferences.CreatedAt = time.Now()
-	newPreferences.UpdatedAt = time.Now()
+	now := time.Now()
+	newPreferences.CreatedAt = now
+	newPreferences.UpdatedAt = now
 	newPreferences.DeletedAt = nil
 	result, err := tx.ExecContext(
 		ctx,
@@ -81,7 +130,8 @@ func insertPreferences(ctx context.Context, db internal.Database, preferences in
 
 func updatePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
 	updatedPreferences := newPreferences
-	updatedPreferences.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedPreferences.UpdatedAt = now
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE preferences SET created_at=$1, updated_at=$2, deleted_at=$3, user_id=$4, enable_auto_skip=$5, enable_auto_play=$6, minimize_toolbar_when_editing=$7, hide_timeline_when_minimized=$8, color_theme=$9, skip_branding=$10, skip_intros=$11, skip_new_intros=$12, skip_mixed_intros=$13, skip_recaps=$14, skip_filler=$15, skip_canon=$16, skip_transitions=$17, skip_credits=$18, skip_new_credits=$19, skip_mixed_credits=$20, skip_preview=$21, skip_title_card=$22 WHERE id = $23",
@@ -117,11 +167,15 @@ func updatePreferences(ctx context.Context, db internal.Database, preferences in
 }
 
 func deletePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
-	deletedPreferences := newPreferences
-	deletedPreferences.UpdatedAt = time.Now()
+	updatedPreferences := newPreferences
 	now := time.Now()
-	deletedPreferences.DeletedAt = &now
-	result, err := tx.ExecContext(ctx, "DELETE FROM preferences WHERE id=$1", deletedPreferences.ID)
+	updatedPreferences.UpdatedAt = now
+	updatedPreferences.DeletedAt = &now
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE preferences SET created_at=$1, updated_at=$2, deleted_at=$3, user_id=$4, enable_auto_skip=$5, enable_auto_play=$6, minimize_toolbar_when_editing=$7, hide_timeline_when_minimized=$8, color_theme=$9, skip_branding=$10, skip_intros=$11, skip_new_intros=$12, skip_mixed_intros=$13, skip_recaps=$14, skip_filler=$15, skip_canon=$16, skip_transitions=$17, skip_credits=$18, skip_new_credits=$19, skip_mixed_credits=$20, skip_preview=$21, skip_title_card=$22 WHERE id = $23",
+		updatedPreferences.CreatedAt, updatedPreferences.UpdatedAt, updatedPreferences.DeletedAt, updatedPreferences.UserID, updatedPreferences.EnableAutoSkip, updatedPreferences.EnableAutoPlay, updatedPreferences.MinimizeToolbarWhenEditing, updatedPreferences.HideTimelineWhenMinimized, updatedPreferences.ColorTheme, updatedPreferences.SkipBranding, updatedPreferences.SkipIntros, updatedPreferences.SkipNewIntros, updatedPreferences.SkipMixedIntros, updatedPreferences.SkipRecaps, updatedPreferences.SkipFiller, updatedPreferences.SkipCanon, updatedPreferences.SkipTransitions, updatedPreferences.SkipCredits, updatedPreferences.SkipNewCredits, updatedPreferences.SkipMixedCredits, updatedPreferences.SkipPreview, updatedPreferences.SkipTitleCard, updatedPreferences.ID,
+	)
 	if err != nil {
 		return internal.Preferences{}, err
 	}
@@ -130,23 +184,7 @@ func deletePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences i
 		return internal.Preferences{}, err
 	}
 	if changedRows != 1 {
-		return internal.Preferences{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.Preferences{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedPreferences, err
-}
-
-func deletePreferences(ctx context.Context, db internal.Database, preferences internal.Preferences) (internal.Preferences, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Preferences{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deletePreferencesInTx(ctx, tx, preferences)
-	if err != nil {
-		return internal.Preferences{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedPreferences, err
 }

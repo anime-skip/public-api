@@ -13,54 +13,135 @@ import (
 	"time"
 )
 
-func getUserByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.User, error) {
+func getUserByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.User, error) {
 	var user internal.User
-	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
+	err := tx.GetContext(ctx, &user, "SELECT * FROM users WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.id=%s", id))
 	}
 	return user, err
 }
 
-func getUserByUsername(ctx context.Context, db internal.Database, username string) (internal.User, error) {
+func getUserByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUserByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUserByUsernameInTx(ctx context.Context, tx internal.Tx, username string) (internal.User, error) {
 	var user internal.User
-	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL", username)
+	err := tx.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1 AND deleted_at IS NULL", username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.username=%s", username))
 	}
 	return user, err
 }
 
-func getUnscopedUserByUsername(ctx context.Context, db internal.Database, username string) (internal.User, error) {
+func getUserByUsername(ctx context.Context, db internal.Database, Username string) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUserByUsernameInTx(ctx, tx, Username)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedUserByUsernameInTx(ctx context.Context, tx internal.Tx, username string) (internal.User, error) {
 	var user internal.User
-	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1", username)
+	err := tx.GetContext(ctx, &user, "SELECT * FROM users WHERE username=$1", username)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.username=%s", username))
 	}
 	return user, err
 }
 
-func getUserByEmail(ctx context.Context, db internal.Database, email string) (internal.User, error) {
+func getUnscopedUserByUsername(ctx context.Context, db internal.Database, Username string) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedUserByUsernameInTx(ctx, tx, Username)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUserByEmailInTx(ctx context.Context, tx internal.Tx, email string) (internal.User, error) {
 	var user internal.User
-	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL", email)
+	err := tx.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1 AND deleted_at IS NULL", email)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.email=%s", email))
 	}
 	return user, err
 }
 
-func getUnscopedUserByEmail(ctx context.Context, db internal.Database, email string) (internal.User, error) {
+func getUserByEmail(ctx context.Context, db internal.Database, Email string) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUserByEmailInTx(ctx, tx, Email)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedUserByEmailInTx(ctx context.Context, tx internal.Tx, email string) (internal.User, error) {
 	var user internal.User
-	err := db.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1", email)
+	err := tx.GetContext(ctx, &user, "SELECT * FROM users WHERE email=$1", email)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.User{}, errors1.NewRecordNotFound(fmt.Sprintf("User.email=%s", email))
 	}
 	return user, err
+}
+
+func getUnscopedUserByEmail(ctx context.Context, db internal.Database, Email string) (internal.User, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.User{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedUserByEmailInTx(ctx, tx, Email)
+	if err != nil {
+		return internal.User{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertUserInTx(ctx context.Context, tx internal.Tx, user internal.User) (internal.User, error) {
 	newUser := user
-	newUser.CreatedAt = time.Now()
+	now := time.Now()
+	newUser.CreatedAt = now
 	newUser.DeletedAt = nil
 	result, err := tx.ExecContext(
 		ctx,
@@ -133,10 +214,14 @@ func updateUser(ctx context.Context, db internal.Database, user internal.User) (
 }
 
 func deleteUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) (internal.User, error) {
-	deletedUser := newUser
+	updatedUser := newUser
 	now := time.Now()
-	deletedUser.DeletedAt = &now
-	result, err := tx.ExecContext(ctx, "DELETE FROM users WHERE id=$1", deletedUser.ID)
+	updatedUser.DeletedAt = &now
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE users SET created_at=$1, deleted_at=$2, username=$3, email=$4, password_hash=$5, profile_url=$6, email_verified=$7, role=$8 WHERE id = $9",
+		updatedUser.CreatedAt, updatedUser.DeletedAt, updatedUser.Username, updatedUser.Email, updatedUser.PasswordHash, updatedUser.ProfileURL, updatedUser.EmailVerified, updatedUser.Role, updatedUser.ID,
+	)
 	if err != nil {
 		return internal.User{}, err
 	}
@@ -145,23 +230,7 @@ func deleteUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) 
 		return internal.User{}, err
 	}
 	if changedRows != 1 {
-		return internal.User{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.User{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedUser, err
-}
-
-func deleteUser(ctx context.Context, db internal.Database, user internal.User) (internal.User, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.User{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteUserInTx(ctx, tx, user)
-	if err != nil {
-		return internal.User{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedUser, err
 }

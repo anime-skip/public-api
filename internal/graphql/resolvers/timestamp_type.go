@@ -63,7 +63,13 @@ func (r *mutationResolver) UpdateTimestampType(ctx context.Context, timestampTyp
 }
 
 func (r *mutationResolver) DeleteTimestampType(ctx context.Context, timestampTypeID *uuid.UUID) (*graphql.TimestampType, error) {
-	panic("mutationResolver.DeleteTimestampType not implemented")
+	deleted, err := r.TimestampTypeService.Delete(ctx, *timestampTypeID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTimestampType(deleted)
+	return &result, nil
 }
 
 // Queries

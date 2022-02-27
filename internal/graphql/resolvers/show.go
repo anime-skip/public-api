@@ -63,7 +63,13 @@ func (r *mutationResolver) UpdateShow(ctx context.Context, showID *uuid.UUID, ne
 }
 
 func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*graphql.Show, error) {
-	panic("mutationResolver.DeleteShow not implemented")
+	deleted, err := r.ShowService.Delete(ctx, *showID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlShow(deleted)
+	return &result, nil
 }
 
 // Queries

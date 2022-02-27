@@ -73,7 +73,13 @@ func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID *uuid.UU
 }
 
 func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
-	panic("mutationResolver.DeleteEpisode not implemented")
+	deleted, err := r.EpisodeService.Delete(ctx, *episodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisode(deleted)
+	return &result, nil
 }
 
 // Queries

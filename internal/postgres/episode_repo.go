@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/timestamps-service/internal/errors"
 	uuid "github.com/gofrs/uuid"
 )
 
@@ -62,4 +63,47 @@ func getRecentlyAddedEpisodes(ctx context.Context, db internal.Database, params 
 	}
 
 	return episodes, nil
+}
+
+func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.Episode) (internal.Episode, error) {
+	// Delete the episode
+	deletedEpisode, err := deleteEpisodeInTx(ctx, tx, episode)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	// Delete the template if it exists
+	template, err := getTemplateBySourceEpisodeIDInTx(ctx, tx, episode.ID)
+	if err == nil {
+		_, err = deleteCascadeTemplate(ctx, tx, template)
+	}
+	if !errors.IsRecordNotFound(err) {
+		return internal.Episode{}, err
+	}
+
+	// Delete the timestamps for that episode
+	timestamps, err := getTimestampsByEpisodeIDInTx(ctx, tx, episode.ID)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	for _, timestamp := range timestamps {
+		_, err = deleteCascadeTimestamp(ctx, tx, timestamp)
+		if !errors.IsRecordNotFound(err) {
+			return internal.Episode{}, err
+		}
+	}
+
+	// Delete the urls for that episode
+	urls, err := getEpisodeURLsByEpisodeIDInTx(ctx, tx, episode.ID)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	for _, url := range urls {
+		_, err := deleteCascadeEpisodeURL(ctx, tx, url)
+		if err != nil {
+			return internal.Episode{}, err
+		}
+	}
+
+	return deletedEpisode, nil
 }

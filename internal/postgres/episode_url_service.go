@@ -31,6 +31,22 @@ func (s *episodeURLService) Update(ctx context.Context, newEpisodeURL internal.E
 	return updateEpisodeURL(ctx, s.db, newEpisodeURL)
 }
 
-func (s *episodeURLService) Delete(ctx context.Context, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
-	panic("episodeURLService.Delete not implemented")
+func (s *episodeURLService) Delete(ctx context.Context, url string) (internal.EpisodeURL, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	defer tx.Rollback()
+
+	episodeURL, err := getEpisodeURLByURLInTx(ctx, tx, url)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+
+	deleted, err := deleteCascadeEpisodeURL(ctx, tx, episodeURL)
+	if err != nil {
+		return internal.EpisodeURL{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

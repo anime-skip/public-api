@@ -14,13 +14,29 @@ import (
 	"time"
 )
 
-func getShowByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Show, error) {
+func getShowByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.Show, error) {
 	var show internal.Show
-	err := db.GetContext(ctx, &show, "SELECT * FROM shows WHERE id=$1", id)
+	err := tx.GetContext(ctx, &show, "SELECT * FROM shows WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Show{}, errors1.NewRecordNotFound(fmt.Sprintf("Show.id=%s", id))
 	}
 	return show, err
+}
+
+func getShowByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.Show, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getShowByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.Show{}, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertShowInTx(ctx context.Context, tx internal.Tx, show internal.Show) (internal.Show, error) {
@@ -29,9 +45,10 @@ func insertShowInTx(ctx context.Context, tx internal.Tx, show internal.Show) (in
 	if err != nil {
 		return internal.Show{}, err
 	}
-	newShow.CreatedAt = time.Now()
+	now := time.Now()
+	newShow.CreatedAt = now
 	newShow.CreatedByUserID = claims.UserID
-	newShow.UpdatedAt = time.Now()
+	newShow.UpdatedAt = now
 	newShow.UpdatedByUserID = claims.UserID
 	newShow.DeletedAt = nil
 	newShow.DeletedByUserID = nil
@@ -75,7 +92,8 @@ func updateShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) 
 	if err != nil {
 		return internal.Show{}, err
 	}
-	updatedShow.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedShow.UpdatedAt = now
 	updatedShow.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -112,17 +130,21 @@ func updateShow(ctx context.Context, db internal.Database, show internal.Show) (
 }
 
 func deleteShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) (internal.Show, error) {
-	deletedShow := newShow
+	updatedShow := newShow
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err
 	}
-	deletedShow.UpdatedAt = time.Now()
-	deletedShow.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedShow.DeletedAt = &now
-	deletedShow.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM shows WHERE id=$1", deletedShow.ID)
+	updatedShow.UpdatedAt = now
+	updatedShow.UpdatedByUserID = claims.UserID
+	updatedShow.DeletedAt = &now
+	updatedShow.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE shows SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, name=$7, original_name=$8, website=$9, image=$10 WHERE id = $11",
+		updatedShow.CreatedAt, updatedShow.CreatedByUserID, updatedShow.UpdatedAt, updatedShow.UpdatedByUserID, updatedShow.DeletedAt, updatedShow.DeletedByUserID, updatedShow.Name, updatedShow.OriginalName, updatedShow.Website, updatedShow.Image, updatedShow.ID,
+	)
 	if err != nil {
 		return internal.Show{}, err
 	}
@@ -131,23 +153,7 @@ func deleteShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) 
 		return internal.Show{}, err
 	}
 	if changedRows != 1 {
-		return internal.Show{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.Show{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedShow, err
-}
-
-func deleteShow(ctx context.Context, db internal.Database, show internal.Show) (internal.Show, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Show{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteShowInTx(ctx, tx, show)
-	if err != nil {
-		return internal.Show{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedShow, err
 }

@@ -14,17 +14,33 @@ import (
 	"time"
 )
 
-func getShowAdminByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.ShowAdmin, error) {
+func getShowAdminByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.ShowAdmin, error) {
 	var showAdmin internal.ShowAdmin
-	err := db.GetContext(ctx, &showAdmin, "SELECT * FROM show_admins WHERE id=$1", id)
+	err := tx.GetContext(ctx, &showAdmin, "SELECT * FROM show_admins WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.ShowAdmin{}, errors1.NewRecordNotFound(fmt.Sprintf("ShowAdmin.id=%s", id))
 	}
 	return showAdmin, err
 }
 
-func getShowAdminsByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.ShowAdmin, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM show_admins WHERE deleted_at IS NULL")
+func getShowAdminByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getShowAdminByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.ShowAdmin{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getShowAdminsByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.ShowAdmin, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM show_admins WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +58,24 @@ func getShowAdminsByShowID(ctx context.Context, db internal.Database, showID uui
 	return showAdmins, nil
 }
 
-func getUnscopedShowAdminsByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.ShowAdmin, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM show_admins")
+func getShowAdminsByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getShowAdminsByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedShowAdminsByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.ShowAdmin, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM show_admins")
 	if err != nil {
 		return nil, err
 	}
@@ -61,8 +93,24 @@ func getUnscopedShowAdminsByShowID(ctx context.Context, db internal.Database, sh
 	return showAdmins, nil
 }
 
-func getShowAdminsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.ShowAdmin, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM show_admins WHERE deleted_at IS NULL")
+func getUnscopedShowAdminsByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedShowAdminsByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getShowAdminsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) ([]internal.ShowAdmin, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM show_admins WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -80,8 +128,24 @@ func getShowAdminsByUserID(ctx context.Context, db internal.Database, userID uui
 	return showAdmins, nil
 }
 
-func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.ShowAdmin, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM show_admins")
+func getShowAdminsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getShowAdminsByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedShowAdminsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) ([]internal.ShowAdmin, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM show_admins")
 	if err != nil {
 		return nil, err
 	}
@@ -97,6 +161,22 @@ func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, us
 		showAdmins = append(showAdmins, showAdmin)
 	}
 	return showAdmins, nil
+}
+
+func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.ShowAdmin, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedShowAdminsByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertShowAdminInTx(ctx context.Context, tx internal.Tx, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
@@ -105,9 +185,10 @@ func insertShowAdminInTx(ctx context.Context, tx internal.Tx, showAdmin internal
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
-	newShowAdmin.CreatedAt = time.Now()
+	now := time.Now()
+	newShowAdmin.CreatedAt = now
 	newShowAdmin.CreatedByUserID = claims.UserID
-	newShowAdmin.UpdatedAt = time.Now()
+	newShowAdmin.UpdatedAt = now
 	newShowAdmin.UpdatedByUserID = claims.UserID
 	newShowAdmin.DeletedAt = nil
 	newShowAdmin.DeletedByUserID = nil
@@ -151,7 +232,8 @@ func updateShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin inter
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
-	updatedShowAdmin.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedShowAdmin.UpdatedAt = now
 	updatedShowAdmin.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -188,17 +270,21 @@ func updateShowAdmin(ctx context.Context, db internal.Database, showAdmin intern
 }
 
 func deleteShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	deletedShowAdmin := newShowAdmin
+	updatedShowAdmin := newShowAdmin
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
-	deletedShowAdmin.UpdatedAt = time.Now()
-	deletedShowAdmin.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedShowAdmin.DeletedAt = &now
-	deletedShowAdmin.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM show_admins WHERE id=$1", deletedShowAdmin.ID)
+	updatedShowAdmin.UpdatedAt = now
+	updatedShowAdmin.UpdatedByUserID = claims.UserID
+	updatedShowAdmin.DeletedAt = &now
+	updatedShowAdmin.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE show_admins SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, show_id=$7, user_id=$8 WHERE id = $9",
+		updatedShowAdmin.CreatedAt, updatedShowAdmin.CreatedByUserID, updatedShowAdmin.UpdatedAt, updatedShowAdmin.UpdatedByUserID, updatedShowAdmin.DeletedAt, updatedShowAdmin.DeletedByUserID, updatedShowAdmin.ShowID, updatedShowAdmin.UserID, updatedShowAdmin.ID,
+	)
 	if err != nil {
 		return internal.ShowAdmin{}, err
 	}
@@ -207,23 +293,7 @@ func deleteShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin inter
 		return internal.ShowAdmin{}, err
 	}
 	if changedRows != 1 {
-		return internal.ShowAdmin{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.ShowAdmin{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedShowAdmin, err
-}
-
-func deleteShowAdmin(ctx context.Context, db internal.Database, showAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.ShowAdmin{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteShowAdminInTx(ctx, tx, showAdmin)
-	if err != nil {
-		return internal.ShowAdmin{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedShowAdmin, err
 }

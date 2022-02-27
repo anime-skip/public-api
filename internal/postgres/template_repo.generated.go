@@ -14,35 +14,83 @@ import (
 	"time"
 )
 
-func getTemplateByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Template, error) {
+func getTemplateByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.Template, error) {
 	var template internal.Template
-	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE id=$1", id)
+	err := tx.GetContext(ctx, &template, "SELECT * FROM templates WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.id=%s", id))
 	}
 	return template, err
 }
 
-func getTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, sourceEpisodeID uuid.UUID) (internal.Template, error) {
+func getTemplateByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTemplateByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getTemplateBySourceEpisodeIDInTx(ctx context.Context, tx internal.Tx, sourceEpisodeID uuid.UUID) (internal.Template, error) {
 	var template internal.Template
-	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1 AND deleted_at IS NULL", sourceEpisodeID)
+	err := tx.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1 AND deleted_at IS NULL", sourceEpisodeID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.sourceEpisodeID=%s", sourceEpisodeID))
 	}
 	return template, err
 }
 
-func getUnscopedTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, sourceEpisodeID uuid.UUID) (internal.Template, error) {
+func getTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, SourceEpisodeID uuid.UUID) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTemplateBySourceEpisodeIDInTx(ctx, tx, SourceEpisodeID)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedTemplateBySourceEpisodeIDInTx(ctx context.Context, tx internal.Tx, sourceEpisodeID uuid.UUID) (internal.Template, error) {
 	var template internal.Template
-	err := db.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1", sourceEpisodeID)
+	err := tx.GetContext(ctx, &template, "SELECT * FROM templates WHERE source_episode_id=$1", sourceEpisodeID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Template{}, errors1.NewRecordNotFound(fmt.Sprintf("Template.sourceEpisodeID=%s", sourceEpisodeID))
 	}
 	return template, err
 }
 
-func getTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Template, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM templates WHERE deleted_at IS NULL")
+func getUnscopedTemplateBySourceEpisodeID(ctx context.Context, db internal.Database, SourceEpisodeID uuid.UUID) (internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedTemplateBySourceEpisodeIDInTx(ctx, tx, SourceEpisodeID)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getTemplatesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.Template, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM templates WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -60,8 +108,24 @@ func getTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid
 	return templates, nil
 }
 
-func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Template, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM templates")
+func getTemplatesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTemplatesByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedTemplatesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.Template, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM templates")
 	if err != nil {
 		return nil, err
 	}
@@ -77,6 +141,22 @@ func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, sho
 		templates = append(templates, template)
 	}
 	return templates, nil
+}
+
+func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Template, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedTemplatesByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertTemplateInTx(ctx context.Context, tx internal.Tx, template internal.Template) (internal.Template, error) {
@@ -85,9 +165,10 @@ func insertTemplateInTx(ctx context.Context, tx internal.Tx, template internal.T
 	if err != nil {
 		return internal.Template{}, err
 	}
-	newTemplate.CreatedAt = time.Now()
+	now := time.Now()
+	newTemplate.CreatedAt = now
 	newTemplate.CreatedByUserID = claims.UserID
-	newTemplate.UpdatedAt = time.Now()
+	newTemplate.UpdatedAt = now
 	newTemplate.UpdatedByUserID = claims.UserID
 	newTemplate.DeletedAt = nil
 	newTemplate.DeletedByUserID = nil
@@ -131,7 +212,8 @@ func updateTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate interna
 	if err != nil {
 		return internal.Template{}, err
 	}
-	updatedTemplate.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedTemplate.UpdatedAt = now
 	updatedTemplate.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -168,17 +250,21 @@ func updateTemplate(ctx context.Context, db internal.Database, template internal
 }
 
 func deleteTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate internal.Template) (internal.Template, error) {
-	deletedTemplate := newTemplate
+	updatedTemplate := newTemplate
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err
 	}
-	deletedTemplate.UpdatedAt = time.Now()
-	deletedTemplate.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedTemplate.DeletedAt = &now
-	deletedTemplate.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM templates WHERE id=$1", deletedTemplate.ID)
+	updatedTemplate.UpdatedAt = now
+	updatedTemplate.UpdatedByUserID = claims.UserID
+	updatedTemplate.DeletedAt = &now
+	updatedTemplate.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE templates SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, show_id=$7, type=$8, seasons=$9, source_episode_id=$10 WHERE id = $11",
+		updatedTemplate.CreatedAt, updatedTemplate.CreatedByUserID, updatedTemplate.UpdatedAt, updatedTemplate.UpdatedByUserID, updatedTemplate.DeletedAt, updatedTemplate.DeletedByUserID, updatedTemplate.ShowID, updatedTemplate.Type, updatedTemplate.Seasons, updatedTemplate.SourceEpisodeID, updatedTemplate.ID,
+	)
 	if err != nil {
 		return internal.Template{}, err
 	}
@@ -187,23 +273,7 @@ func deleteTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate interna
 		return internal.Template{}, err
 	}
 	if changedRows != 1 {
-		return internal.Template{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.Template{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedTemplate, err
-}
-
-func deleteTemplate(ctx context.Context, db internal.Database, template internal.Template) (internal.Template, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Template{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteTemplateInTx(ctx, tx, template)
-	if err != nil {
-		return internal.Template{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedTemplate, err
 }

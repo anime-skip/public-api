@@ -14,17 +14,33 @@ import (
 	"time"
 )
 
-func getEpisodeByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Episode, error) {
+func getEpisodeByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.Episode, error) {
 	var episode internal.Episode
-	err := db.GetContext(ctx, &episode, "SELECT * FROM episodes WHERE id=$1", id)
+	err := tx.GetContext(ctx, &episode, "SELECT * FROM episodes WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Episode{}, errors1.NewRecordNotFound(fmt.Sprintf("Episode.id=%s", id))
 	}
 	return episode, err
 }
 
-func getEpisodesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Episode, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM episodes WHERE deleted_at IS NULL")
+func getEpisodeByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getEpisodeByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getEpisodesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.Episode, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM episodes WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +58,24 @@ func getEpisodesByShowID(ctx context.Context, db internal.Database, showID uuid.
 	return episodes, nil
 }
 
-func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Episode, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM episodes")
+func getEpisodesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getEpisodesByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedEpisodesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.Episode, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM episodes")
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +91,22 @@ func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, show
 		episodes = append(episodes, episode)
 	}
 	return episodes, nil
+}
+
+func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedEpisodesByShowIDInTx(ctx, tx, ShowID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertEpisodeInTx(ctx context.Context, tx internal.Tx, episode internal.Episode) (internal.Episode, error) {
@@ -67,9 +115,10 @@ func insertEpisodeInTx(ctx context.Context, tx internal.Tx, episode internal.Epi
 	if err != nil {
 		return internal.Episode{}, err
 	}
-	newEpisode.CreatedAt = time.Now()
+	now := time.Now()
+	newEpisode.CreatedAt = now
 	newEpisode.CreatedByUserID = claims.UserID
-	newEpisode.UpdatedAt = time.Now()
+	newEpisode.UpdatedAt = now
 	newEpisode.UpdatedByUserID = claims.UserID
 	newEpisode.DeletedAt = nil
 	newEpisode.DeletedByUserID = nil
@@ -113,7 +162,8 @@ func updateEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.
 	if err != nil {
 		return internal.Episode{}, err
 	}
-	updatedEpisode.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedEpisode.UpdatedAt = now
 	updatedEpisode.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -150,17 +200,21 @@ func updateEpisode(ctx context.Context, db internal.Database, episode internal.E
 }
 
 func deleteEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.Episode) (internal.Episode, error) {
-	deletedEpisode := newEpisode
+	updatedEpisode := newEpisode
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err
 	}
-	deletedEpisode.UpdatedAt = time.Now()
-	deletedEpisode.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedEpisode.DeletedAt = &now
-	deletedEpisode.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM episodes WHERE id=$1", deletedEpisode.ID)
+	updatedEpisode.UpdatedAt = now
+	updatedEpisode.UpdatedByUserID = claims.UserID
+	updatedEpisode.DeletedAt = &now
+	updatedEpisode.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE episodes SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, season=$7, number=$8, absolute_number=$9, name=$10, base_duration=$11, show_id=$12 WHERE id = $13",
+		updatedEpisode.CreatedAt, updatedEpisode.CreatedByUserID, updatedEpisode.UpdatedAt, updatedEpisode.UpdatedByUserID, updatedEpisode.DeletedAt, updatedEpisode.DeletedByUserID, updatedEpisode.Season, updatedEpisode.Number, updatedEpisode.AbsoluteNumber, updatedEpisode.Name, updatedEpisode.BaseDuration, updatedEpisode.ShowID, updatedEpisode.ID,
+	)
 	if err != nil {
 		return internal.Episode{}, err
 	}
@@ -169,23 +223,7 @@ func deleteEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.
 		return internal.Episode{}, err
 	}
 	if changedRows != 1 {
-		return internal.Episode{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.Episode{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedEpisode, err
-}
-
-func deleteEpisode(ctx context.Context, db internal.Database, episode internal.Episode) (internal.Episode, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Episode{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteEpisodeInTx(ctx, tx, episode)
-	if err != nil {
-		return internal.Episode{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedEpisode, err
 }

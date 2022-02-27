@@ -35,7 +35,13 @@ func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput g
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {
-	panic("TODO - show admins are disabled")
+	deleted, err := r.ShowAdminService.Delete(ctx, *showAdminID)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlShowAdmin(deleted)
+	return &result, nil
 }
 
 // Queries

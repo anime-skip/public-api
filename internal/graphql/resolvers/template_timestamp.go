@@ -26,7 +26,16 @@ func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateT
 }
 
 func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {
-	panic("mutationResolver.RemoveTimestampFromTemplate not implemented")
+	internalTemplateTimestamp := internal.TemplateTimestamp{}
+	mappers.ApplyGraphqlInputTemplateTimestamp(templateTimestamp, &internalTemplateTimestamp)
+
+	deleted, err := r.TemplateTimestampService.Delete(ctx, internalTemplateTimestamp)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlTemplateTimestamp(deleted)
+	return &result, nil
 }
 
 // Queries

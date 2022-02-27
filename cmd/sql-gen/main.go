@@ -94,9 +94,11 @@ func generateModelSqlMethods(model interface{}) {
 	update(file, modelType)
 
 	if len(modelDetails.primaryKeys) > 0 {
-		deleteInTx(file, modelType, modelDetails.primaryKeys)
-		delete(file, modelType)
-	} else {
+		if modelDetails.softDelete != nil {
+			softDeleteInTx(file, modelType, modelDetails)
+		} else {
+			hardDeleteInTx(file, modelType, modelDetails.primaryKeys)
+		}
 	}
 
 	writeFile(filename, file)
@@ -210,24 +212,63 @@ func getSqlParamValues(varName string, model reflect.Type, excludePrimaryKeys bo
 
 // Generated Functions
 
-// Get One
-
-func _getOne(file *File, funcName string, sql string, model reflect.Type, field reflect.StructField) {
+func unwrapInTxFunc(file *File, model reflect.Type, inTxFuncName string, argName string, argType reflect.Type, returnSlice bool) {
 	modelName := model.Name()
-	varName := strcase.ToGoCamel(modelName)
-	fieldName := strcase.ToGoCamel(field.Name)
-	errMessage := fmt.Sprintf("%s.%s=", modelName, fieldName) + "%s"
+	funcName := strings.Replace(inTxFuncName, "InTx", "", 1)
+	resultName := "result"
+
+	var emptyModel Code
+	var returnType Code
+	if returnSlice {
+		returnType = Index().Qual(internalPkg, modelName)
+		emptyModel = Nil()
+	} else {
+		returnType = Qual(internalPkg, modelName)
+		emptyModel = Qual(internalPkg, modelName).Block()
+	}
+	ifErrReturn := If(Err().Op("!=").Nil()).Block(
+		Return().List(emptyModel, Err()),
+	)
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("db").Qual(internalPkg, "Database"),
+		Id(argName).Qual(argType.PkgPath(), argType.Name()),
+	).Params(
+		returnType,
+		Error(),
+	).Block(
+		List(Id("tx"), Err()).Op(":=").Id("db").Dot("BeginTxx").Call(Id("ctx"), Nil()),
+		ifErrReturn,
+		Defer().Id("tx").Dot("Rollback").Call(),
+		Empty(),
+		List(Id(resultName), Err()).Op(":=").Id(inTxFuncName).Call(Id("ctx"), Id("tx"), Id(argName)),
+		ifErrReturn,
+		Empty(),
+		Id("tx").Dot("Commit").Call(),
+		Return().List(Id(resultName), Nil()),
+	).Line()
+}
+
+// Get One
+
+func _getOne(file *File, funcName string, sql string, model reflect.Type, field reflect.StructField) {
+	modelName := model.Name()
+	inTxFuncName := funcName + "InTx"
+	varName := strcase.ToGoCamel(modelName)
+	fieldName := strcase.ToGoCamel(field.Name)
+	errMessage := fmt.Sprintf("%s.%s=", modelName, fieldName) + "%s"
+
+	file.Func().Id(inTxFuncName).Params(
+		Id("ctx").Qual("context", "Context"),
+		Id("tx").Qual(internalPkg, "Tx"),
 		Id(fieldName).Qual(field.Type.PkgPath(), field.Type.Name()),
 	).Params(
 		Qual(internalPkg, modelName),
 		Error(),
 	).Block(
 		Var().Id(varName).Qual(internalPkg, modelName),
-		Err().Op(":=").Id("db").Dot("GetContext").Call(
+		Err().Op(":=").Id("tx").Dot("GetContext").Call(
 			Id("ctx"),
 			Op("&").Id(varName),
 			Lit(sql),
@@ -246,6 +287,8 @@ func _getOne(file *File, funcName string, sql string, model reflect.Type, field 
 			Err(),
 		),
 	).Line()
+
+	unwrapInTxFunc(file, model, inTxFuncName, field.Name, field.Type, false)
 }
 
 func _getOneNoSoftDelete(file *File, funcName string, model reflect.Type, field reflect.StructField) {
@@ -298,16 +341,17 @@ func _getMany(file *File, funcName string, sql string, model reflect.Type, field
 	returnErr := If(Err().Op("!=").Nil()).Block(
 		Return().List(Nil(), Err()),
 	)
+	inTxFuncName := funcName + "InTx"
 
-	file.Func().Id(funcName).Params(
+	file.Func().Id(inTxFuncName).Params(
 		Id("ctx").Qual("context", "Context"),
-		Id("db").Qual(internalQual, "Database"),
+		Id("tx").Qual(internalQual, "Tx"),
 		Id(fieldName).Qual(field.Type.PkgPath(), field.Type.Name()),
 	).Params(
 		Index().Qual(internalQual, modelName),
 		Error(),
 	).Block(
-		List(Id("rows"), Err()).Op(":=").Id("db").Dot("QueryxContext").Call(Id("ctx"), Lit(sql)),
+		List(Id("rows"), Err()).Op(":=").Id("tx").Dot("QueryxContext").Call(Id("ctx"), Lit(sql)),
 		returnErr,
 		Defer().Id("rows").Dot("Close").Call(),
 		Line(),
@@ -324,6 +368,8 @@ func _getMany(file *File, funcName string, sql string, model reflect.Type, field
 			Nil(),
 		),
 	).Line()
+
+	unwrapInTxFunc(file, model, inTxFuncName, field.Name, field.Type, true)
 }
 
 func _getManyIgnoreSoftDelete(file *File, funcName string, model reflect.Type, field reflect.StructField) {
@@ -367,43 +413,13 @@ func softDeleteGetManyScoped(
 // Insert
 
 func updateMetadataTime(id string, timeFieldName string) *Statement {
-	return Id(id).Dot(timeFieldName).Op("=").Qual("time", "Now").Call()
+	return Id(id).Dot(timeFieldName).Op("=").Id("now")
 }
 func updateMetadataUserID(id string, userIDFieldName string) *Statement {
 	return Id(id).Dot(userIDFieldName).Op("=").Id("claims").Dot("UserID")
 }
 func updateToNil(id string, nilFieldName string) *Statement {
 	return Id(id).Dot(nilFieldName).Op("=").Nil()
-}
-
-func unwrapInTxFunc(file *File, model reflect.Type, inTxFuncName string) {
-	modelName := model.Name()
-	funcName := strings.Replace(inTxFuncName, "InTx", "", 1)
-	argName := strcase.ToGoCamel(modelName)
-	resultName := "result"
-	emptyModel := Qual(internalPkg, modelName).Block()
-	ifErrReturn := If(Err().Op("!=").Nil()).Block(
-		Return().List(emptyModel, Err()),
-	)
-
-	file.Func().Id(funcName).Params(
-		Id("ctx").Qual("context", "Context"),
-		Id("db").Qual(internalPkg, "Database"),
-		Id(argName).Qual(internalPkg, modelName),
-	).Params(
-		Qual(internalPkg, modelName),
-		Error(),
-	).Block(
-		List(Id("tx"), Err()).Op(":=").Id("db").Dot("BeginTxx").Call(Id("ctx"), Nil()),
-		ifErrReturn,
-		Defer().Id("tx").Dot("Rollback").Call(),
-		Empty(),
-		List(Id(resultName), Err()).Op(":=").Id(inTxFuncName).Call(Id("ctx"), Id("tx"), Id(argName)),
-		ifErrReturn,
-		Empty(),
-		Id("tx").Dot("Commit").Call(),
-		Return().List(Id(resultName), Nil()),
-	).Line()
 }
 
 func insertInTx(file *File, model reflect.Type) {
@@ -448,6 +464,9 @@ func insertInTx(file *File, model reflect.Type) {
 			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
 			g.Add(ifErrReturn)
 		}
+		if hasCreatedAt || hasUpdatedAt {
+			g.Id("now").Op(":=").Qual("time", "Now").Call()
+		}
 		if hasCreatedAt {
 			g.Add(updateMetadataTime(newModelName, "CreatedAt"))
 		}
@@ -479,14 +498,13 @@ func insertInTx(file *File, model reflect.Type) {
 
 func insert(file *File, model reflect.Type) {
 	inTxFuncName := fmt.Sprintf("insert%sInTx", model.Name())
-	unwrapInTxFunc(file, model, inTxFuncName)
+	unwrapInTxFunc(file, model, inTxFuncName, strcase.ToGoCamel(model.Name()), model, false)
 }
 
 // Update
 
-func updateInTx(file *File, model reflect.Type, details ModelDetails) {
+func _updateInTx(file *File, model reflect.Type, details ModelDetails, funcName string, deleting bool) {
 	modelName := model.Name()
-	funcName := fmt.Sprintf("update%sInTx", modelName)
 	argName := strcase.ToGoCamel("new" + modelName)
 	updatedModelName := strcase.ToGoCamel("updated" + modelName)
 	tableName := pluralize(strcase.ToSnake(modelName))
@@ -517,6 +535,10 @@ func updateInTx(file *File, model reflect.Type, details ModelDetails) {
 	)
 	_, hasUpdatedAt := model.FieldByName("UpdatedAt")
 	_, hasUpdatedBy := model.FieldByName("UpdatedByUserID")
+	_, hasDeletedAt := model.FieldByName("DeletedAt")
+	_, hasDeletedBy := model.FieldByName("DeletedByUserID")
+	hasDeletedAt = deleting && hasDeletedAt
+	hasDeletedBy = deleting && hasDeletedBy
 
 	file.Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
@@ -527,15 +549,24 @@ func updateInTx(file *File, model reflect.Type, details ModelDetails) {
 		Error(),
 	).BlockFunc(func(g *Group) {
 		g.Id(updatedModelName).Op(":=").Id(argName)
-		if hasUpdatedBy {
+		if hasUpdatedBy || hasDeletedBy {
 			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
 			g.Add(ifErrReturn)
+		}
+		if hasUpdatedAt || hasDeletedAt {
+			g.Id("now").Op(":=").Qual("time", "Now").Call()
 		}
 		if hasUpdatedAt {
 			g.Add(updateMetadataTime(updatedModelName, "UpdatedAt"))
 		}
 		if hasUpdatedBy {
 			g.Add(updateMetadataUserID(updatedModelName, "UpdatedByUserID"))
+		}
+		if hasDeletedAt {
+			g.Add(Id(updatedModelName).Dot("DeletedAt").Op("=").Op("&").Id("now"))
+		}
+		if hasDeletedBy {
+			g.Id(updatedModelName).Dot("DeletedByUserID").Op("=").Op("&").Id("claims").Dot("UserID")
 		}
 		g.List(Id("result"), Err()).Op(":=").Id("tx").Dot("ExecContext").Call(execParams...)
 		g.Add(ifErrReturn)
@@ -548,22 +579,26 @@ func updateInTx(file *File, model reflect.Type, details ModelDetails) {
 	}).Line()
 }
 
+func updateInTx(file *File, model reflect.Type, details ModelDetails) {
+	funcName := fmt.Sprintf("update%sInTx", model.Name())
+	_updateInTx(file, model, details, funcName, false)
+}
+
 func update(file *File, model reflect.Type) {
 	inTxFuncName := fmt.Sprintf("update%sInTx", model.Name())
 	columns := getSqlColumns(model, true)
 	if len(columns) == 0 {
 		return
 	}
-	unwrapInTxFunc(file, model, inTxFuncName)
+	unwrapInTxFunc(file, model, inTxFuncName, strcase.ToGoCamel(model.Name()), model, false)
 }
 
 // Delete
 
-func deleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructField) {
+func hardDeleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructField) {
 	modelName := model.Name()
 	funcName := fmt.Sprintf("delete%sInTx", modelName)
-	argName := strcase.ToGoCamel("new" + modelName)
-	deletedModelName := strcase.ToGoCamel("deleted" + modelName)
+	argName := strcase.ToGoCamel(modelName)
 	tableName := pluralize(strcase.ToSnake(modelName))
 	sqlWheres := []string{}
 	for index, primaryKey := range primaryKeys {
@@ -576,55 +611,32 @@ func deleteInTx(file *File, model reflect.Type, primaryKeys []reflect.StructFiel
 	)
 	execArgs := []Code{Id("ctx"), Lit(sql)}
 	for _, primaryKey := range primaryKeys {
-		execArgs = append(execArgs, Id(deletedModelName).Dot(primaryKey.Name))
+		execArgs = append(execArgs, Id(argName).Dot(primaryKey.Name))
 	}
-	emptyModel := Qual(internalPkg, modelName).Block()
 	ifErrReturn := If(Err().Op("!=").Nil()).Block(
-		Return().List(emptyModel, Err()),
+		Return().Err(),
 	)
-	_, hasUpdatedAt := model.FieldByName("UpdatedAt")
-	_, hasUpdatedBy := model.FieldByName("UpdatedByUserID")
-	_, hasDeletedAt := model.FieldByName("DeletedAt")
-	_, hasDeletedBy := model.FieldByName("DeletedByUserID")
 
-	file.Func().Id(funcName).Params(
+	file.Commentf(
+		"Hard delete the %s. It requires the entire model be passed in so that you have it before calling this function, and can return the value if needed",
+		modelName,
+	).Line().Func().Id(funcName).Params(
 		Id("ctx").Qual("context", "Context"),
 		Id("tx").Qual(internalPkg, "Tx"),
 		Id(argName).Qual(internalPkg, modelName),
-	).Params(
-		Qual(internalPkg, modelName),
-		Error(),
-	).BlockFunc(func(g *Group) {
-		g.Id(deletedModelName).Op(":=").Id(argName)
-		if hasUpdatedBy {
-			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))
-			g.Add(ifErrReturn)
-		}
-		if hasUpdatedAt {
-			g.Add(updateMetadataTime(deletedModelName, "UpdatedAt"))
-		}
-		if hasUpdatedBy {
-			g.Add(updateMetadataUserID(deletedModelName, "UpdatedByUserID"))
-		}
-		if hasDeletedAt {
-			g.Id("now").Op(":=").Qual("time", "Now").Call()
-			g.Add(Id(deletedModelName).Dot("DeletedAt").Op("=").Op("&").Id("now"))
-		}
-		if hasDeletedBy {
-			g.Id(deletedModelName).Dot("DeletedByUserID").Op("=").Op("&").Id("claims").Dot("UserID")
-		}
+	).Error().BlockFunc(func(g *Group) {
 		g.List(Id("result"), Err()).Op(":=").Id("tx").Dot("ExecContext").Call(execArgs...)
 		g.Add(ifErrReturn)
 		g.List(Id("changedRows"), Err()).Op(":=").Id("result").Dot("RowsAffected").Call()
 		g.Add(ifErrReturn)
 		g.If(Id("changedRows").Op("!=").Lit(1)).Block(
-			Return().List(emptyModel, Qual("fmt", "Errorf").Call(Lit("Deleted more than 1 row (%d)"), Id("changedRows"))),
+			Return().Qual("fmt", "Errorf").Call(Lit("Deleted more than 1 row (%d)"), Id("changedRows")),
 		)
-		g.Return().List(Id(deletedModelName), Err())
+		g.Return().Err()
 	}).Line()
 }
 
-func delete(file *File, model reflect.Type) {
-	inTxFuncName := fmt.Sprintf("delete%sInTx", model.Name())
-	unwrapInTxFunc(file, model, inTxFuncName)
+func softDeleteInTx(file *File, model reflect.Type, details ModelDetails) {
+	funcName := fmt.Sprintf("delete%sInTx", model.Name())
+	_updateInTx(file, model, details, funcName, true)
 }

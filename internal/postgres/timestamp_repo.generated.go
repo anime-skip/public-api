@@ -14,17 +14,33 @@ import (
 	"time"
 )
 
-func getTimestampByID(ctx context.Context, db internal.Database, id uuid.UUID) (internal.Timestamp, error) {
+func getTimestampByIDInTx(ctx context.Context, tx internal.Tx, id uuid.UUID) (internal.Timestamp, error) {
 	var timestamp internal.Timestamp
-	err := db.GetContext(ctx, &timestamp, "SELECT * FROM timestamps WHERE id=$1", id)
+	err := tx.GetContext(ctx, &timestamp, "SELECT * FROM timestamps WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.Timestamp{}, errors1.NewRecordNotFound(fmt.Sprintf("Timestamp.id=%s", id))
 	}
 	return timestamp, err
 }
 
-func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM timestamps WHERE deleted_at IS NULL")
+func getTimestampByID(ctx context.Context, db internal.Database, ID uuid.UUID) (internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTimestampByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getTimestampsByEpisodeIDInTx(ctx context.Context, tx internal.Tx, episodeID uuid.UUID) ([]internal.Timestamp, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM timestamps WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +58,24 @@ func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, episode
 	return timestamps, nil
 }
 
-func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM timestamps")
+func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, EpisodeID uuid.UUID) ([]internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTimestampsByEpisodeIDInTx(ctx, tx, EpisodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedTimestampsByEpisodeIDInTx(ctx context.Context, tx internal.Tx, episodeID uuid.UUID) ([]internal.Timestamp, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM timestamps")
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +91,22 @@ func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database,
 		timestamps = append(timestamps, timestamp)
 	}
 	return timestamps, nil
+}
+
+func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database, EpisodeID uuid.UUID) ([]internal.Timestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedTimestampsByEpisodeIDInTx(ctx, tx, EpisodeID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertTimestampInTx(ctx context.Context, tx internal.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
@@ -67,9 +115,10 @@ func insertTimestampInTx(ctx context.Context, tx internal.Tx, timestamp internal
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
-	newTimestamp.CreatedAt = time.Now()
+	now := time.Now()
+	newTimestamp.CreatedAt = now
 	newTimestamp.CreatedByUserID = claims.UserID
-	newTimestamp.UpdatedAt = time.Now()
+	newTimestamp.UpdatedAt = now
 	newTimestamp.UpdatedByUserID = claims.UserID
 	newTimestamp.DeletedAt = nil
 	newTimestamp.DeletedByUserID = nil
@@ -113,7 +162,8 @@ func updateTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp inter
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
-	updatedTimestamp.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedTimestamp.UpdatedAt = now
 	updatedTimestamp.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -150,17 +200,21 @@ func updateTimestamp(ctx context.Context, db internal.Database, timestamp intern
 }
 
 func deleteTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
-	deletedTimestamp := newTimestamp
+	updatedTimestamp := newTimestamp
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
-	deletedTimestamp.UpdatedAt = time.Now()
-	deletedTimestamp.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedTimestamp.DeletedAt = &now
-	deletedTimestamp.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM timestamps WHERE id=$1", deletedTimestamp.ID)
+	updatedTimestamp.UpdatedAt = now
+	updatedTimestamp.UpdatedByUserID = claims.UserID
+	updatedTimestamp.DeletedAt = &now
+	updatedTimestamp.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE timestamps SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, at=$7, source=$8, type_id=$9, episode_id=$10 WHERE id = $11",
+		updatedTimestamp.CreatedAt, updatedTimestamp.CreatedByUserID, updatedTimestamp.UpdatedAt, updatedTimestamp.UpdatedByUserID, updatedTimestamp.DeletedAt, updatedTimestamp.DeletedByUserID, updatedTimestamp.At, updatedTimestamp.Source, updatedTimestamp.TypeID, updatedTimestamp.EpisodeID, updatedTimestamp.ID,
+	)
 	if err != nil {
 		return internal.Timestamp{}, err
 	}
@@ -169,23 +223,7 @@ func deleteTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp inter
 		return internal.Timestamp{}, err
 	}
 	if changedRows != 1 {
-		return internal.Timestamp{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.Timestamp{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedTimestamp, err
-}
-
-func deleteTimestamp(ctx context.Context, db internal.Database, timestamp internal.Timestamp) (internal.Timestamp, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Timestamp{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteTimestampInTx(ctx, tx, timestamp)
-	if err != nil {
-		return internal.Timestamp{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedTimestamp, err
 }

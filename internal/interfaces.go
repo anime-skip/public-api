@@ -54,7 +54,7 @@ type EpisodeService interface {
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Episode, error)
 	Create(ctx context.Context, newEpisode Episode) (Episode, error)
 	Update(ctx context.Context, newEpisode Episode) (Episode, error)
-	Delete(ctx context.Context, episode Episode) (Episode, error)
+	Delete(ctx context.Context, id uuid.UUID) (Episode, error)
 }
 
 type EpisodeURLService interface {
@@ -62,7 +62,7 @@ type EpisodeURLService interface {
 	GetByEpisodeId(ctx context.Context, episodeID uuid.UUID) ([]EpisodeURL, error)
 	Create(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
 	Update(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
-	Delete(ctx context.Context, episodeURL EpisodeURL) (EpisodeURL, error)
+	Delete(ctx context.Context, url string) (EpisodeURL, error)
 }
 
 type PreferencesService interface {
@@ -78,7 +78,7 @@ type ShowAdminService interface {
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]ShowAdmin, error)
 	Create(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
 	Update(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
-	Delete(ctx context.Context, showAdmin ShowAdmin) (ShowAdmin, error)
+	Delete(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
 }
 
 type ShowService interface {
@@ -86,7 +86,7 @@ type ShowService interface {
 	GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error)
 	Create(ctx context.Context, newShow Show) (Show, error)
 	Update(ctx context.Context, newShow Show) (Show, error)
-	Delete(ctx context.Context, show Show) (Show, error)
+	Delete(ctx context.Context, id uuid.UUID) (Show, error)
 }
 
 type TemplateService interface {
@@ -95,7 +95,7 @@ type TemplateService interface {
 	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (Template, error)
 	Create(ctx context.Context, newTemplate Template) (Template, error)
 	Update(ctx context.Context, newTemplate Template) (Template, error)
-	Delete(ctx context.Context, template Template) (Template, error)
+	Delete(ctx context.Context, id uuid.UUID) (Template, error)
 }
 
 type TemplateTimestampService interface {
@@ -110,7 +110,7 @@ type TimestampService interface {
 	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) ([]Timestamp, error)
 	Create(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
 	Update(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
-	Delete(ctx context.Context, timestamp Timestamp) (Timestamp, error)
+	Delete(ctx context.Context, id uuid.UUID) (Timestamp, error)
 }
 
 type TimestampTypeService interface {
@@ -118,7 +118,7 @@ type TimestampTypeService interface {
 	GetAll(ctx context.Context) ([]TimestampType, error)
 	Create(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
 	Update(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
-	Delete(ctx context.Context, timestampType TimestampType) (TimestampType, error)
+	Delete(ctx context.Context, id uuid.UUID) (TimestampType, error)
 }
 
 type UserService interface {
@@ -128,7 +128,6 @@ type UserService interface {
 	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (User, error)
 	CreateInTx(ctx context.Context, tx Tx, newUser User) (User, error)
 	Update(ctx context.Context, user User) (User, error)
-	Delete(ctx context.Context, user User) (User, error)
 }
 
 type Services struct {

@@ -46,7 +46,3 @@ func (s *userService) CreateInTx(ctx context.Context, tx internal.Tx, user inter
 func (s *userService) Update(ctx context.Context, newUser internal.User) (internal.User, error) {
 	return updateUser(ctx, s.db, newUser)
 }
-
-func (s *userService) Delete(ctx context.Context, user internal.User) (internal.User, error) {
-	panic("userService.Delete not implemented")
-}

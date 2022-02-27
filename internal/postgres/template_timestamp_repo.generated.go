@@ -12,17 +12,33 @@ import (
 	uuid "github.com/gofrs/uuid"
 )
 
-func getTemplateTimestampByTimestampID(ctx context.Context, db internal.Database, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
+func getTemplateTimestampByTimestampIDInTx(ctx context.Context, tx internal.Tx, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
 	var templateTimestamp internal.TemplateTimestamp
-	err := db.GetContext(ctx, &templateTimestamp, "SELECT * FROM template_timestamps WHERE timestamp_id=$1", timestampID)
+	err := tx.GetContext(ctx, &templateTimestamp, "SELECT * FROM template_timestamps WHERE timestamp_id=$1", timestampID)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.TemplateTimestamp{}, errors1.NewRecordNotFound(fmt.Sprintf("TemplateTimestamp.timestampID=%s", timestampID))
 	}
 	return templateTimestamp, err
 }
 
-func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM template_timestamps")
+func getTemplateTimestampByTimestampID(ctx context.Context, db internal.Database, TimestampID uuid.UUID) (internal.TemplateTimestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTemplateTimestampByTimestampIDInTx(ctx, tx, TimestampID)
+	if err != nil {
+		return internal.TemplateTimestamp{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getTemplateTimestampsByTemplateIDInTx(ctx context.Context, tx internal.Tx, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM template_timestamps")
 	if err != nil {
 		return nil, err
 	}
@@ -38,6 +54,22 @@ func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database
 		templateTimestamps = append(templateTimestamps, templateTimestamp)
 	}
 	return templateTimestamps, nil
+}
+
+func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, TemplateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getTemplateTimestampsByTemplateIDInTx(ctx, tx, TemplateID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertTemplateTimestampInTx(ctx context.Context, tx internal.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
@@ -76,34 +108,18 @@ func insertTemplateTimestamp(ctx context.Context, db internal.Database, template
 	return result, nil
 }
 
-func deleteTemplateTimestampInTx(ctx context.Context, tx internal.Tx, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	deletedTemplateTimestamp := newTemplateTimestamp
-	result, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", deletedTemplateTimestamp.TemplateID, deletedTemplateTimestamp.TimestampID)
+// Hard delete the TemplateTimestamp. It requires the entire model be passed in so that you have it before calling this function, and can return the value if needed
+func deleteTemplateTimestampInTx(ctx context.Context, tx internal.Tx, templateTimestamp internal.TemplateTimestamp) error {
+	result, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", templateTimestamp.TemplateID, templateTimestamp.TimestampID)
 	if err != nil {
-		return internal.TemplateTimestamp{}, err
+		return err
 	}
 	changedRows, err := result.RowsAffected()
 	if err != nil {
-		return internal.TemplateTimestamp{}, err
+		return err
 	}
 	if changedRows != 1 {
-		return internal.TemplateTimestamp{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
 	}
-	return deletedTemplateTimestamp, err
-}
-
-func deleteTemplateTimestamp(ctx context.Context, db internal.Database, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteTemplateTimestampInTx(ctx, tx, templateTimestamp)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return err
 }

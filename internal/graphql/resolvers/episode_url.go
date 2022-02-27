@@ -48,7 +48,13 @@ func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid
 }
 
 func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL string) (*graphql.EpisodeURL, error) {
-	panic("mutationResolver.DeleteEpisodeURL not implemented")
+	deleted, err := r.EpisodeURLService.Delete(ctx, episodeURL)
+	if err != nil {
+		return nil, err
+	}
+
+	result := mappers.ToGraphqlEpisodeURL(deleted)
+	return &result, nil
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, episodeURL string, newEpisodeURL graphql.InputEpisodeURL) (*graphql.EpisodeURL, error) {

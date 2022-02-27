@@ -14,17 +14,33 @@ import (
 	"time"
 )
 
-func getAPIClientByID(ctx context.Context, db internal.Database, id string) (internal.APIClient, error) {
+func getAPIClientByIDInTx(ctx context.Context, tx internal.Tx, id string) (internal.APIClient, error) {
 	var apiClient internal.APIClient
-	err := db.GetContext(ctx, &apiClient, "SELECT * FROM api_clients WHERE id=$1", id)
+	err := tx.GetContext(ctx, &apiClient, "SELECT * FROM api_clients WHERE id=$1", id)
 	if errors.Is(err, sql.ErrNoRows) {
 		return internal.APIClient{}, errors1.NewRecordNotFound(fmt.Sprintf("APIClient.id=%s", id))
 	}
 	return apiClient, err
 }
 
-func getAPIClientsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.APIClient, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM api_clients WHERE deleted_at IS NULL")
+func getAPIClientByID(ctx context.Context, db internal.Database, ID string) (internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	defer tx.Rollback()
+
+	result, err := getAPIClientByIDInTx(ctx, tx, ID)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getAPIClientsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) ([]internal.APIClient, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM api_clients WHERE deleted_at IS NULL")
 	if err != nil {
 		return nil, err
 	}
@@ -42,8 +58,24 @@ func getAPIClientsByUserID(ctx context.Context, db internal.Database, userID uui
 	return apiClients, nil
 }
 
-func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.APIClient, error) {
-	rows, err := db.QueryxContext(ctx, "SELECT * FROM api_clients")
+func getAPIClientsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getAPIClientsByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedAPIClientsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.UUID) ([]internal.APIClient, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM api_clients")
 	if err != nil {
 		return nil, err
 	}
@@ -59,6 +91,22 @@ func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, us
 		apiClients = append(apiClients, apiClient)
 	}
 	return apiClients, nil
+}
+
+func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.APIClient, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedAPIClientsByUserIDInTx(ctx, tx, UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
 }
 
 func insertAPIClientInTx(ctx context.Context, tx internal.Tx, apiClient internal.APIClient) (internal.APIClient, error) {
@@ -67,9 +115,10 @@ func insertAPIClientInTx(ctx context.Context, tx internal.Tx, apiClient internal
 	if err != nil {
 		return internal.APIClient{}, err
 	}
-	newAPIClient.CreatedAt = time.Now()
+	now := time.Now()
+	newAPIClient.CreatedAt = now
 	newAPIClient.CreatedByUserID = claims.UserID
-	newAPIClient.UpdatedAt = time.Now()
+	newAPIClient.UpdatedAt = now
 	newAPIClient.UpdatedByUserID = claims.UserID
 	newAPIClient.DeletedAt = nil
 	newAPIClient.DeletedByUserID = nil
@@ -113,7 +162,8 @@ func updateAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient inter
 	if err != nil {
 		return internal.APIClient{}, err
 	}
-	updatedAPIClient.UpdatedAt = time.Now()
+	now := time.Now()
+	updatedAPIClient.UpdatedAt = now
 	updatedAPIClient.UpdatedByUserID = claims.UserID
 	result, err := tx.ExecContext(
 		ctx,
@@ -150,17 +200,21 @@ func updateAPIClient(ctx context.Context, db internal.Database, apiClient intern
 }
 
 func deleteAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
-	deletedAPIClient := newAPIClient
+	updatedAPIClient := newAPIClient
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
-	deletedAPIClient.UpdatedAt = time.Now()
-	deletedAPIClient.UpdatedByUserID = claims.UserID
 	now := time.Now()
-	deletedAPIClient.DeletedAt = &now
-	deletedAPIClient.DeletedByUserID = &claims.UserID
-	result, err := tx.ExecContext(ctx, "DELETE FROM api_clients WHERE id=$1", deletedAPIClient.ID)
+	updatedAPIClient.UpdatedAt = now
+	updatedAPIClient.UpdatedByUserID = claims.UserID
+	updatedAPIClient.DeletedAt = &now
+	updatedAPIClient.DeletedByUserID = &claims.UserID
+	result, err := tx.ExecContext(
+		ctx,
+		"UPDATE api_clients SET created_at=$1, created_by_user_id=$2, updated_at=$3, updated_by_user_id=$4, deleted_at=$5, deleted_by_user_id=$6, user_id=$7, app_name=$8, description=$9, allowed_origins=$10, rate_limit_rpm=$11 WHERE id = $12",
+		updatedAPIClient.CreatedAt, updatedAPIClient.CreatedByUserID, updatedAPIClient.UpdatedAt, updatedAPIClient.UpdatedByUserID, updatedAPIClient.DeletedAt, updatedAPIClient.DeletedByUserID, updatedAPIClient.UserID, updatedAPIClient.AppName, updatedAPIClient.Description, updatedAPIClient.AllowedOrigins, updatedAPIClient.RateLimitRPM, updatedAPIClient.ID,
+	)
 	if err != nil {
 		return internal.APIClient{}, err
 	}
@@ -169,23 +223,7 @@ func deleteAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient inter
 		return internal.APIClient{}, err
 	}
 	if changedRows != 1 {
-		return internal.APIClient{}, fmt.Errorf("Deleted more than 1 row (%d)", changedRows)
+		return internal.APIClient{}, fmt.Errorf("Updated more than 1 row (%d)", changedRows)
 	}
-	return deletedAPIClient, err
-}
-
-func deleteAPIClient(ctx context.Context, db internal.Database, apiClient internal.APIClient) (internal.APIClient, error) {
-	tx, err := db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.APIClient{}, err
-	}
-	defer tx.Rollback()
-
-	result, err := deleteAPIClientInTx(ctx, tx, apiClient)
-	if err != nil {
-		return internal.APIClient{}, err
-	}
-
-	tx.Commit()
-	return result, nil
+	return updatedAPIClient, err
 }
