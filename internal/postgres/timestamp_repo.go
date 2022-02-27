@@ -6,6 +6,6 @@ import (
 	"anime-skip.com/timestamps-service/internal"
 )
 
-func deleteCascadeTimestamp(ctx context.Context, tx internal.Tx, template internal.Timestamp) (internal.Episode, error) {
+func deleteCascadeTimestamp(ctx context.Context, tx internal.Tx, template internal.Timestamp) (internal.Timestamp, error) {
 	panic("deleteCascadeTimestamp not implemented")
 }

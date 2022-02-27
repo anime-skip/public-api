@@ -18,7 +18,7 @@ type APIClientService interface {
 	GetByUserID(ctx context.Context, userID uuid.UUID) ([]APIClient, error)
 	Create(ctx context.Context, newAPIClient APIClient) (APIClient, error)
 	Update(ctx context.Context, newAPIClient APIClient) (APIClient, error)
-	Delete(ctx context.Context, apiClient APIClient) (APIClient, error)
+	Delete(ctx context.Context, id string) (APIClient, error)
 }
 
 type AuthClaims struct {

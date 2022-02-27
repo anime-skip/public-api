@@ -31,6 +31,22 @@ func (s *showService) Update(ctx context.Context, newShow internal.Show) (intern
 	return updateShow(ctx, s.db, newShow)
 }
 
-func (s *showService) Delete(ctx context.Context, show internal.Show) (internal.Show, error) {
-	panic("showService.Delete not implemented")
+func (s *showService) Delete(ctx context.Context, id uuid.UUID) (internal.Show, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getShowByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.Show{}, err
+	}
+
+	deleted, err := deleteCascadeShow(ctx, tx, existing)
+	if err != nil {
+		return internal.Show{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

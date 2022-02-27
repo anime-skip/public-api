@@ -27,6 +27,22 @@ func (s *apiClientService) Update(ctx context.Context, newAPIClient internal.API
 	return updateAPIClient(ctx, s.db, newAPIClient)
 }
 
-func (s *apiClientService) Delete(ctx context.Context, apiClient internal.APIClient) (internal.APIClient, error) {
-	panic("apiClientService.Delete not implemented")
+func (s *apiClientService) Delete(ctx context.Context, id string) (internal.APIClient, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getAPIClientByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+
+	deleted, err := deleteCascadeAPIClient(ctx, tx, existing)
+	if err != nil {
+		return internal.APIClient{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

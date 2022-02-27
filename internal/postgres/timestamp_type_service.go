@@ -46,6 +46,22 @@ func (s *timestampTypeService) Update(ctx context.Context, newTimestampType inte
 	return updateTimestampType(ctx, s.db, newTimestampType)
 }
 
-func (s *timestampTypeService) Delete(ctx context.Context, timestampType internal.TimestampType) (internal.TimestampType, error) {
-	panic("timestampTypeService.Delete not implemented")
+func (s *timestampTypeService) Delete(ctx context.Context, id uuid.UUID) (internal.TimestampType, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getTimestampTypeByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+
+	deleted, err := deleteCascadeTimestampType(ctx, tx, existing)
+	if err != nil {
+		return internal.TimestampType{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

@@ -35,6 +35,22 @@ func (s *episodeService) Update(ctx context.Context, newEpisode internal.Episode
 	return updateEpisode(ctx, s.db, newEpisode)
 }
 
-func (s *episodeService) Delete(ctx context.Context, episode internal.Episode) (internal.Episode, error) {
-	panic("episodeService.Delete not implemented")
+func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) (internal.Episode, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getEpisodeByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+
+	deleted, err := deleteCascadeEpisode(ctx, tx, existing)
+	if err != nil {
+		return internal.Episode{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

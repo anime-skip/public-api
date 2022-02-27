@@ -38,12 +38,12 @@ func (s *episodeURLService) Delete(ctx context.Context, url string) (internal.Ep
 	}
 	defer tx.Rollback()
 
-	episodeURL, err := getEpisodeURLByURLInTx(ctx, tx, url)
+	existing, err := getEpisodeURLByURLInTx(ctx, tx, url)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}
 
-	deleted, err := deleteCascadeEpisodeURL(ctx, tx, episodeURL)
+	deleted, err := deleteCascadeEpisodeURL(ctx, tx, existing)
 	if err != nil {
 		return internal.EpisodeURL{}, err
 	}

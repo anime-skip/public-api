@@ -35,6 +35,22 @@ func (s *templateService) Update(ctx context.Context, newTemplate internal.Templ
 	return updateTemplate(ctx, s.db, newTemplate)
 }
 
-func (s *templateService) Delete(ctx context.Context, template internal.Template) (internal.Template, error) {
-	panic("templateService.Delete not implemented")
+func (s *templateService) Delete(ctx context.Context, id uuid.UUID) (internal.Template, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getTemplateByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.Template{}, err
+	}
+
+	deleted, err := deleteCascadeTemplate(ctx, tx, existing)
+	if err != nil {
+		return internal.Template{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }

@@ -31,6 +31,22 @@ func (s *timestampService) Update(ctx context.Context, newTimestamp internal.Tim
 	return updateTimestamp(ctx, s.db, newTimestamp)
 }
 
-func (s *timestampService) Delete(ctx context.Context, timestamp internal.Timestamp) (internal.Timestamp, error) {
-	panic("timestampService.Delete not implemented")
+func (s *timestampService) Delete(ctx context.Context, id uuid.UUID) (internal.Timestamp, error) {
+	tx, err := s.db.BeginTxx(ctx, nil)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	defer tx.Rollback()
+
+	existing, err := getTimestampByIDInTx(ctx, tx, id)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	deleted, err := deleteCascadeTimestamp(ctx, tx, existing)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+	tx.Commit()
+	return deleted, nil
 }
