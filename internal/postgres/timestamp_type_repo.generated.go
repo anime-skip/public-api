@@ -86,8 +86,8 @@ func insertTimestampType(ctx context.Context, db internal.Database, timestampTyp
 	return result, nil
 }
 
-func updateTimestampTypeInTx(ctx context.Context, tx internal.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
-	updatedTimestampType := newTimestampType
+func updateTimestampTypeInTx(ctx context.Context, tx internal.Tx, inputTimestampType internal.TimestampType) (internal.TimestampType, error) {
+	updatedTimestampType := inputTimestampType
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.TimestampType{}, err
@@ -129,8 +129,13 @@ func updateTimestampType(ctx context.Context, db internal.Database, timestampTyp
 	return result, nil
 }
 
-func deleteTimestampTypeInTx(ctx context.Context, tx internal.Tx, newTimestampType internal.TimestampType) (internal.TimestampType, error) {
-	updatedTimestampType := newTimestampType
+func deleteTimestampTypeInTx(ctx context.Context, tx internal.Tx, inputTimestampType internal.TimestampType) (internal.TimestampType, error) {
+	// Don't delete it if it's already deleted
+	if inputTimestampType.DeletedAt != nil && inputTimestampType.DeletedByUserID != nil {
+		return inputTimestampType, nil
+	}
+
+	updatedTimestampType := inputTimestampType
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.TimestampType{}, err

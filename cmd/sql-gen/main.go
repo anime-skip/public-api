@@ -67,6 +67,8 @@ func generateModelSqlMethods(model interface{}) {
 	if len(modelDetails.primaryKeys) == 1 {
 		// Primary key is just a get one, but ignoreing deleted at
 		hardDeleteGetOne(file, modelType, modelDetails.primaryKeys[0])
+	} else if len(modelDetails.primaryKeys) > 1 {
+		getCompoundPrimaryKey(file, modelType, modelDetails.primaryKeys)
 	}
 
 	for _, field := range modelDetails.getOneColumns {
@@ -299,6 +301,63 @@ func _getOneNoSoftDelete(file *File, funcName string, model reflect.Type, field 
 	_getOne(file, funcName, sql, model, field)
 }
 
+func getCompoundPrimaryKey(file *File, model reflect.Type, primaryKeys []reflect.StructField) {
+	modelName := model.Name()
+	funcNameInTx := fmt.Sprintf("get%sInTx", modelName)
+	varName := strcase.ToGoCamel(modelName)
+	tableName := pluralize(strcase.ToSnake(modelName))
+
+	sqlWheres := []string{}
+	for i, field := range primaryKeys {
+		sqlWheres = append(sqlWheres, fmt.Sprintf("%s=$%d", getColumnName(field), i+1))
+	}
+	sql := fmt.Sprintf("SELECT * FROM %s WHERE %s", tableName, strings.Join(sqlWheres, " AND "))
+
+	args := []Code{
+		Id("ctx").Qual("context", "Context"),
+		Id("tx").Qual(internalPkg, "Tx"),
+	}
+	sqlParams := []Code{
+		Id("ctx"),
+		Op("&").Id(varName),
+		Lit(sql),
+	}
+	errMessages := []string{}
+	for _, field := range primaryKeys {
+		fieldName := strcase.ToGoCamel(field.Name)
+		args = append(args, Id(fieldName).Qual(field.Type.PkgPath(), field.Type.Name()))
+		sqlParams = append(sqlParams, Id(fieldName))
+		errMessages = append(errMessages, fmt.Sprintf("%s.%s=", modelName, fieldName)+"%s")
+	}
+	errMessage := strings.Join(errMessages, " and ")
+
+	sprintfArgs := []Code{Lit(errMessage)}
+	for _, field := range primaryKeys {
+		fieldName := strcase.ToGoCamel(field.Name)
+		sprintfArgs = append(sprintfArgs, Id(fieldName))
+	}
+
+	file.Func().Id(funcNameInTx).Params(args...).Params(
+		Qual(internalPkg, modelName),
+		Error(),
+	).Block(
+		Var().Id(varName).Qual(internalPkg, modelName),
+		Err().Op(":=").Id("tx").Dot("GetContext").Call(sqlParams...),
+		If(Qual("errors", "Is").Call(Err(), Qual("database/sql", "ErrNoRows"))).Block(
+			Return(
+				Qual(internalPkg, modelName).Block(),
+				Qual(asErrorsPkg, "NewRecordNotFound").Call(
+					Qual("fmt", "Sprintf").Call(sprintfArgs...),
+				),
+			),
+		),
+		Return(
+			Id(varName),
+			Err(),
+		),
+	).Line()
+}
+
 func hardDeleteGetOne(file *File, model reflect.Type, field reflect.StructField) {
 	funcName := fmt.Sprintf("get%sBy%s", model.Name(), strcase.ToGoPascal(field.Name))
 	_getOneNoSoftDelete(file, funcName, model, field)
@@ -505,7 +564,7 @@ func insert(file *File, model reflect.Type) {
 
 func _updateInTx(file *File, model reflect.Type, details ModelDetails, funcName string, deleting bool) {
 	modelName := model.Name()
-	argName := strcase.ToGoCamel("new" + modelName)
+	argName := strcase.ToGoCamel("input" + modelName)
 	updatedModelName := strcase.ToGoCamel("updated" + modelName)
 	tableName := pluralize(strcase.ToSnake(modelName))
 	columns := getSqlColumns(model, true)
@@ -548,6 +607,16 @@ func _updateInTx(file *File, model reflect.Type, details ModelDetails, funcName 
 		Qual(internalPkg, modelName),
 		Error(),
 	).BlockFunc(func(g *Group) {
+		if deleting {
+			g.Add(Comment("Don't delete it if it's already deleted"))
+			var ifCase = Id(argName).Dot("DeletedAt").Op("!=").Nil()
+			if hasDeletedBy {
+				ifCase = ifCase.Op("&&").Id(argName).Dot("DeletedByUserID").Op("!=").Nil()
+			}
+			g.If(ifCase).Block(
+				Return().List(Id(argName), Nil()),
+			).Line()
+		}
 		g.Id(updatedModelName).Op(":=").Id(argName)
 		if hasUpdatedBy || hasDeletedBy {
 			g.List(Id("claims"), Err()).Op(":=").Qual(asContextPkg, "GetAuthClaims").Call(Id("ctx"))

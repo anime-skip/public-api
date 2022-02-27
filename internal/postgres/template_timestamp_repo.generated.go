@@ -12,6 +12,15 @@ import (
 	uuid "github.com/gofrs/uuid"
 )
 
+func getTemplateTimestampInTx(ctx context.Context, tx internal.Tx, templateID uuid.UUID, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
+	var templateTimestamp internal.TemplateTimestamp
+	err := tx.GetContext(ctx, &templateTimestamp, "SELECT * FROM template_timestamps WHERE template_id=$1 AND timestamp_id=$2", templateID, timestampID)
+	if errors.Is(err, sql.ErrNoRows) {
+		return internal.TemplateTimestamp{}, errors1.NewRecordNotFound(fmt.Sprintf("TemplateTimestamp.templateID=%s and TemplateTimestamp.timestampID=%s", templateID, timestampID))
+	}
+	return templateTimestamp, err
+}
+
 func getTemplateTimestampByTimestampIDInTx(ctx context.Context, tx internal.Tx, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
 	var templateTimestamp internal.TemplateTimestamp
 	err := tx.GetContext(ctx, &templateTimestamp, "SELECT * FROM template_timestamps WHERE timestamp_id=$1", timestampID)

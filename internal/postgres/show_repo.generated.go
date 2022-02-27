@@ -86,8 +86,8 @@ func insertShow(ctx context.Context, db internal.Database, show internal.Show) (
 	return result, nil
 }
 
-func updateShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) (internal.Show, error) {
-	updatedShow := newShow
+func updateShowInTx(ctx context.Context, tx internal.Tx, inputShow internal.Show) (internal.Show, error) {
+	updatedShow := inputShow
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err
@@ -129,8 +129,13 @@ func updateShow(ctx context.Context, db internal.Database, show internal.Show) (
 	return result, nil
 }
 
-func deleteShowInTx(ctx context.Context, tx internal.Tx, newShow internal.Show) (internal.Show, error) {
-	updatedShow := newShow
+func deleteShowInTx(ctx context.Context, tx internal.Tx, inputShow internal.Show) (internal.Show, error) {
+	// Don't delete it if it's already deleted
+	if inputShow.DeletedAt != nil && inputShow.DeletedByUserID != nil {
+		return inputShow, nil
+	}
+
+	updatedShow := inputShow
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Show{}, err

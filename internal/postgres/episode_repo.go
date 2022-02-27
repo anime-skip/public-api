@@ -5,11 +5,12 @@ import (
 
 	"anime-skip.com/timestamps-service/internal"
 	"anime-skip.com/timestamps-service/internal/errors"
+	"anime-skip.com/timestamps-service/internal/log"
 	uuid "github.com/gofrs/uuid"
 )
 
 func getEpisodeSeasonCountByShowID(ctx context.Context, db internal.Database, id uuid.UUID) (int, error) {
-	row, err := db.QueryContext(ctx, "SELECT DISTINCT count(season) FROM episodes WHERE show_id=$1", id)
+	row, err := db.QueryContext(ctx, "SELECT DISTINCT count(season) FROM episodes WHERE show_id=$1 AND deleted_at IS NULL", id)
 	if err != nil {
 		return 0, err
 	}
@@ -66,13 +67,13 @@ func getRecentlyAddedEpisodes(ctx context.Context, db internal.Database, params 
 }
 
 func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.Episode) (internal.Episode, error) {
-	// Delete the episode
+	log.V("Deleting episode: %v", episode.ID)
 	deletedEpisode, err := deleteEpisodeInTx(ctx, tx, episode)
 	if err != nil {
 		return internal.Episode{}, err
 	}
 
-	// Delete the template if it exists
+	log.V("Deleting episode templates")
 	template, err := getTemplateBySourceEpisodeIDInTx(ctx, tx, episode.ID)
 	if err == nil {
 		_, err = deleteCascadeTemplate(ctx, tx, template)
@@ -81,7 +82,7 @@ func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.
 		return internal.Episode{}, err
 	}
 
-	// Delete the timestamps for that episode
+	log.V("Deleting episode timestamps")
 	timestamps, err := getTimestampsByEpisodeIDInTx(ctx, tx, episode.ID)
 	if err != nil {
 		return internal.Episode{}, err
@@ -93,7 +94,7 @@ func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.
 		}
 	}
 
-	// Delete the urls for that episode
+	log.V("Deleting episode urls")
 	urls, err := getEpisodeURLsByEpisodeIDInTx(ctx, tx, episode.ID)
 	if err != nil {
 		return internal.Episode{}, err
@@ -105,5 +106,6 @@ func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.
 		}
 	}
 
+	log.V("Done deleting episode: %v", episode.ID)
 	return deletedEpisode, nil
 }

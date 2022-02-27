@@ -4,8 +4,26 @@ import (
 	"context"
 
 	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/timestamps-service/internal/errors"
+	"anime-skip.com/timestamps-service/internal/log"
 )
 
-func deleteCascadeTimestamp(ctx context.Context, tx internal.Tx, template internal.Timestamp) (internal.Timestamp, error) {
-	panic("deleteCascadeTimestamp not implemented")
+func deleteCascadeTimestamp(ctx context.Context, tx internal.Tx, timestamp internal.Timestamp) (internal.Timestamp, error) {
+	log.V("Deleting timestamp: %v", timestamp.ID)
+	deletedTimestamp, err := deleteTimestampInTx(ctx, tx, timestamp)
+	if err != nil {
+		return internal.Timestamp{}, err
+	}
+
+	log.V("Deleting timestamp template timestamp")
+	templateTimestamp, err := getTemplateTimestampByTimestampIDInTx(ctx, tx, timestamp.ID)
+	if err == nil {
+		_, err = deleteCascadeTemplateTimestamp(ctx, tx, templateTimestamp)
+	}
+	if !errors.IsRecordNotFound(err) {
+		return internal.Timestamp{}, err
+	}
+
+	log.V("Done deleting timestamp: %v", timestamp.ID)
+	return deletedTimestamp, nil
 }

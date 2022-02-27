@@ -156,8 +156,8 @@ func insertTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	return result, nil
 }
 
-func updateTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
-	updatedTimestamp := newTimestamp
+func updateTimestampInTx(ctx context.Context, tx internal.Tx, inputTimestamp internal.Timestamp) (internal.Timestamp, error) {
+	updatedTimestamp := inputTimestamp
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err
@@ -199,8 +199,13 @@ func updateTimestamp(ctx context.Context, db internal.Database, timestamp intern
 	return result, nil
 }
 
-func deleteTimestampInTx(ctx context.Context, tx internal.Tx, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
-	updatedTimestamp := newTimestamp
+func deleteTimestampInTx(ctx context.Context, tx internal.Tx, inputTimestamp internal.Timestamp) (internal.Timestamp, error) {
+	// Don't delete it if it's already deleted
+	if inputTimestamp.DeletedAt != nil && inputTimestamp.DeletedByUserID != nil {
+		return inputTimestamp, nil
+	}
+
+	updatedTimestamp := inputTimestamp
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Timestamp{}, err

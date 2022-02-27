@@ -206,8 +206,8 @@ func insertTemplate(ctx context.Context, db internal.Database, template internal
 	return result, nil
 }
 
-func updateTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate internal.Template) (internal.Template, error) {
-	updatedTemplate := newTemplate
+func updateTemplateInTx(ctx context.Context, tx internal.Tx, inputTemplate internal.Template) (internal.Template, error) {
+	updatedTemplate := inputTemplate
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err
@@ -249,8 +249,13 @@ func updateTemplate(ctx context.Context, db internal.Database, template internal
 	return result, nil
 }
 
-func deleteTemplateInTx(ctx context.Context, tx internal.Tx, newTemplate internal.Template) (internal.Template, error) {
-	updatedTemplate := newTemplate
+func deleteTemplateInTx(ctx context.Context, tx internal.Tx, inputTemplate internal.Template) (internal.Template, error) {
+	// Don't delete it if it's already deleted
+	if inputTemplate.DeletedAt != nil && inputTemplate.DeletedByUserID != nil {
+		return inputTemplate, nil
+	}
+
+	updatedTemplate := inputTemplate
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Template{}, err

@@ -119,8 +119,8 @@ func insertEpisodeURL(ctx context.Context, db internal.Database, episodeURL inte
 	return result, nil
 }
 
-func updateEpisodeURLInTx(ctx context.Context, tx internal.Tx, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
-	updatedEpisodeURL := newEpisodeURL
+func updateEpisodeURLInTx(ctx context.Context, tx internal.Tx, inputEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
+	updatedEpisodeURL := inputEpisodeURL
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.EpisodeURL{}, err

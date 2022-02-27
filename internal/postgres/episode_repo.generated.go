@@ -156,8 +156,8 @@ func insertEpisode(ctx context.Context, db internal.Database, episode internal.E
 	return result, nil
 }
 
-func updateEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.Episode) (internal.Episode, error) {
-	updatedEpisode := newEpisode
+func updateEpisodeInTx(ctx context.Context, tx internal.Tx, inputEpisode internal.Episode) (internal.Episode, error) {
+	updatedEpisode := inputEpisode
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err
@@ -199,8 +199,13 @@ func updateEpisode(ctx context.Context, db internal.Database, episode internal.E
 	return result, nil
 }
 
-func deleteEpisodeInTx(ctx context.Context, tx internal.Tx, newEpisode internal.Episode) (internal.Episode, error) {
-	updatedEpisode := newEpisode
+func deleteEpisodeInTx(ctx context.Context, tx internal.Tx, inputEpisode internal.Episode) (internal.Episode, error) {
+	// Don't delete it if it's already deleted
+	if inputEpisode.DeletedAt != nil && inputEpisode.DeletedByUserID != nil {
+		return inputEpisode, nil
+	}
+
+	updatedEpisode := inputEpisode
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.Episode{}, err

@@ -226,8 +226,8 @@ func insertShowAdmin(ctx context.Context, db internal.Database, showAdmin intern
 	return result, nil
 }
 
-func updateShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	updatedShowAdmin := newShowAdmin
+func updateShowAdminInTx(ctx context.Context, tx internal.Tx, inputShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	updatedShowAdmin := inputShowAdmin
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.ShowAdmin{}, err
@@ -269,8 +269,13 @@ func updateShowAdmin(ctx context.Context, db internal.Database, showAdmin intern
 	return result, nil
 }
 
-func deleteShowAdminInTx(ctx context.Context, tx internal.Tx, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	updatedShowAdmin := newShowAdmin
+func deleteShowAdminInTx(ctx context.Context, tx internal.Tx, inputShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
+	// Don't delete it if it's already deleted
+	if inputShowAdmin.DeletedAt != nil && inputShowAdmin.DeletedByUserID != nil {
+		return inputShowAdmin, nil
+	}
+
+	updatedShowAdmin := inputShowAdmin
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.ShowAdmin{}, err

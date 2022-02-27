@@ -177,8 +177,8 @@ func insertUser(ctx context.Context, db internal.Database, user internal.User) (
 	return result, nil
 }
 
-func updateUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) (internal.User, error) {
-	updatedUser := newUser
+func updateUserInTx(ctx context.Context, tx internal.Tx, inputUser internal.User) (internal.User, error) {
+	updatedUser := inputUser
 	result, err := tx.ExecContext(
 		ctx,
 		"UPDATE users SET created_at=$1, deleted_at=$2, username=$3, email=$4, password_hash=$5, profile_url=$6, email_verified=$7, role=$8 WHERE id = $9",
@@ -213,8 +213,13 @@ func updateUser(ctx context.Context, db internal.Database, user internal.User) (
 	return result, nil
 }
 
-func deleteUserInTx(ctx context.Context, tx internal.Tx, newUser internal.User) (internal.User, error) {
-	updatedUser := newUser
+func deleteUserInTx(ctx context.Context, tx internal.Tx, inputUser internal.User) (internal.User, error) {
+	// Don't delete it if it's already deleted
+	if inputUser.DeletedAt != nil {
+		return inputUser, nil
+	}
+
+	updatedUser := inputUser
 	now := time.Now()
 	updatedUser.DeletedAt = &now
 	result, err := tx.ExecContext(

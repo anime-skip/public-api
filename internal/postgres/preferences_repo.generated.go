@@ -128,8 +128,8 @@ func insertPreferences(ctx context.Context, db internal.Database, preferences in
 	return result, nil
 }
 
-func updatePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
-	updatedPreferences := newPreferences
+func updatePreferencesInTx(ctx context.Context, tx internal.Tx, inputPreferences internal.Preferences) (internal.Preferences, error) {
+	updatedPreferences := inputPreferences
 	now := time.Now()
 	updatedPreferences.UpdatedAt = now
 	result, err := tx.ExecContext(
@@ -166,8 +166,13 @@ func updatePreferences(ctx context.Context, db internal.Database, preferences in
 	return result, nil
 }
 
-func deletePreferencesInTx(ctx context.Context, tx internal.Tx, newPreferences internal.Preferences) (internal.Preferences, error) {
-	updatedPreferences := newPreferences
+func deletePreferencesInTx(ctx context.Context, tx internal.Tx, inputPreferences internal.Preferences) (internal.Preferences, error) {
+	// Don't delete it if it's already deleted
+	if inputPreferences.DeletedAt != nil {
+		return inputPreferences, nil
+	}
+
+	updatedPreferences := inputPreferences
 	now := time.Now()
 	updatedPreferences.UpdatedAt = now
 	updatedPreferences.DeletedAt = &now

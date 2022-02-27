@@ -156,8 +156,8 @@ func insertAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	return result, nil
 }
 
-func updateAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
-	updatedAPIClient := newAPIClient
+func updateAPIClientInTx(ctx context.Context, tx internal.Tx, inputAPIClient internal.APIClient) (internal.APIClient, error) {
+	updatedAPIClient := inputAPIClient
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
@@ -199,8 +199,13 @@ func updateAPIClient(ctx context.Context, db internal.Database, apiClient intern
 	return result, nil
 }
 
-func deleteAPIClientInTx(ctx context.Context, tx internal.Tx, newAPIClient internal.APIClient) (internal.APIClient, error) {
-	updatedAPIClient := newAPIClient
+func deleteAPIClientInTx(ctx context.Context, tx internal.Tx, inputAPIClient internal.APIClient) (internal.APIClient, error) {
+	// Don't delete it if it's already deleted
+	if inputAPIClient.DeletedAt != nil && inputAPIClient.DeletedByUserID != nil {
+		return inputAPIClient, nil
+	}
+
+	updatedAPIClient := inputAPIClient
 	claims, err := context1.GetAuthClaims(ctx)
 	if err != nil {
 		return internal.APIClient{}, err
