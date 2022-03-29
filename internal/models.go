@@ -13,10 +13,10 @@ type Database = *sqlx.DB
 type Tx = *sqlx.Tx
 
 type ApiStatus struct {
-	Version       string
-	Status        string
-	Introspection bool
-	Playground    bool
+	Version       string `json:"version"`
+	Status        string `json:"status"`
+	Introspection bool   `json:"introspection"`
+	Playground    bool   `json:"playground"`
 }
 
 type GraphQLHandler struct {
