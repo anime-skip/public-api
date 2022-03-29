@@ -110,7 +110,6 @@ func writeJson(rw http.ResponseWriter, data interface{}, status int) {
 		panic(err)
 	}
 	rw.Write(body)
-	rw.WriteHeader(status)
 }
 
 func getAuthToken(r *http.Request) string {
