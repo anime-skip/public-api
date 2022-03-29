@@ -96,7 +96,10 @@ func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, se
 		}
 		names = append(names, name)
 	}
-	return uuid.UUID{}, fmt.Errorf("Internal error: @isShowAdmin not implemented for args (%s)", strings.Join(names, ", "))
+	panic(fmt.Errorf(
+		"Internal error: No show id getter implemented for any of the args (%s)",
+		strings.Join(names, ", "),
+	))
 }
 
 func IsShowAdmin(ctx context2.Context, params interface{}, next graphql2.Resolver) (interface{}, error) {

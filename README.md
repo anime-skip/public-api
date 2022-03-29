@@ -28,7 +28,7 @@ There are minor changes to the GraphQL schema, none of which should introduce br
   > I'm, dropping GORM because I didn't really use it, and generating the SQL methods effectively implements most of the utils gorm provides, even unscoped requests for soft deleted data.
   >
   > Instead, I'm using [sqlx](http://jmoiron.github.io/sqlx/) to help with the only thing generating code doesn't help with - scanning queries into structs.
-- [ ] Implement authorizer that matches v1 authorization
+- [x] Implement authorizer that matches v1 authorization
   > The new injectable authorizor needs to match the existing logic so no-one gets logged out
 - [x] Re-implement resolvers (delete as completed)
 - [ ] `ctrl+shift+f` "not implemented"
