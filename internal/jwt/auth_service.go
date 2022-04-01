@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"anime-skip.com/timestamps-service/internal"
@@ -67,7 +68,7 @@ func (s *jwtAuthService) createToken(
 	return tokenString, nil
 }
 
-func (s *jwtAuthService) validateToken(token string, audience string) (jwt.MapClaims, error) {
+func (s *jwtAuthService) validateToken(name string, token string, audience string) (jwt.MapClaims, error) {
 	jwtToken, err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
 		// Validate Algorithm
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
@@ -79,20 +80,20 @@ func (s *jwtAuthService) validateToken(token string, audience string) (jwt.MapCl
 	})
 	if err != nil {
 		log.V("%v", err)
-		return nil, fmt.Errorf("Invalid Token")
+		return nil, fmt.Errorf("Invalid %s token", strings.ToLower(name))
 	}
 	payload, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("Invalid claims")
+		return nil, fmt.Errorf("%s token has invalid claims", name)
 	}
 	if isValidExpiresAt := payload.VerifyIssuedAt(time.Now().Unix(), true); !isValidExpiresAt {
-		return nil, fmt.Errorf("Token is expired")
+		return nil, fmt.Errorf("%s token is expired", name)
 	}
 	if isValidAudience := payload.VerifyAudience(audience, true); !isValidAudience {
-		return nil, fmt.Errorf("Invalid audience")
+		return nil, fmt.Errorf("%s token has invalid audience", name)
 	}
 	if isValidIssuer := payload.VerifyIssuer(ISSUER, true); !isValidIssuer {
-		return nil, fmt.Errorf("Invalid issuer, expected '%s', but got '%v'", ISSUER, payload["iss"])
+		return nil, fmt.Errorf("%s token has invalid issuer, expected '%s', but got '%v'", name, ISSUER, payload["iss"])
 	}
 	return payload, nil
 }
@@ -111,7 +112,7 @@ func (s *jwtAuthService) mapAuthClaims(claims jwt.MapClaims) (internal.AuthClaim
 }
 
 func (s *jwtAuthService) ValidateAccessToken(token string) (internal.AuthClaims, error) {
-	claims, err := s.validateToken(token, AUD_ACCESS_TOKEN)
+	claims, err := s.validateToken("Access", token, AUD_ACCESS_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
@@ -119,7 +120,7 @@ func (s *jwtAuthService) ValidateAccessToken(token string) (internal.AuthClaims,
 }
 
 func (s *jwtAuthService) ValidateRefreshToken(token string) (internal.AuthClaims, error) {
-	claims, err := s.validateToken(token, AUD_REFRESH_TOKEN)
+	claims, err := s.validateToken("Refresh", token, AUD_REFRESH_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
@@ -127,7 +128,7 @@ func (s *jwtAuthService) ValidateRefreshToken(token string) (internal.AuthClaims
 }
 
 func (s *jwtAuthService) ValidateVerifyEmailToken(token string) (internal.AuthClaims, error) {
-	claims, err := s.validateToken(token, AUD_VERIFY_EMAIL_TOKEN)
+	claims, err := s.validateToken("Email", token, AUD_VERIFY_EMAIL_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
@@ -135,7 +136,7 @@ func (s *jwtAuthService) ValidateVerifyEmailToken(token string) (internal.AuthCl
 }
 
 func (s *jwtAuthService) ValidateResetPasswordToken(token string) (internal.AuthClaims, error) {
-	claims, err := s.validateToken(token, AUD_RESET_PASSWORD_TOKEN)
+	claims, err := s.validateToken("Password reset", token, AUD_RESET_PASSWORD_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}

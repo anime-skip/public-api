@@ -3130,7 +3130,7 @@ input InputTemplateTimestamp {
     oldPassword: String!
     newPassword: String!
     confirmNewPassword: String!
-  ): LoginData!
+  ): LoginData! @authenticated
   "Resend the verification email for the account of the authenticated user"
   resendVerificationEmail(recaptchaResponse: String!): Boolean @authenticated
   """
@@ -3293,7 +3293,11 @@ input InputTemplateTimestamp {
   "Make changes to an existing template"
   updateTemplate(templateId: ID!, newTemplate: InputTemplate!): Template!
     @authenticated
-  "Delete an existing template"
+  """
+  Delete an existing template
+
+  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
+  """
   deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
   "Add a timestamp to an existing template"
   addTimestampToTemplate(
@@ -6299,8 +6303,28 @@ func (ec *executionContext) _Mutation_changePassword(ctx context.Context, field 
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().ChangePassword(rctx, args["oldPassword"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ChangePassword(rctx, args["oldPassword"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*LoginData); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/timestamps-service/internal/graphql.LoginData`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

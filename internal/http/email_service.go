@@ -2,10 +2,12 @@ package http
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"anime-skip.com/timestamps-service/internal"
 )
@@ -30,11 +32,13 @@ func NewAnimeSkipEmailService(
 	}
 }
 
-var httpClient *http.Client = &http.Client{}
-
-func (s *animeSkipEmailService) sendEmail(endpoint string, body map[string]interface{}) error {
+func (s *animeSkipEmailService) sendEmail(ctx context.Context, endpoint string, body map[string]interface{}) error {
 	if !s.enabled {
 		return nil
+	}
+
+	client := http.Client{
+		Timeout: 10 * time.Second,
 	}
 
 	url := fmt.Sprintf("http://%s/%s", s.host, endpoint)
@@ -46,10 +50,11 @@ func (s *animeSkipEmailService) sendEmail(endpoint string, body map[string]inter
 	if err != nil {
 		return err
 	}
+	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Authorization", "Secret "+s.secret)
 
-	resp, err := httpClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -66,22 +71,22 @@ func (s *animeSkipEmailService) sendEmail(endpoint string, body map[string]inter
 	return nil
 }
 
-func (s *animeSkipEmailService) SendWelcome(user internal.User) error {
-	return s.sendEmail("welcome", map[string]interface{}{
+func (s *animeSkipEmailService) SendWelcome(ctx context.Context, user internal.User) error {
+	return s.sendEmail(ctx, "welcome", map[string]interface{}{
 		"emails":   []string{user.Email},
 		"username": user.Username,
 	})
 }
 
-func (s *animeSkipEmailService) SendVerification(user internal.User, token string) error {
-	return s.sendEmail("verification", map[string]interface{}{
+func (s *animeSkipEmailService) SendVerification(ctx context.Context, user internal.User, token string) error {
+	return s.sendEmail(ctx, "verification", map[string]interface{}{
 		"emails": []string{user.Email},
 		"token":  token,
 	})
 }
 
-func (s *animeSkipEmailService) SendResetPassword(user internal.User, token string) error {
-	return s.sendEmail("reset-password", map[string]interface{}{
+func (s *animeSkipEmailService) SendResetPassword(ctx context.Context, user internal.User, token string) error {
+	return s.sendEmail(ctx, "reset-password", map[string]interface{}{
 		"emails": []string{user.Email},
 		"token":  token,
 	})

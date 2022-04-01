@@ -40,9 +40,9 @@ type AuthService interface {
 }
 
 type EmailService interface {
-	SendWelcome(user User) error
-	SendVerification(user User, token string) error
-	SendResetPassword(user User, token string) error
+	SendWelcome(ctx context.Context, user User) error
+	SendVerification(ctx context.Context, user User, token string) error
+	SendResetPassword(ctx context.Context, user User, token string) error
 }
 
 type GetRecentlyAddedParams struct {

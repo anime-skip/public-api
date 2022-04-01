@@ -107,7 +107,7 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}
 
 	log.V("Sending welcome email")
-	err = r.EmailService.SendWelcome(createdUser)
+	err = r.EmailService.SendWelcome(ctx, createdUser)
 	if err != nil {
 		log.E("Failed to send welcome email: %v", err)
 		return nil, fmt.Errorf("Failed to create user")
@@ -136,7 +136,7 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	if err != nil {
 		log.E("Failed to create verify email token: %v", err)
 	} else {
-		err = r.EmailService.SendVerification(createdUser, verifyEmailToken)
+		err = r.EmailService.SendVerification(ctx, createdUser, verifyEmailToken)
 		if err != nil {
 			log.E("Failed to send email address verification email (but still created user): %v", err)
 		}
@@ -208,7 +208,7 @@ func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recap
 		return nil, err
 	}
 
-	err = r.EmailService.SendVerification(user, token)
+	err = r.EmailService.SendVerification(ctx, user, token)
 	isSent := err == nil
 	return &isSent, err
 }
@@ -257,7 +257,7 @@ func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptch
 	if err != nil {
 		return false, err
 	}
-	err = r.EmailService.SendResetPassword(user, token)
+	err = r.EmailService.SendResetPassword(ctx, user, token)
 	if err != nil {
 		return false, err
 	}
