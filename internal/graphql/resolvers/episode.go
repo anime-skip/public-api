@@ -3,11 +3,11 @@ package resolvers
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/graphql/mappers"
-	"anime-skip.com/timestamps-service/internal/log"
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/graphql/mappers"
+	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
 

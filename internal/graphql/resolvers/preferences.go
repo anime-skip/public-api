@@ -3,10 +3,10 @@ package resolvers
 import (
 	go_context "context"
 
-	"anime-skip.com/timestamps-service/internal/context"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/graphql/mappers"
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/graphql/mappers"
+	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
 

@@ -3,8 +3,8 @@ package mappers
 import (
 	"strings"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
 )
 
 func ToGraphqlEpisode(episode internal.Episode) graphql.Episode {

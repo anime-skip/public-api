@@ -4,8 +4,8 @@ import (
 	ctx "context"
 	"fmt"
 
-	"anime-skip.com/timestamps-service/internal/context"
-	gql "anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/public-api/internal/context"
+	gql "anime-skip.com/public-api/internal/graphql"
 	"github.com/99designs/gqlgen/graphql"
 )
 

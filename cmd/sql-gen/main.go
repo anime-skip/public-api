@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 	. "github.com/dave/jennifer/jen"
 	"github.com/ettle/strcase"
 )
@@ -36,9 +36,9 @@ var models = []interface{}{
 	internal.User{},
 }
 
-var internalPkg = "anime-skip.com/timestamps-service/internal"
-var asContextPkg = "anime-skip.com/timestamps-service/internal/context"
-var asErrorsPkg = "anime-skip.com/timestamps-service/internal/errors"
+var internalPkg = "anime-skip.com/public-api/internal"
+var asContextPkg = "anime-skip.com/public-api/internal/context"
+var asErrorsPkg = "anime-skip.com/public-api/internal/errors"
 
 func main() {
 	println("SQL Generation")

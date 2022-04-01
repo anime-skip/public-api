@@ -1,6 +1,6 @@
 package sqlx_migration
 
-import "anime-skip.com/timestamps-service/internal"
+import "anime-skip.com/public-api/internal"
 
 type Migration struct {
 	ID   string

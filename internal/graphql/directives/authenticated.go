@@ -4,7 +4,7 @@ import (
 	ctx "context"
 	"errors"
 
-	"anime-skip.com/timestamps-service/internal/context"
+	"anime-skip.com/public-api/internal/context"
 	"github.com/99designs/gqlgen/graphql"
 )
 

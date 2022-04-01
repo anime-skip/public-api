@@ -3,7 +3,7 @@ package log
 import (
 	"fmt"
 
-	"anime-skip.com/timestamps-service/internal/config"
+	"anime-skip.com/public-api/internal/config"
 	"github.com/davecgh/go-spew/spew"
 )
 

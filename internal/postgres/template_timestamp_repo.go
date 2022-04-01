@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/log"
 )
 
 func deleteCascadeTemplateTimestamp(ctx context.Context, tx internal.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {

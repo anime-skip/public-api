@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/context"
-	"anime-skip.com/timestamps-service/internal/errors"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/graphql/mappers"
-	"anime-skip.com/timestamps-service/internal/log"
-	"anime-skip.com/timestamps-service/internal/utils"
-	"anime-skip.com/timestamps-service/internal/validation"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/errors"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/graphql/mappers"
+	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/utils"
+	"anime-skip.com/public-api/internal/validation"
 )
 
 // Helpers

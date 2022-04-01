@@ -21,7 +21,7 @@ ADD . .
 ARG VERSION
 RUN : "${VERSION:?Argument needs to be passed and non-empty.}"
 RUN OOS=linux GOARCH=amd64 go build \
-    -ldflags "-X anime-skip.com/timestamps-service/internal/config.VERSION=$VERSION" \
+    -ldflags "-X anime-skip.com/public-api/internal/config.VERSION=$VERSION" \
     -o bin/server \
     cmd/server/main.go
 

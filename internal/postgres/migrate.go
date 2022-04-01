@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/seeders"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/tables"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/postgres/migrations/seeders"
+	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
+	"anime-skip.com/public-api/internal/postgres/migrations/tables"
 )
 
 // migrate all the migrations and seeders

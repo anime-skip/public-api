@@ -1,9 +1,9 @@
 package seeders
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/config"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/config"
+	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
 )
 
 var timestampTypes = []*internal.TimestampType{

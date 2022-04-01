@@ -1,8 +1,8 @@
 package sqlx_migration
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/log"
 )
 
 const migrationTableName = ""

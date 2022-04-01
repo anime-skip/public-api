@@ -3,7 +3,7 @@ package resolvers
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/public-api/internal/graphql"
 )
 
 // Helpers

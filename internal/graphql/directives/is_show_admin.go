@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/context"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/log"
 	graphql2 "github.com/99designs/gqlgen/graphql"
 	"github.com/gofrs/uuid"
 )

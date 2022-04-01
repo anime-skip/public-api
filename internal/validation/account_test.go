@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"

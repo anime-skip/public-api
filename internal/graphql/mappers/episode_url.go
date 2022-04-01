@@ -1,8 +1,8 @@
 package mappers
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
 )
 
 func ToGraphqlEpisodeURL(entity internal.EpisodeURL) graphql.EpisodeURL {

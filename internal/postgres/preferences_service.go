@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
 

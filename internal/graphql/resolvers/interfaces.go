@@ -3,8 +3,8 @@ package resolvers
 //go:generate go run github.com/99designs/gqlgen generate
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
 )
 
 type Resolver struct {

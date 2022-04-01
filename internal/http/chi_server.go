@@ -9,10 +9,10 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/config"
-	"anime-skip.com/timestamps-service/internal/context"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/config"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/log"
 )
 
 type chiServer struct {

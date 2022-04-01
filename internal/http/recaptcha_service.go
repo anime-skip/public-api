@@ -8,10 +8,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/context"
-	"anime-skip.com/timestamps-service/internal/log"
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/utils"
 )
 
 type googleRecaptchaService struct {

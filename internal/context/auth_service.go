@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 )
 
 var directiveServicesKey = &contextKey{"directive_services"}

@@ -1,8 +1,8 @@
 package seeders
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
 )
 
 var rateLimit60 uint = 60

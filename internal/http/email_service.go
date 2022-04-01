@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 )
 
 type animeSkipEmailService struct {

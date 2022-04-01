@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/log"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"

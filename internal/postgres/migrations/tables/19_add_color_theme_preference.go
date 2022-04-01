@@ -3,7 +3,7 @@ package tables
 import (
 	"fmt"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 )
 
 // AddColorThemePreference inserts one new preference

@@ -3,9 +3,9 @@
 package postgres
 
 import (
-	internal "anime-skip.com/timestamps-service/internal"
-	context1 "anime-skip.com/timestamps-service/internal/context"
-	errors1 "anime-skip.com/timestamps-service/internal/errors"
+	internal "anime-skip.com/public-api/internal"
+	context1 "anime-skip.com/public-api/internal/context"
+	errors1 "anime-skip.com/public-api/internal/errors"
 	"context"
 	"database/sql"
 	"errors"

@@ -3,8 +3,8 @@ package postgres
 import (
 	"fmt"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/log"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )

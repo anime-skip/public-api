@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 )
 
 var authClaimsKey = &contextKey{"auth_claims"}

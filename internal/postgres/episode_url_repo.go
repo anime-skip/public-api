@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 
-	internal "anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/log"
+	internal "anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/log"
 )
 
 func deleteCascadeEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {

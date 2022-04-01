@@ -3,11 +3,11 @@ package handler
 import (
 	"time"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/graphql/directives"
-	"anime-skip.com/timestamps-service/internal/graphql/resolvers"
-	"anime-skip.com/timestamps-service/internal/log"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/graphql/directives"
+	"anime-skip.com/public-api/internal/graphql/resolvers"
+	"anime-skip.com/public-api/internal/log"
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
+	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
 )
 
 // AddPreferenceDefaults inserts one new preference, after switching away from GORM, they were being

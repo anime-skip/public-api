@@ -3,7 +3,7 @@ package seeders
 import (
 	"time"
 
-	"anime-skip.com/timestamps-service/internal"
+	"anime-skip.com/public-api/internal"
 	"github.com/gofrs/uuid"
 )
 

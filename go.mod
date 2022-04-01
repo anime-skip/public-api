@@ -1,4 +1,4 @@
-module anime-skip.com/timestamps-service
+module anime-skip.com/public-api
 
 go 1.17
 

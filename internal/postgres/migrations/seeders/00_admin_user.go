@@ -3,8 +3,8 @@ package seeders
 import (
 	"time"
 
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/postgres/migrations/sqlx_migration"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
 	"github.com/gofrs/uuid"
 )
 

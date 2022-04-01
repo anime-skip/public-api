@@ -1,17 +1,17 @@
 package main
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/config"
-	"anime-skip.com/timestamps-service/internal/graphql/handler"
-	"anime-skip.com/timestamps-service/internal/http"
-	"anime-skip.com/timestamps-service/internal/jwt"
-	"anime-skip.com/timestamps-service/internal/log"
-	"anime-skip.com/timestamps-service/internal/postgres"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/config"
+	"anime-skip.com/public-api/internal/graphql/handler"
+	"anime-skip.com/public-api/internal/http"
+	"anime-skip.com/public-api/internal/jwt"
+	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/postgres"
 )
 
 func main() {
-	log.I("Starting anime-skip/timestamps-service")
+	log.I("Starting anime-skip/public-api")
 
 	pg := postgres.Open(
 		config.RequireEnvString("DATABASE_URL"),

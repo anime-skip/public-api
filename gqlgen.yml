@@ -16,7 +16,7 @@ resolver:
 
 models:
   ID:
-    model: anime-skip.com/timestamps-service/internal/graphql/scalars.UUID
+    model: anime-skip.com/public-api/internal/graphql/scalars.UUID
   Episode:
     fields:
       createdBy:

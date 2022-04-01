@@ -1,9 +1,9 @@
 package mappers
 
 import (
-	"anime-skip.com/timestamps-service/internal"
-	"anime-skip.com/timestamps-service/internal/graphql"
-	"anime-skip.com/timestamps-service/internal/utils"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal/utils"
 )
 
 func ToGraphqlTemplate(template internal.Template) graphql.Template {
