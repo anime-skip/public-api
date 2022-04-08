@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
@@ -101,7 +102,7 @@ func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.
 }
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*graphql.Template, error) {
-	panic("queryResolver.FindTemplateByDetails not implemented")
+	panic(errors.NewPanicedError("queryResolver.FindTemplateByDetails not implemented"))
 }
 
 // Fields

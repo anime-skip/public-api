@@ -1,9 +1,13 @@
 package handler
 
 import (
+	"context"
 	"time"
 
+	"github.com/vektah/gqlparser/v2/gqlerror"
+
 	"anime-skip.com/public-api/internal"
+	myerrors "anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/directives"
 	"anime-skip.com/public-api/internal/graphql/resolvers"
@@ -32,6 +36,15 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 	})
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.POST{})
+
+	srv.SetRecoverFunc(func(ctx context.Context, paniced interface{}) error {
+		// TODO notify bugsnag
+
+		if err, ok := paniced.(*myerrors.PanicedError); ok {
+			return gqlerror.Errorf(err.Error())
+		}
+		return gqlerror.Errorf("Internal server error")
+	})
 
 	if enableIntrospection {
 		srv.Use(extension.Introspection{})

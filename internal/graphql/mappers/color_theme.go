@@ -1,9 +1,8 @@
 package mappers
 
 import (
-	"fmt"
-
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 )
 
@@ -20,7 +19,7 @@ func ToColorThemeEnum(i int) graphql.ColorTheme {
 	case internal.THEME_CRUNCHYROLL_ORANGE:
 		return graphql.ColorThemeCrunchyrollOrange
 	}
-	panic(fmt.Errorf("Unknown role integer: %d", i))
+	panic(errors.NewPanicedError("Unknown role integer: %d", i))
 }
 
 func ToColorThemeInt(theme graphql.ColorTheme) int {
@@ -36,5 +35,5 @@ func ToColorThemeInt(theme graphql.ColorTheme) int {
 	case graphql.ColorThemeCrunchyrollOrange:
 		return internal.THEME_CRUNCHYROLL_ORANGE
 	}
-	panic(fmt.Errorf("Unknown theme enum: %s", theme))
+	panic(errors.NewPanicedError("Unknown theme enum: %s", theme))
 }

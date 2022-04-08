@@ -1,9 +1,9 @@
 package utils
 
 import (
-	"fmt"
 	"math/rand"
 
+	"anime-skip.com/public-api/internal/errors"
 	"github.com/gofrs/uuid"
 )
 
@@ -21,7 +21,7 @@ func RandomString(length int) string {
 func RandomID() uuid.UUID {
 	id, err := uuid.NewV4()
 	if err != nil {
-		panic(fmt.Errorf("Failed to create id: %v", err))
+		panic(errors.NewPanicedError("Failed to create id: %v", err))
 	}
 	return id
 }

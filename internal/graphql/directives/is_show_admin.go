@@ -7,6 +7,7 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	graphql2 "github.com/99designs/gqlgen/graphql"
@@ -96,7 +97,7 @@ func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, se
 		}
 		names = append(names, name)
 	}
-	panic(fmt.Errorf(
+	panic(errors.NewPanicedError(
 		"Internal error: No show id getter implemented for any of the args (%s)",
 		strings.Join(names, ", "),
 	))

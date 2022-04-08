@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
@@ -79,7 +80,7 @@ func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graph
 }
 
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*graphql.Show, error) {
-	panic("queryResolver.SearchShows not implemented")
+	panic(errors.NewPanicedError("queryResolver.SearchShows not implemented"))
 }
 
 // Fields

@@ -3,6 +3,7 @@ package resolvers
 import (
 	"context"
 
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/mappers"
 	"github.com/gofrs/uuid"
@@ -31,7 +32,7 @@ func (r *Resolver) getShowAdminsByUserId(ctx context.Context, userID *uuid.UUID)
 // Mutations
 
 func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput graphql.InputShowAdmin) (*graphql.ShowAdmin, error) {
-	panic("TODO - show admins are disabled")
+	panic(errors.NewPanicedError("TODO - show admins are disabled"))
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*graphql.ShowAdmin, error) {

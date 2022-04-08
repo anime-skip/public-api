@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
@@ -83,7 +84,7 @@ func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID *uui
 }
 
 func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graphql.InputTimestampOn, update []*graphql.InputExistingTimestamp, delete []*uuid.UUID) (*graphql.UpdatedTimestamps, error) {
-	panic("mutationResolver.UpdateTimestamps not implemented")
+	panic(errors.NewPanicedError("mutationResolver.UpdateTimestamps not implemented"))
 }
 
 // Queries
