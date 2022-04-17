@@ -1,6 +1,6 @@
-# Timestamps Service
+# Public API
 
-The primary backend for Anime Skip, containing accounts, auth, episodes, shows... and of course **timestamps**!
+The primary backend for Anime Skip, containing user preferences, episodes, shows... and of course **timestamps**!
 
 Check out the [API Playground](http://test.api.anime-skip.com/graphiql) to get started and read the docs.
 
