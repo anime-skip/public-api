@@ -5,6 +5,15 @@ import (
 	"anime-skip.com/public-api/internal/graphql"
 )
 
+func ToGraphqlShowPointers(entities []internal.Show) []*graphql.Show {
+	results := []*graphql.Show{}
+	for _, entity := range entities {
+		show := ToGraphqlShow(entity)
+		results = append(results, &show)
+	}
+	return results
+}
+
 func ToGraphqlShow(entity internal.Show) graphql.Show {
 	return graphql.Show{
 		ID:              &entity.ID,

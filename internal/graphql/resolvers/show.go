@@ -2,9 +2,10 @@ package resolvers
 
 import (
 	"context"
+	"errors"
+	"strings"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
@@ -79,8 +80,36 @@ func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graph
 	return r.getShowById(ctx, showID)
 }
 
+var defaultSearchShowQuery = internal.ShowSearchQuery{
+	Search: "",
+	Offset: 0,
+	Limit:  25,
+	Sort:   "ASC",
+}
+
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*graphql.Show, error) {
-	panic(errors.NewPanicedError("queryResolver.SearchShows not implemented"))
+	query := defaultSearchShowQuery
+	if search != nil {
+		query.Search = strings.TrimSpace(*search)
+	}
+	if offset != nil {
+		query.Offset = *offset
+	}
+	if limit != nil {
+		if *limit == 0 {
+			return nil, errors.New("Limit set to 0, results will never be returned")
+		}
+		query.Limit = *limit
+	}
+	if sort != nil {
+		query.Sort = *sort
+	}
+
+	internalShows, err := r.ShowService.Search(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	return mappers.ToGraphqlShowPointers(internalShows), nil
 }
 
 // Fields

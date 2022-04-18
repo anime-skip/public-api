@@ -81,9 +81,17 @@ type ShowAdminService interface {
 	Delete(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
 }
 
+type ShowSearchQuery struct {
+	Search string
+	Offset int
+	Limit  int
+	Sort   string
+}
+
 type ShowService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
 	GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error)
+	Search(ctx context.Context, query ShowSearchQuery) ([]Show, error)
 	Create(ctx context.Context, newShow Show) (Show, error)
 	Update(ctx context.Context, newShow Show) (Show, error)
 	Delete(ctx context.Context, id uuid.UUID) (Show, error)
