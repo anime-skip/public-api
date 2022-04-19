@@ -8,6 +8,7 @@ import (
 	"anime-skip.com/public-api/internal/jwt"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/postgres"
+	"anime-skip.com/public-api/internal/utils"
 )
 
 func main() {
@@ -53,6 +54,11 @@ func main() {
 		TimestampService:         postgres.NewTimestampService(pg),
 		TimestampTypeService:     postgres.NewTimestampTypeService(pg),
 		UserService:              postgres.NewUserService(pg),
+		ThirdPartyService: utils.NewAggregateThirdPartyService([]internal.ThirdPartyService{
+			postgres.NewThirdPartyService(pg),
+			// http.NewBetterVRVThirdPartyService(),
+			// TODO
+		}),
 	}
 	directiveServices := internal.DirectiveServices{
 		AuthService:       jwtAuthService,

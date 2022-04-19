@@ -332,11 +332,15 @@ func unwrapInTxFunc(file *File, model reflect.Type, inTxFuncName string, argName
 		Return().List(emptyModel, Err()),
 	)
 
-	file.Func().Id(funcName).Params(
-		Id("ctx").Qual("context", "Context"),
-		Id("db").Qual(internalPkg, "Database"),
-		Id(argName).Qual(argType.PkgPath(), argType.Name()),
-	).Params(
+	file.Func().Id(funcName).ParamsFunc(func(g *Group) {
+		g.Id("ctx").Qual("context", "Context")
+		g.Id("db").Qual(internalPkg, "Database")
+		if argType.PkgPath() == "" {
+			g.Id(argName).Op(argType.String())
+		} else {
+			g.Id(argName).Qual(argType.PkgPath(), argType.Name())
+		}
+	}).Params(
 		returnType,
 		Error(),
 	).Block(
@@ -502,11 +506,15 @@ func _getMany(file *File, funcName string, sql string, model reflect.Type, field
 	)
 	inTxFuncName := funcName + "InTx"
 
-	file.Func().Id(inTxFuncName).Params(
-		Id("ctx").Qual("context", "Context"),
-		Id("tx").Qual(internalQual, "Tx"),
-		Id(fieldName).Qual(field.Type.PkgPath(), field.Type.Name()),
-	).Params(
+	file.Func().Id(inTxFuncName).ParamsFunc(func(g *Group) {
+		g.Id("ctx").Qual("context", "Context")
+		g.Id("tx").Qual(internalQual, "Tx")
+		if field.Type.PkgPath() == "" {
+			g.Id(fieldName).Op(field.Type.String())
+		} else {
+			g.Id(fieldName).Qual(field.Type.PkgPath(), field.Type.Name())
+		}
+	}).Params(
 		Index().Qual(internalQual, modelName),
 		Error(),
 	).Block(
@@ -528,7 +536,7 @@ func _getMany(file *File, funcName string, sql string, model reflect.Type, field
 		),
 	).Line()
 
-	unwrapInTxFunc(file, model, inTxFuncName, field.Name, field.Type, true)
+	unwrapInTxFunc(file, model, inTxFuncName, strcase.ToGoCamel(field.Name), field.Type, true)
 }
 
 func _getManyIgnoreSoftDelete(file *File, funcName string, model reflect.Type, field reflect.StructField) {

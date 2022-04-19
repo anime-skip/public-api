@@ -6,8 +6,8 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
-	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )

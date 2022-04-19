@@ -48,7 +48,6 @@ type ResolverRoot interface {
 	ShowAdmin() ShowAdminResolver
 	Template() TemplateResolver
 	TemplateTimestamp() TemplateTimestampResolver
-	ThirdPartyEpisode() ThirdPartyEpisodeResolver
 	ThirdPartyTimestamp() ThirdPartyTimestampResolver
 	Timestamp() TimestampResolver
 	TimestampType() TimestampTypeResolver
@@ -480,11 +479,6 @@ type TemplateTimestampResolver interface {
 	Template(ctx context.Context, obj *TemplateTimestamp) (*Template, error)
 
 	Timestamp(ctx context.Context, obj *TemplateTimestamp) (*Timestamp, error)
-}
-type ThirdPartyEpisodeResolver interface {
-	Timestamps(ctx context.Context, obj *ThirdPartyEpisode) ([]*ThirdPartyTimestamp, error)
-
-	Show(ctx context.Context, obj *ThirdPartyEpisode) (*ThirdPartyShow, error)
 }
 type ThirdPartyTimestampResolver interface {
 	Type(ctx context.Context, obj *ThirdPartyTimestamp) (*TimestampType, error)
@@ -3010,7 +3004,7 @@ input InputTimestamp {
 
 """
 The type a timestamp can be. This table rarely changes so the values fetched can either be hard
-coded or fetch occasionaly. Anime Skip website and web extension use hardcoded maps to store this
+coded or fetch occasionally. Anime Skip website and web extension use hardcoded maps to store this
 data, but a third party might want to fetch and cache this instead since you won't know when Anime
 Skip adds timestamps
 """
@@ -12137,14 +12131,14 @@ func (ec *executionContext) _ThirdPartyEpisode_timestamps(ctx context.Context, f
 		Object:     "ThirdPartyEpisode",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ThirdPartyEpisode().Timestamps(rctx, obj)
+		return obj.Timestamps, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -12207,14 +12201,14 @@ func (ec *executionContext) _ThirdPartyEpisode_show(ctx context.Context, field g
 		Object:     "ThirdPartyEpisode",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   true,
-		IsResolver: true,
+		IsMethod:   false,
+		IsResolver: false,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.ThirdPartyEpisode().Show(rctx, obj)
+		return obj.Show, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18008,25 +18002,15 @@ func (ec *executionContext) _ThirdPartyEpisode(ctx context.Context, sel ast.Sele
 			out.Values[i] = innerFunc(ctx)
 
 		case "timestamps":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ThirdPartyEpisode_timestamps(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+				return ec._ThirdPartyEpisode_timestamps(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "showId":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ThirdPartyEpisode_showId(ctx, field, obj)
@@ -18035,28 +18019,18 @@ func (ec *executionContext) _ThirdPartyEpisode(ctx context.Context, sel ast.Sele
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+				invalids++
 			}
 		case "show":
-			field := field
-
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._ThirdPartyEpisode_show(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
+				return ec._ThirdPartyEpisode_show(ctx, field, obj)
 			}
 
-			out.Concurrently(i, func() graphql.Marshaler {
-				return innerFunc(ctx)
+			out.Values[i] = innerFunc(ctx)
 
-			})
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -19757,10 +19731,6 @@ func (ec *executionContext) marshalNThirdPartyEpisode2ᚖanimeᚑskipᚗcomᚋpu
 		return graphql.Null
 	}
 	return ec._ThirdPartyEpisode(ctx, sel, v)
-}
-
-func (ec *executionContext) marshalNThirdPartyShow2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚋgraphqlᚐThirdPartyShow(ctx context.Context, sel ast.SelectionSet, v ThirdPartyShow) graphql.Marshaler {
-	return ec._ThirdPartyShow(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNThirdPartyShow2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚋgraphqlᚐThirdPartyShow(ctx context.Context, sel ast.SelectionSet, v *ThirdPartyShow) graphql.Marshaler {

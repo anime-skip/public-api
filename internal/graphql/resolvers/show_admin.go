@@ -5,7 +5,7 @@ import (
 
 	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
-	"anime-skip.com/public-api/internal/graphql/mappers"
+	"anime-skip.com/public-api/internal/mappers"
 	"github.com/gofrs/uuid"
 )
 

@@ -33,12 +33,6 @@ models:
         resolver: true
       template:
         resolver: true
-  ThirdPartyEpisode:
-    fields:
-      timestamps:
-        resolver: true
-      show:
-        resolver: true
   EpisodeUrl:
     fields:
       createdBy:

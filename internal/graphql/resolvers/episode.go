@@ -6,8 +6,8 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
-	"anime-skip.com/public-api/internal/graphql/mappers"
 	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
@@ -113,7 +113,12 @@ func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, show
 }
 
 func (r *queryResolver) FindEpisodeByName(ctx context.Context, name string) ([]*graphql.ThirdPartyEpisode, error) {
-	panic(errors.NewPanicedError("queryResolver.FindEpisodeByName not implemented"))
+	internalEpisodes, err := r.ThirdPartyService.FindEpisodeByName(ctx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	return mappers.ToGraphqlThirdPartyEpisodePointers(internalEpisodes), nil
 }
 
 // Fields

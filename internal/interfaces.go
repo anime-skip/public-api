@@ -138,6 +138,11 @@ type UserService interface {
 	Update(ctx context.Context, user User) (User, error)
 }
 
+type ThirdPartyService interface {
+	Name() string
+	FindEpisodeByName(ctx context.Context, name string) ([]ThirdPartyEpisode, error)
+}
+
 type Services struct {
 	APIClientService         APIClientService
 	AuthService              AuthService
@@ -153,6 +158,7 @@ type Services struct {
 	TimestampService         TimestampService
 	TimestampTypeService     TimestampTypeService
 	UserService              UserService
+	ThirdPartyService        ThirdPartyService
 }
 
 type DirectiveServices struct {

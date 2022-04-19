@@ -75,10 +75,10 @@ type Episode struct {
 	BaseEntity
 	Season         *string
 	Number         *string
-	AbsoluteNumber *string `db:"absolute_number"`
-	Name           *string
+	AbsoluteNumber *string   `db:"absolute_number"`
+	Name           *string   `                     sql_gen:"get_many"`
 	BaseDuration   *float64  `db:"base_duration"`
-	ShowID         uuid.UUID `db:"show_id"        sql_gen:"get_many"`
+	ShowID         uuid.UUID `db:"show_id"         sql_gen:"get_many"`
 }
 
 type Preferences struct {
@@ -160,4 +160,30 @@ type User struct {
 	ProfileURL    string     `db:"profile_url"`
 	EmailVerified bool       `db:"email_verified"`
 	Role          int
+}
+
+type ThirdPartyTimestamp struct {
+	ID     *uuid.UUID
+	At     float64
+	TypeId uuid.UUID
+	Type   TimestampType
+}
+
+type ThirdPartyShow struct {
+	Name      string
+	UpdatedAt *time.Time
+	CreatedAt *time.Time
+}
+
+type ThirdPartyEpisode struct {
+	ID             *uuid.UUID
+	Season         *string
+	Number         *string
+	AbsoluteNumber *string
+	BaseDuration   float64
+	Name           *string
+	Source         int
+	Timestamps     []ThirdPartyTimestamp
+	ShowId         string
+	Show           ThirdPartyShow
 }

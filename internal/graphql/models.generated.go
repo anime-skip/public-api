@@ -451,7 +451,7 @@ type Timestamp struct {
 func (Timestamp) IsBaseModel() {}
 
 // The type a timestamp can be. This table rarely changes so the values fetched can either be hard
-// coded or fetch occasionaly. Anime Skip website and web extension use hardcoded maps to store this
+// coded or fetch occasionally. Anime Skip website and web extension use hardcoded maps to store this
 // data, but a third party might want to fetch and cache this instead since you won't know when Anime
 // Skip adds timestamps
 type TimestampType struct {

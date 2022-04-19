@@ -155,14 +155,14 @@ func getAPIClientsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.
 	return apiClients, nil
 }
 
-func getAPIClientsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.APIClient, error) {
+func getAPIClientsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.APIClient, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getAPIClientsByUserIDInTx(ctx, tx, UserID)
+	result, err := getAPIClientsByUserIDInTx(ctx, tx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -190,14 +190,14 @@ func getUnscopedAPIClientsByUserIDInTx(ctx context.Context, tx internal.Tx, user
 	return apiClients, nil
 }
 
-func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.APIClient, error) {
+func getUnscopedAPIClientsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.APIClient, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedAPIClientsByUserIDInTx(ctx, tx, UserID)
+	result, err := getUnscopedAPIClientsByUserIDInTx(ctx, tx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -418,14 +418,14 @@ func getEpisodeURLsByEpisodeIDInTx(ctx context.Context, tx internal.Tx, episodeI
 	return episodeURLs, nil
 }
 
-func getEpisodeURLsByEpisodeID(ctx context.Context, db internal.Database, EpisodeID uuid.UUID) ([]internal.EpisodeURL, error) {
+func getEpisodeURLsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.EpisodeURL, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getEpisodeURLsByEpisodeIDInTx(ctx, tx, EpisodeID)
+	result, err := getEpisodeURLsByEpisodeIDInTx(ctx, tx, episodeID)
 	if err != nil {
 		return nil, err
 	}
@@ -607,6 +607,76 @@ func getEpisodeByID(ctx context.Context, db internal.Database, ID uuid.UUID) (in
 	return result, nil
 }
 
+func getEpisodesByNameInTx(ctx context.Context, tx internal.Tx, name *string) ([]internal.Episode, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM episodes WHERE deleted_at IS NULL")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	episodes := []internal.Episode{}
+	for rows.Next() {
+		var episode internal.Episode
+		err = rows.StructScan(&episode)
+		if err != nil {
+			return nil, err
+		}
+		episodes = append(episodes, episode)
+	}
+	return episodes, nil
+}
+
+func getEpisodesByName(ctx context.Context, db internal.Database, name *string) ([]internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getEpisodesByNameInTx(ctx, tx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
+func getUnscopedEpisodesByNameInTx(ctx context.Context, tx internal.Tx, name *string) ([]internal.Episode, error) {
+	rows, err := tx.QueryxContext(ctx, "SELECT * FROM episodes")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	episodes := []internal.Episode{}
+	for rows.Next() {
+		var episode internal.Episode
+		err = rows.StructScan(&episode)
+		if err != nil {
+			return nil, err
+		}
+		episodes = append(episodes, episode)
+	}
+	return episodes, nil
+}
+
+func getUnscopedEpisodesByName(ctx context.Context, db internal.Database, name *string) ([]internal.Episode, error) {
+	tx, err := db.BeginTxx(ctx, nil)
+	if err != nil {
+		return nil, err
+	}
+	defer tx.Rollback()
+
+	result, err := getUnscopedEpisodesByNameInTx(ctx, tx, name)
+	if err != nil {
+		return nil, err
+	}
+
+	tx.Commit()
+	return result, nil
+}
+
 func getEpisodesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UUID) ([]internal.Episode, error) {
 	rows, err := tx.QueryxContext(ctx, "SELECT * FROM episodes WHERE deleted_at IS NULL")
 	if err != nil {
@@ -626,14 +696,14 @@ func getEpisodesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.UU
 	return episodes, nil
 }
 
-func getEpisodesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Episode, error) {
+func getEpisodesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Episode, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getEpisodesByShowIDInTx(ctx, tx, ShowID)
+	result, err := getEpisodesByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -661,14 +731,14 @@ func getUnscopedEpisodesByShowIDInTx(ctx context.Context, tx internal.Tx, showID
 	return episodes, nil
 }
 
-func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Episode, error) {
+func getUnscopedEpisodesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Episode, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedEpisodesByShowIDInTx(ctx, tx, ShowID)
+	result, err := getUnscopedEpisodesByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -1114,14 +1184,14 @@ func getShowAdminsByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.
 	return showAdmins, nil
 }
 
-func getShowAdminsByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.ShowAdmin, error) {
+func getShowAdminsByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.ShowAdmin, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getShowAdminsByShowIDInTx(ctx, tx, ShowID)
+	result, err := getShowAdminsByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -1149,14 +1219,14 @@ func getUnscopedShowAdminsByShowIDInTx(ctx context.Context, tx internal.Tx, show
 	return showAdmins, nil
 }
 
-func getUnscopedShowAdminsByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.ShowAdmin, error) {
+func getUnscopedShowAdminsByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.ShowAdmin, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedShowAdminsByShowIDInTx(ctx, tx, ShowID)
+	result, err := getUnscopedShowAdminsByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -1184,14 +1254,14 @@ func getShowAdminsByUserIDInTx(ctx context.Context, tx internal.Tx, userID uuid.
 	return showAdmins, nil
 }
 
-func getShowAdminsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.ShowAdmin, error) {
+func getShowAdminsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.ShowAdmin, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getShowAdminsByUserIDInTx(ctx, tx, UserID)
+	result, err := getShowAdminsByUserIDInTx(ctx, tx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1219,14 +1289,14 @@ func getUnscopedShowAdminsByUserIDInTx(ctx context.Context, tx internal.Tx, user
 	return showAdmins, nil
 }
 
-func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, UserID uuid.UUID) ([]internal.ShowAdmin, error) {
+func getUnscopedShowAdminsByUserID(ctx context.Context, db internal.Database, userID uuid.UUID) ([]internal.ShowAdmin, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedShowAdminsByUserIDInTx(ctx, tx, UserID)
+	result, err := getUnscopedShowAdminsByUserIDInTx(ctx, tx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -1649,14 +1719,14 @@ func getTemplateTimestampsByTemplateIDInTx(ctx context.Context, tx internal.Tx, 
 	return templateTimestamps, nil
 }
 
-func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, TemplateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
+func getTemplateTimestampsByTemplateID(ctx context.Context, db internal.Database, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getTemplateTimestampsByTemplateIDInTx(ctx, tx, TemplateID)
+	result, err := getTemplateTimestampsByTemplateIDInTx(ctx, tx, templateID)
 	if err != nil {
 		return nil, err
 	}
@@ -1855,14 +1925,14 @@ func getTemplatesByShowIDInTx(ctx context.Context, tx internal.Tx, showID uuid.U
 	return templates, nil
 }
 
-func getTemplatesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Template, error) {
+func getTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Template, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getTemplatesByShowIDInTx(ctx, tx, ShowID)
+	result, err := getTemplatesByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -1890,14 +1960,14 @@ func getUnscopedTemplatesByShowIDInTx(ctx context.Context, tx internal.Tx, showI
 	return templates, nil
 }
 
-func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, ShowID uuid.UUID) ([]internal.Template, error) {
+func getUnscopedTemplatesByShowID(ctx context.Context, db internal.Database, showID uuid.UUID) ([]internal.Template, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedTemplatesByShowIDInTx(ctx, tx, ShowID)
+	result, err := getUnscopedTemplatesByShowIDInTx(ctx, tx, showID)
 	if err != nil {
 		return nil, err
 	}
@@ -2311,14 +2381,14 @@ func getTimestampsByEpisodeIDInTx(ctx context.Context, tx internal.Tx, episodeID
 	return timestamps, nil
 }
 
-func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, EpisodeID uuid.UUID) ([]internal.Timestamp, error) {
+func getTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getTimestampsByEpisodeIDInTx(ctx, tx, EpisodeID)
+	result, err := getTimestampsByEpisodeIDInTx(ctx, tx, episodeID)
 	if err != nil {
 		return nil, err
 	}
@@ -2346,14 +2416,14 @@ func getUnscopedTimestampsByEpisodeIDInTx(ctx context.Context, tx internal.Tx, e
 	return timestamps, nil
 }
 
-func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database, EpisodeID uuid.UUID) ([]internal.Timestamp, error) {
+func getUnscopedTimestampsByEpisodeID(ctx context.Context, db internal.Database, episodeID uuid.UUID) ([]internal.Timestamp, error) {
 	tx, err := db.BeginTxx(ctx, nil)
 	if err != nil {
 		return nil, err
 	}
 	defer tx.Rollback()
 
-	result, err := getUnscopedTimestampsByEpisodeIDInTx(ctx, tx, EpisodeID)
+	result, err := getUnscopedTimestampsByEpisodeIDInTx(ctx, tx, episodeID)
 	if err != nil {
 		return nil, err
 	}

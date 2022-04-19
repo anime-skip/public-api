@@ -45,11 +45,6 @@ func (r *Resolver) TemplateTimestamp() graphql.TemplateTimestampResolver {
 	return &templateTimestampResolver{r}
 }
 
-// ThirdPartyEpisode returns graphql.ThirdPartyEpisodeResolver implementation.
-func (r *Resolver) ThirdPartyEpisode() graphql.ThirdPartyEpisodeResolver {
-	return &thirdPartyEpisodeResolver{r}
-}
-
 // ThirdPartyTimestamp returns graphql.ThirdPartyTimestampResolver implementation.
 func (r *Resolver) ThirdPartyTimestamp() graphql.ThirdPartyTimestampResolver {
 	return &thirdPartyTimestampResolver{r}
@@ -74,7 +69,6 @@ type showResolver struct{ *Resolver }
 type showAdminResolver struct{ *Resolver }
 type templateResolver struct{ *Resolver }
 type templateTimestampResolver struct{ *Resolver }
-type thirdPartyEpisodeResolver struct{ *Resolver }
 type thirdPartyTimestampResolver struct{ *Resolver }
 type timestampResolver struct{ *Resolver }
 type timestampTypeResolver struct{ *Resolver }
