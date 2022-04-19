@@ -165,8 +165,7 @@ type User struct {
 type ThirdPartyTimestamp struct {
 	ID     *uuid.UUID
 	At     float64
-	TypeId uuid.UUID
-	Type   TimestampType
+	TypeID uuid.UUID
 }
 
 type ThirdPartyShow struct {
@@ -184,6 +183,6 @@ type ThirdPartyEpisode struct {
 	Name           *string
 	Source         int
 	Timestamps     []ThirdPartyTimestamp
-	ShowId         string
+	ShowID         string
 	Show           ThirdPartyShow
 }

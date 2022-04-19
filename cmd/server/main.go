@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/config"
 	"anime-skip.com/public-api/internal/graphql/handler"
@@ -38,6 +40,10 @@ func main() {
 		config.RequireEnvString("RECAPTCHA_SECRET"),
 		config.EnvStringArray("RECAPTCHA_RESPONSE_ALLOWLIST"),
 	)
+	betterVRV := http.NewBetterVRVThirdPartyService(
+		config.EnvString("BETTER_VRV_APP_ID"),
+		config.EnvString("BETTER_VRV_API_KEY"),
+	)
 
 	services := internal.Services{
 		APIClientService:         postgres.NewAPIClientService(pg),
@@ -56,8 +62,7 @@ func main() {
 		UserService:              postgres.NewUserService(pg),
 		ThirdPartyService: utils.NewAggregateThirdPartyService([]internal.ThirdPartyService{
 			postgres.NewThirdPartyService(pg),
-			// http.NewBetterVRVThirdPartyService(),
-			// TODO
+			utils.NewCachedThirdPartyService(betterVRV, 30*time.Minute),
 		}),
 	}
 	directiveServices := internal.DirectiveServices{

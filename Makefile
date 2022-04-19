@@ -7,11 +7,15 @@ build:
 	@echo
 	@docker image ls | grep "anime-skip/public-api/server"
 	@echo
-run: 
+run: pre-run
 	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service
-run-clean:
+run-clean: pre-run
 	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service -V
+pre-run:
+	@touch .env
 watch:
 	modd
 gen:
 	go generate ./...
+test: compile
+	LOG_LEVEL=3 go test ./...

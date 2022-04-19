@@ -17,7 +17,7 @@ func InternalTimestampToThirdPartyTimestamp(timestamp internal.Timestamp) intern
 	return internal.ThirdPartyTimestamp{
 		ID:     &timestamp.ID,
 		At:     timestamp.At,
-		TypeId: timestamp.TypeID,
+		TypeID: timestamp.TypeID,
 	}
 }
 
@@ -34,7 +34,7 @@ func InternalEpisodeToThirdPartyEpisode(episode internal.Episode, show internal.
 		BaseDuration:   baseDuration, // TODO: Refactor and make it not a pointer so it can be assigned directly
 		Name:           episode.Name,
 		Source:         internal.TIMESTAMP_SOURCE_ANIME_SKIP,
-		ShowId:         episode.ShowID.String(),
+		ShowID:         episode.ShowID.String(),
 		Show:           show,
 		Timestamps:     timestamps,
 	}
@@ -58,7 +58,7 @@ func toGraphqlThirdPartyEpisodePointer(entity internal.ThirdPartyEpisode) *graph
 		BaseDuration:   &entity.BaseDuration,
 		Name:           entity.Name,
 		Source:         &source,
-		ShowID:         entity.ShowId,
+		ShowID:         entity.ShowID,
 		Show:           toGraphqlThirdPartyShowPointer(entity.Show),
 		Timestamps:     toGraphqlThirdPartyTimestampPointers(entity.Timestamps),
 	}
@@ -84,7 +84,7 @@ func toGraphqlThirdPartyTimestampPointer(entity internal.ThirdPartyTimestamp) *g
 	return &graphql.ThirdPartyTimestamp{
 		ID:     entity.ID,
 		At:     entity.At,
-		TypeID: &entity.TypeId,
+		TypeID: &entity.TypeID,
 		// Type has a resolver
 	}
 }

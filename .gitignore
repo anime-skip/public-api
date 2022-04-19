@@ -1,4 +1,5 @@
 bin
+.env
 
 # TODO remove once ready to publish over V1
 publish.sh
