@@ -15,7 +15,7 @@ func NewEpisodeService(db internal.Database) internal.EpisodeService {
 	return &episodeService{db}
 }
 
-func (s *episodeService) GetRecentlyAdded(ctx context.Context, params internal.GetRecentlyAddedParams) ([]internal.Episode, error) {
+func (s *episodeService) GetRecentlyAdded(ctx context.Context, params internal.GetRecentlyAddedFilter) ([]internal.Episode, error) {
 	return getRecentlyAddedEpisodes(ctx, s.db, params)
 }
 

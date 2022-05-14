@@ -80,15 +80,17 @@ func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*graph
 	return r.getShowById(ctx, showID)
 }
 
-var defaultSearchShowQuery = internal.ShowSearchQuery{
+var defaultSearchShowFilter = internal.ShowSearchFilter{
+	Pagination: internal.Pagination{
+		Offset: 0,
+		Limit:  25,
+	},
 	Search: "",
-	Offset: 0,
-	Limit:  25,
 	Sort:   "ASC",
 }
 
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*graphql.Show, error) {
-	query := defaultSearchShowQuery
+	query := defaultSearchShowFilter
 	if search != nil {
 		query.Search = strings.TrimSpace(*search)
 	}

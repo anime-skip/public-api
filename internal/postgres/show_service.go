@@ -23,23 +23,23 @@ func (s *showService) GetSeasonCount(ctx context.Context, id uuid.UUID) (int, er
 	return getEpisodeSeasonCountByShowID(ctx, s.db, id)
 }
 
-func (s *showService) Search(ctx context.Context, query internal.ShowSearchQuery) ([]internal.Show, error) {
+func (s *showService) Search(ctx context.Context, filter internal.ShowSearchFilter) ([]internal.Show, error) {
 	where := []WhereCondition{}
-	if query.Search != "" {
+	if filter.Search != "" {
 		where = append(where, WhereLike{
-			value:      "%" + query.Search + "%",
+			value:      "%" + filter.Search + "%",
 			column:     "name",
 			ignoreCase: true,
 		})
 	}
 
 	limitOffset := &LimitOffset{
-		Limit:  query.Limit,
-		Offset: query.Offset,
+		Limit:  filter.Limit,
+		Offset: filter.Offset,
 	}
 	orderBy := &OrderBy{
 		Column:    "name",
-		Direction: query.Sort,
+		Direction: filter.Sort,
 	}
 
 	return searchShows(ctx, s.db, where, orderBy, limitOffset)

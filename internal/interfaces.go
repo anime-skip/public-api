@@ -45,11 +45,11 @@ type EmailService interface {
 	SendResetPassword(ctx context.Context, user User, token string) error
 }
 
-type GetRecentlyAddedParams struct {
+type GetRecentlyAddedFilter struct {
 	Pagination
 }
 type EpisodeService interface {
-	GetRecentlyAdded(ctx context.Context, params GetRecentlyAddedParams) ([]Episode, error)
+	GetRecentlyAdded(ctx context.Context, filter GetRecentlyAddedFilter) ([]Episode, error)
 	GetByID(ctx context.Context, id uuid.UUID) (Episode, error)
 	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Episode, error)
 	Create(ctx context.Context, newEpisode Episode) (Episode, error)
@@ -81,17 +81,16 @@ type ShowAdminService interface {
 	Delete(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
 }
 
-type ShowSearchQuery struct {
+type ShowSearchFilter struct {
+	Pagination
 	Search string
-	Offset int
-	Limit  int
 	Sort   string
 }
 
 type ShowService interface {
 	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
 	GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error)
-	Search(ctx context.Context, query ShowSearchQuery) ([]Show, error)
+	Search(ctx context.Context, filter ShowSearchFilter) ([]Show, error)
 	Create(ctx context.Context, newShow Show) (Show, error)
 	Update(ctx context.Context, newShow Show) (Show, error)
 	Delete(ctx context.Context, id uuid.UUID) (Show, error)

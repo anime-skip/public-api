@@ -86,13 +86,13 @@ func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UU
 // Queries
 
 func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*graphql.Episode, error) {
-	params := internal.GetRecentlyAddedParams{
+	filter := internal.GetRecentlyAddedFilter{
 		Pagination: internal.Pagination{
 			Limit:  utils.IntOr(limit, 10),
 			Offset: utils.IntOr(offset, 0),
 		},
 	}
-	internalEpisodes, err := r.EpisodeService.GetRecentlyAdded(ctx, params)
+	internalEpisodes, err := r.EpisodeService.GetRecentlyAdded(ctx, filter)
 	if err != nil {
 		return nil, err
 	}

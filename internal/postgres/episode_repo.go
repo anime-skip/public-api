@@ -25,7 +25,7 @@ func getEpisodeSeasonCountByShowID(ctx context.Context, db internal.Database, id
 	return count, nil
 }
 
-func getRecentlyAddedEpisodes(ctx context.Context, db internal.Database, params internal.GetRecentlyAddedParams) ([]internal.Episode, error) {
+func getRecentlyAddedEpisodes(ctx context.Context, db internal.Database, filter internal.GetRecentlyAddedFilter) ([]internal.Episode, error) {
 	// What is this query?
 	// 1. Grab timestamps with distinct episode ids
 	// 2. Grab just the episode_id the timestamp belongs to and sort them by newest first (this is
@@ -47,7 +47,7 @@ func getRecentlyAddedEpisodes(ctx context.Context, db internal.Database, params 
 		)
 		ORDER BY created_at DESC NULLS LAST;
 	`
-	rows, err := db.QueryxContext(ctx, query, params.Limit, params.Offset)
+	rows, err := db.QueryxContext(ctx, query, filter.Limit, filter.Offset)
 	if err != nil {
 		return nil, err
 	}
