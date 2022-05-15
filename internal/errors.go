@@ -35,6 +35,15 @@ func NewNotFound(recordName string, op string) error {
 	}
 }
 
+func SQLFailure(op string, err error) error {
+	return &Error{
+		Code:    EINTERNAL,
+		Message: "Unhandled SQL error",
+		Op:      op,
+		Err:     err,
+	}
+}
+
 func IsNotFound(err error) bool {
 	if err == nil {
 		return false

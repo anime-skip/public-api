@@ -13,6 +13,9 @@ type Resolver struct {
 	DB internal.Database
 }
 
+// ApiClient returns graphql.ApiClientResolver implementation.
+func (r *Resolver) ApiClient() graphql.ApiClientResolver { return &apiClientResolver{r} }
+
 // Account returns graphql.AccountResolver implementation.
 func (r *Resolver) Account() graphql.AccountResolver { return &accountResolver{r} }
 
@@ -59,6 +62,7 @@ func (r *Resolver) TimestampType() graphql.TimestampTypeResolver { return &times
 // User returns graphql.UserResolver implementation.
 func (r *Resolver) User() graphql.UserResolver { return &userResolver{r} }
 
+type apiClientResolver struct{ *Resolver }
 type accountResolver struct{ *Resolver }
 type episodeResolver struct{ *Resolver }
 type episodeUrlResolver struct{ *Resolver }

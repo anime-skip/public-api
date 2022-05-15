@@ -69,10 +69,6 @@ func findPreferences(ctx context.Context, tx internal.Tx, filter internal.Prefer
 	return internal.ZeroPreferences, internal.NewNotImplemented("findPreferences")
 }
 
-func createPreferences(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
-	return preferences, internal.NewNotImplemented("createPreferences")
-}
-
 func updatePreferences(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
 	return preferences, internal.NewNotImplemented("updatePreferences")
 }
@@ -277,24 +273,6 @@ func deleteTimestampType(ctx context.Context, tx internal.Tx, timestampType inte
 }
 
 // User
-
-func findUsers(ctx context.Context, tx internal.Tx, filter internal.UsersFilter) ([]internal.FullUser, error) {
-	return []internal.FullUser{}, internal.NewNotImplemented("findUsers")
-}
-
-func findUser(ctx context.Context, tx internal.Tx, filter internal.UsersFilter) (internal.FullUser, error) {
-	all, err := findUsers(ctx, tx, filter)
-	if err != nil {
-		return internal.ZeroFullUser, err
-	} else if len(all) == 0 {
-		return internal.ZeroFullUser, internal.NewNotFound("User", "findUser")
-	}
-	return all[0], nil
-}
-
-func createUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
-	return user, internal.NewNotImplemented("createUser")
-}
 
 func updateUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
 	return user, internal.NewNotImplemented("updateUser")

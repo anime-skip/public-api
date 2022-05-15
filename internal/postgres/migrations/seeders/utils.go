@@ -87,10 +87,9 @@ func insertAPIClient(tx internal.Tx, client internal.APIClient) error {
 			user_id,
 			app_name,
 			description,
-			allowed_origins,
 			rate_limit_rpm
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11
 		)`,
 		client.ID,
 		client.CreatedAt,
@@ -102,7 +101,6 @@ func insertAPIClient(tx internal.Tx, client internal.APIClient) error {
 		client.UserID,
 		client.AppName,
 		client.Description,
-		client.AllowedOrigins,
 		client.RateLimitRpm,
 	)
 	return err

@@ -2,99 +2,60 @@ package postgres
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/postgres/sqlbuilder"
 	"anime-skip.com/public-api/internal/utils"
 	uuid "github.com/gofrs/uuid"
 )
 
 func findAPIClients(ctx context.Context, tx internal.Tx, filter internal.APIClientsFilter) ([]internal.APIClient, error) {
-	// Build query
-	where := []string{"1 = 1"}
-	args := []any{}
-	if !filter.IncludeDeleted {
-		where = append(where, "deleted_at IS NULL")
+	var scanned internal.APIClient
+	query := sqlbuilder.Select("api_clients", map[string]any{
+		"id":                 &scanned.ID,
+		"created_at":         &scanned.CreatedAt,
+		"created_by_user_id": &scanned.CreatedByUserID,
+		"updated_at":         &scanned.UpdatedAt,
+		"updated_by_user_id": &scanned.UpdatedByUserID,
+		"deleted_at":         &scanned.DeletedAt,
+		"deleted_by_user_id": &scanned.DeletedByUserID,
+		"user_id":            &scanned.UserID,
+		"app_name":           &scanned.AppName,
+		"description":        &scanned.Description,
+		// "allowed_origins":    &scanned.AllowedOrigins,
+		"rate_limit_rpm": &scanned.RateLimitRpm,
+	})
+	if filter.IncludeDeleted {
+		query.IncludeSoftDeleted()
 	}
 	if filter.UserID != nil {
-		args = append(args, *filter.UserID)
-		condition := fmt.Sprintf("user_id = $%d", len(args))
-		where = append(where, condition)
+		query.Where("user_id = ?", *filter.UserID)
 	}
 	if filter.ID != nil {
-		args = append(args, *filter.ID)
-		condition := fmt.Sprintf("id = $%d", len(args))
-		where = append(where, condition)
+		query.Where("id = ?", *filter.ID)
 	}
-	conditions := strings.Join(where, " AND ")
-	var limitOffset string
-	if p := filter.Pagination; p != nil {
-		args = append(args, p.Limit, p.Offset)
-		limitOffset = fmt.Sprintf("LIMIT $%d OFFSET $%d", len(args)-1, len(args))
+	if filter.NameContains != nil {
+		query.Where("app_name ILIKE ?", "%"+*filter.NameContains+"%")
 	}
-	query := fmt.Sprintf(
-		`
-			SELECT 
-				id
-				created_at
-				created_by_user_id
-				updated_at
-				updated_by_user_id
-				deleted_at
-				deleted_by_user_id
-				user_id
-				app_name
-				description
-				allowed_origins
-				rate_limit_rpm
-			FROM api_clients
-			WHERE %s
-			%s
-		`,
-		conditions,
-		limitOffset,
-	)
+	if filter.Pagination != nil {
+		query.Paginate(*filter.Pagination)
+	}
+	query.OrderBy("created_at", filter.Sort)
 
-	// Execute
-	rows, err := tx.QueryContext(ctx, query, args...)
+	sql, args := query.ToSQL()
+	rows, err := tx.QueryContext(ctx, sql, args...)
 	if err != nil {
-		return nil, &internal.Error{
-			Code:    internal.EINTERNAL,
-			Message: "Failed to query API clients",
-			Op:      "findAPIClients",
-			Err:     err,
-		}
+		return nil, internal.SQLFailure("findAPIClients", err)
 	}
-	defer rows.Close()
-
+	dest := query.ScanDest()
 	result := make([]internal.APIClient, 0)
 	for rows.Next() {
-		var client internal.APIClient
-		err = rows.Scan(
-			&client.ID,
-			&client.CreatedAt,
-			&client.CreatedByUserID,
-			&client.UpdatedAt,
-			&client.UpdatedByUserID,
-			&client.DeletedAt,
-			&client.DeletedByUserID,
-			&client.UserID,
-			&client.AppName,
-			&client.Description,
-			&client.AllowedOrigins,
-			&client.RateLimitRpm,
-		)
+		err = rows.Scan(dest...)
 		if err != nil {
-			return nil, &internal.Error{
-				Code:    internal.EINTERNAL,
-				Message: "Failed to load API clients",
-				Op:      "findAPIClients",
-				Err:     err,
-			}
+			return nil, internal.SQLFailure("findAPIClients", err)
 		}
-		result = append(result, client)
+		result = append(result, scanned)
 	}
 	return result, rows.Err()
 }
@@ -116,39 +77,27 @@ func createAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 	apiClient.UpdatedAt = *now()
 	apiClient.UpdatedByUserID = &createdBy
 
-	_, err := tx.ExecContext(
-		ctx,
-		`
-			INSERT INTO api_clients
-			(
-				id,
-				created_at,
-				created_by_user_id,
-				updated_at,
-				updated_by_user_id,
-				user_id,
-				app_name,
-				description,
-				allowed_origins,
-				rate_limit_rpm
-			)
-			VALUES (
-				$1, $2, $3, $4, $5, $6, $7, $8, $9, $10
-			)
-		`,
-		apiClient.ID,
-		apiClient.CreatedAt,
-		apiClient.CreatedByUserID,
-		apiClient.UpdatedAt,
-		apiClient.UpdatedByUserID,
-		apiClient.UserID,
-		apiClient.AppName,
-		apiClient.Description,
-		apiClient.AllowedOrigins,
-		apiClient.RateLimitRpm,
-	)
+	sql, args := sqlbuilder.Insert("api_clients", map[string]any{
+		"id":                 apiClient.ID,
+		"created_at":         apiClient.CreatedAt,
+		"created_by_user_id": apiClient.CreatedByUserID,
+		"updated_at":         apiClient.UpdatedAt,
+		"updated_by_user_id": apiClient.UpdatedByUserID,
+		"user_id":            apiClient.UserID,
+		"app_name":           apiClient.AppName,
+		"description":        apiClient.Description,
+		"rate_limit_rpm":     apiClient.RateLimitRpm,
+	}).ToSQL()
 
-	if err != nil {
+	_, err := tx.ExecContext(ctx, sql, args...)
+	if isConflict(err) {
+		return apiClient, &internal.Error{
+			Code:    internal.ECONFLICT,
+			Message: "API client with the generated ID already exists, try again",
+			Op:      "createAPIClient",
+			Err:     err,
+		}
+	} else if err != nil {
 		return apiClient, &internal.Error{
 			Code:    internal.EINTERNAL,
 			Message: "Failed to create API client",
@@ -163,35 +112,18 @@ func updateAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 	apiClient.UpdatedAt = *now()
 	apiClient.UpdatedByUserID = &updatedBy
 
-	_, err := tx.ExecContext(
-		ctx,
-		`
-			UPDATE api_clients
-			SET
-				updated_at = $1,
-				updated_by_user_id = $2,
-				deleted_at = $3,
-				deleted_by_user_id = $4,
-				user_id = $5,
-				app_name = $6,
-				description = $7,
-				allowed_origins = $8,
-				rate_limit_rpm = $9
-			WHERE
-				id = $10
-		`,
-		apiClient.UpdatedAt,
-		apiClient.UpdatedByUserID,
-		apiClient.DeletedAt,
-		apiClient.UpdatedByUserID,
-		apiClient.UserID,
-		apiClient.AppName,
-		apiClient.Description,
-		apiClient.AllowedOrigins,
-		apiClient.RateLimitRpm,
-		apiClient.ID,
-	)
+	sql, args := sqlbuilder.Update("api_clients", apiClient.ID, map[string]any{
+		"updated_at":         apiClient.UpdatedAt,
+		"updated_by_user_id": apiClient.UpdatedByUserID,
+		"deleted_at":         apiClient.DeletedAt,
+		"deleted_by_user_id": apiClient.DeletedByUserID,
+		"user_id":            apiClient.UserID,
+		"app_name":           apiClient.AppName,
+		"description":        apiClient.Description,
+		"rate_limit_rpm":     apiClient.RateLimitRpm,
+	}).ToSQL()
 
+	_, err := tx.ExecContext(ctx, sql, args...)
 	if err != nil {
 		return apiClient, &internal.Error{
 			Code:    internal.EINTERNAL,
@@ -200,6 +132,7 @@ func updateAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 			Err:     err,
 		}
 	}
+
 	return apiClient, nil
 }
 

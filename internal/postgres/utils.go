@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"strings"
 	"time"
 
 	"anime-skip.com/public-api/internal"
@@ -43,4 +44,8 @@ func inTx[T any](ctx context.Context, db internal.Database, write bool, zeroValu
 
 	tx.Commit()
 	return res, nil
+}
+
+func isConflict(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "duplicate key value violates unique constraint")
 }

@@ -40,6 +40,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Account() AccountResolver
+	ApiClient() ApiClientResolver
 	Episode() EpisodeResolver
 	EpisodeUrl() EpisodeUrlResolver
 	Mutation() MutationResolver
@@ -76,7 +77,6 @@ type ComplexityRoot struct {
 	}
 
 	ApiClient struct {
-		AllowedOrigins  func(childComplexity int) int
 		AppName         func(childComplexity int) int
 		CreatedAt       func(childComplexity int) int
 		CreatedBy       func(childComplexity int) int
@@ -165,7 +165,7 @@ type ComplexityRoot struct {
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
 		SavePreferences             func(childComplexity int, preferences map[string]interface{}) int
-		UpdateAPIClient             func(childComplexity int, id string, changes internal.APIClientChanges) int
+		UpdateAPIClient             func(childComplexity int, id string, changes map[string]interface{}) int
 		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode internal.InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL internal.InputEpisodeURL) int
 		UpdateShow                  func(childComplexity int, showID *uuid.UUID, newShow internal.InputShow) int
@@ -380,6 +380,9 @@ type AccountResolver interface {
 
 	Preferences(ctx context.Context, obj *internal.Account) (*internal.Preferences, error)
 }
+type ApiClientResolver interface {
+	User(ctx context.Context, obj *internal.APIClient) (*internal.User, error)
+}
 type EpisodeResolver interface {
 	CreatedBy(ctx context.Context, obj *internal.Episode) (*internal.User, error)
 
@@ -434,7 +437,7 @@ type MutationResolver interface {
 	AddTimestampToTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error)
 	RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error)
 	CreateAPIClient(ctx context.Context, client internal.CreateAPIClient) (*internal.APIClient, error)
-	UpdateAPIClient(ctx context.Context, id string, changes internal.APIClientChanges) (*internal.APIClient, error)
+	UpdateAPIClient(ctx context.Context, id string, changes map[string]interface{}) (*internal.APIClient, error)
 	DeleteAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
 }
 type PreferencesResolver interface {
@@ -620,13 +623,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Account.Username(childComplexity), true
 
-	case "ApiClient.allowedOrigins":
-		if e.complexity.ApiClient.AllowedOrigins == nil {
-			break
-		}
-
-		return e.complexity.ApiClient.AllowedOrigins(childComplexity), true
-
 	case "ApiClient.appName":
 		if e.complexity.ApiClient.AppName == nil {
 			break
@@ -690,7 +686,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.ApiClient.ID(childComplexity), true
 
-	case "ApiClient.rateLimitRPM":
+	case "ApiClient.rateLimitRpm":
 		if e.complexity.ApiClient.RateLimitRpm == nil {
 			break
 		}
@@ -1299,7 +1295,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateAPIClient(childComplexity, args["id"].(string), args["changes"].(internal.APIClientChanges)), true
+		return e.complexity.Mutation.UpdateAPIClient(childComplexity, args["id"].(string), args["changes"].(map[string]interface{})), true
 
 	case "Mutation.updateEpisode":
 		if e.complexity.Mutation.UpdateEpisode == nil {
@@ -3322,24 +3318,22 @@ type ApiClient {
   user: User!
   appName: String!
   description: String!
-  allowedOrigins: [String!]
-  rateLimitRPM: UInt
+  # allowedOrigins: [String!]
+  rateLimitRpm: UInt
 }
 
 input CreateApiClient {
-  AppName: String!
-  Description: String!
-  AllowedOrigins: [String!]
-  "Rate limits can only be used by Admins"
-  RateLimitRPM: UInt
+  appName: String!
+  description: String!
+  # allowedOrigins: [String!]
 }
 
 input ApiClientChanges {
-  AppName: String
-  Description: String
-  AllowedOrigins: [String!]
-  "Rate limits can only be changed by Admins"
-  RateLimitRPM: UInt
+  appName: String
+  description: String
+  # allowedOrigins: [String!]
+  "Rate limits can only be changed by admins"
+  rateLimitRpm: UInt
 }
 `, BuiltIn: false},
 	{Name: "api/mutations.graphqls", Input: `type Mutation {
@@ -4323,10 +4317,10 @@ func (ec *executionContext) field_Mutation_updateApiClient_args(ctx context.Cont
 		}
 	}
 	args["id"] = arg0
-	var arg1 internal.APIClientChanges
+	var arg1 map[string]interface{}
 	if tmp, ok := rawArgs["changes"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("changes"))
-		arg1, err = ec.unmarshalNApiClientChanges2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientChanges(ctx, tmp)
+		arg1, err = ec.unmarshalNApiClientChanges2map(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -5800,14 +5794,14 @@ func (ec *executionContext) _ApiClient_user(ctx context.Context, field graphql.C
 		Object:     "ApiClient",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.User, nil
+		return ec.resolvers.ApiClient().User(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5894,39 +5888,7 @@ func (ec *executionContext) _ApiClient_description(ctx context.Context, field gr
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _ApiClient_allowedOrigins(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:     "ApiClient",
-		Field:      field,
-		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.AllowedOrigins, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.([]string)
-	fc.Result = res
-	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _ApiClient_rateLimitRPM(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+func (ec *executionContext) _ApiClient_rateLimitRpm(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -9098,7 +9060,7 @@ func (ec *executionContext) _Mutation_updateApiClient(ctx context.Context, field
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateAPIClient(rctx, args["id"].(string), args["changes"].(internal.APIClientChanges))
+			return ec.resolvers.Mutation().UpdateAPIClient(rctx, args["id"].(string), args["changes"].(map[string]interface{}))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.Authenticated == nil {
@@ -16092,53 +16054,6 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
-func (ec *executionContext) unmarshalInputApiClientChanges(ctx context.Context, obj interface{}) (internal.APIClientChanges, error) {
-	var it internal.APIClientChanges
-	asMap := map[string]interface{}{}
-	for k, v := range obj.(map[string]interface{}) {
-		asMap[k] = v
-	}
-
-	for k, v := range asMap {
-		switch k {
-		case "AppName":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AppName"))
-			it.AppName, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "Description":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
-			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "AllowedOrigins":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AllowedOrigins"))
-			it.AllowedOrigins, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "RateLimitRPM":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RateLimitRPM"))
-			it.RateLimitRpm, err = ec.unmarshalOUInt2ᚖuint(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputCreateApiClient(ctx context.Context, obj interface{}) (internal.CreateAPIClient, error) {
 	var it internal.CreateAPIClient
 	asMap := map[string]interface{}{}
@@ -16148,35 +16063,19 @@ func (ec *executionContext) unmarshalInputCreateApiClient(ctx context.Context, o
 
 	for k, v := range asMap {
 		switch k {
-		case "AppName":
+		case "appName":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AppName"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("appName"))
 			it.AppName, err = ec.unmarshalNString2string(ctx, v)
 			if err != nil {
 				return it, err
 			}
-		case "Description":
+		case "description":
 			var err error
 
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("description"))
 			it.Description, err = ec.unmarshalNString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "AllowedOrigins":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AllowedOrigins"))
-			it.AllowedOrigins, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
-			if err != nil {
-				return it, err
-			}
-		case "RateLimitRPM":
-			var err error
-
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RateLimitRPM"))
-			it.RateLimitRpm, err = ec.unmarshalOUInt2ᚖuint(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -16783,7 +16682,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdAt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16793,7 +16692,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdByUserId":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16803,7 +16702,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16813,7 +16712,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedAt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16823,7 +16722,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedByUserId":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16833,7 +16732,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16843,7 +16742,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "deletedAt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16874,18 +16773,28 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "user":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_user(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ApiClient_user(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
+			})
 		case "appName":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ApiClient_appName(ctx, field, obj)
@@ -16894,7 +16803,7 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "description":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
@@ -16904,18 +16813,11 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
-		case "allowedOrigins":
+		case "rateLimitRpm":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_allowedOrigins(ctx, field, obj)
-			}
-
-			out.Values[i] = innerFunc(ctx)
-
-		case "rateLimitRPM":
-			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_rateLimitRPM(ctx, field, obj)
+				return ec._ApiClient_rateLimitRpm(ctx, field, obj)
 			}
 
 			out.Values[i] = innerFunc(ctx)
@@ -20736,9 +20638,8 @@ func (ec *executionContext) marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑa
 	return ec._ApiClient(ctx, sel, v)
 }
 
-func (ec *executionContext) unmarshalNApiClientChanges2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientChanges(ctx context.Context, v interface{}) (internal.APIClientChanges, error) {
-	res, err := ec.unmarshalInputApiClientChanges(ctx, v)
-	return res, graphql.ErrorOnPath(ctx, err)
+func (ec *executionContext) unmarshalNApiClientChanges2map(ctx context.Context, v interface{}) (map[string]interface{}, error) {
+	return v.(map[string]interface{}), nil
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {

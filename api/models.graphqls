@@ -551,22 +551,20 @@ type ApiClient {
   user: User!
   appName: String!
   description: String!
-  allowedOrigins: [String!]
-  rateLimitRPM: UInt
+  # allowedOrigins: [String!]
+  rateLimitRpm: UInt
 }
 
 input CreateApiClient {
-  AppName: String!
-  Description: String!
-  AllowedOrigins: [String!]
-  "Rate limits can only be used by Admins"
-  RateLimitRPM: UInt
+  appName: String!
+  description: String!
+  # allowedOrigins: [String!]
 }
 
 input ApiClientChanges {
-  AppName: String
-  Description: String
-  AllowedOrigins: [String!]
-  "Rate limits can only be changed by Admins"
-  RateLimitRPM: UInt
+  appName: String
+  description: String
+  # allowedOrigins: [String!]
+  "Rate limits can only be changed by admins"
+  rateLimitRpm: UInt
 }

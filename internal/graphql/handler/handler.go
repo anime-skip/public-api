@@ -2,6 +2,7 @@ package handler
 
 import (
 	"context"
+	"runtime/debug"
 	"time"
 
 	"github.com/vektah/gqlparser/v2/gqlerror"
@@ -39,6 +40,7 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 	srv.SetRecoverFunc(func(ctx context.Context, paniced any) error {
 		// TODO notify bugsnag
 
+		log.E("Recovered panic: %v\n%s", paniced, string(debug.Stack()))
 		return gqlerror.Errorf(internal.ErrorMessage(paniced))
 	})
 	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
@@ -50,8 +52,8 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 				return e
 			}
 		}
-		message := internal.ErrorMessage(err)
-		return gqlerror.Errorf(message)
+		log.E("Error: %v", err)
+		return gqlerror.Errorf(internal.ErrorMessage(err))
 	})
 
 	if enableIntrospection {

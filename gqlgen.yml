@@ -143,5 +143,9 @@ models:
         resolver: true
       timestamp:
         resolver: true
-  APIClientChanges:
+  ApiClient:
+    fields:
+      user:
+        resolver: true
+  ApiClientChanges:
     model: "map[string]interface{}"

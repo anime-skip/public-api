@@ -13,7 +13,8 @@ func Ptr[T any](t T) *T {
 
 func PtrSlice[T any](input []T) (output []*T) {
 	for _, t := range input {
-		output = append(output, &t)
+		copied := t
+		output = append(output, &copied)
 	}
 	return
 }
