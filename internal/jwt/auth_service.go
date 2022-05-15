@@ -63,7 +63,12 @@ func (s *jwtAuthService) createToken(
 	tokenString, err := token.SignedString(s.secret)
 	if err != nil {
 		log.E("%v", err)
-		return "", fmt.Errorf("Internal error: failed to generate %s token", audience)
+		return "", &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: fmt.Sprintf("Internal error: failed to generate %s token", audience),
+			Op:      "createToken",
+			Err:     err,
+		}
 	}
 	return tokenString, nil
 }
@@ -73,27 +78,51 @@ func (s *jwtAuthService) validateToken(name string, token string, audience strin
 		// Validate Algorithm
 		_, ok := token.Method.(*jwt.SigningMethodHMAC)
 		if !ok {
-			return nil, fmt.Errorf("Internal error 401-01")
+			return nil, &internal.Error{
+				Code:    internal.EINVALID,
+				Message: "Internal error 401-01",
+				Op:      "validateToken",
+			}
 		}
 		// return secret
 		return s.secret, nil
 	})
 	if err != nil {
 		log.V("%v", err)
-		return nil, fmt.Errorf("Invalid %s token", strings.ToLower(name))
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Invalid %s token", strings.ToLower(name)),
+			Op:      "validateToken",
+		}
 	}
 	payload, ok := jwtToken.Claims.(jwt.MapClaims)
 	if !ok {
-		return nil, fmt.Errorf("%s token has invalid claims", name)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("%s token has invalid claims", name),
+			Op:      "validateToken",
+		}
 	}
 	if isValidExpiresAt := payload.VerifyIssuedAt(time.Now().Unix(), true); !isValidExpiresAt {
-		return nil, fmt.Errorf("%s token is expired", name)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("%s token is expired", name),
+			Op:      "validateToken",
+		}
 	}
 	if isValidAudience := payload.VerifyAudience(audience, true); !isValidAudience {
-		return nil, fmt.Errorf("%s token has invalid audience", name)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("%s token has invalid audience", name),
+			Op:      "validateToken",
+		}
 	}
 	if isValidIssuer := payload.VerifyIssuer(ISSUER, true); !isValidIssuer {
-		return nil, fmt.Errorf("%s token has invalid issuer, expected '%s', but got '%v'", name, ISSUER, payload["iss"])
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("%s token has invalid issuer, expected '%s', but got '%v'", name, ISSUER, payload["iss"]),
+			Op:      "validateToken",
+		}
 	}
 	return payload, nil
 }
@@ -146,7 +175,11 @@ func (s *jwtAuthService) ValidateResetPasswordToken(token string) (internal.Auth
 func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) error {
 	err := bcrypt.CompareHashAndPassword([]byte(hashedPassword), []byte(inputPassword))
 	if err != nil {
-		return fmt.Errorf("Incorrect password")
+		return &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Incorrect password",
+			Op:      "ValidatePassword",
+		}
 	}
 	return nil
 }
@@ -182,7 +215,11 @@ func (s *jwtAuthService) CreateResetPasswordToken(user internal.FullUser) (strin
 func (s *jwtAuthService) CreateEncryptedPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
-		return "", fmt.Errorf("Failed to encrypt password")
+		return "", &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Failed to encrypt password",
+			Op:      "CreateEncryptedPassword",
+		}
 	}
 	return string(bytes), nil
 }

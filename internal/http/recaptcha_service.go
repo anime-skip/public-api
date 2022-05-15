@@ -3,7 +3,6 @@ package http
 import (
 	go_context "context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -26,12 +25,21 @@ func NewGoogleRecaptchaService(secret string, responseAllowList []string) intern
 	}
 }
 
-const errorMessage = "Recaptcha validation failed"
+var genericRecaptchaFailure = &internal.Error{
+	Code:    internal.EINTERNAL,
+	Message: "Recaptcha validation failed",
+	Op:      "RecaptchaService.Verify",
+}
 
 func (s *googleRecaptchaService) Verify(ctx go_context.Context, response string) error {
 	ipAddress, err := context.GetIPAddress(ctx)
 	if err != nil {
-		return errors.New("Could not get ip address from request")
+		return &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Could not get ip address from request",
+			Op:      "RecaptchaService.Verify",
+			Err:     err,
+		}
 	}
 
 	// Skip http verification when response matches allowlist
@@ -50,24 +58,24 @@ func (s *googleRecaptchaService) Verify(ctx go_context.Context, response string)
 	resp, err := http.Post(url, "application/json", nil)
 	if err != nil {
 		log.E("(VerifyRecaptcha) Failed to communicate: %v", err)
-		return errors.New(errorMessage)
+		return genericRecaptchaFailure
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.E("(VerifyRecaptcha) Could not read response body: %v", err)
-		return errors.New(errorMessage)
+		return genericRecaptchaFailure
 	}
 
 	var responseJson map[string]any
 	err = json.Unmarshal(body, &responseJson)
 	if err != nil {
 		log.E("(VerifyRecaptcha) Response body was not valid JSON: %v", err)
-		return errors.New(errorMessage)
+		return genericRecaptchaFailure
 	}
 	if responseJson["success"] != true {
-		return errors.New(errorMessage)
+		return genericRecaptchaFailure
 	}
 
 	return nil

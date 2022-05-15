@@ -59,7 +59,10 @@ func (s *animeSkipEmailService) sendEmail(ctx context.Context, endpoint string, 
 		return err
 	}
 	if resp.StatusCode >= 400 {
-		return fmt.Errorf("Send email request failed with status %s", resp.Status)
+		return &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: fmt.Sprintf("Send email request failed with status %s", resp.Status),
+		}
 	}
 	defer resp.Body.Close()
 

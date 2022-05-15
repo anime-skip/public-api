@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"errors"
 	"strings"
 
 	"anime-skip.com/public-api/internal"
@@ -108,9 +107,6 @@ func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset 
 		filter.Pagination.Offset = *offset
 	}
 	if limit != nil {
-		if *limit == 0 {
-			return nil, errors.New("Limit set to 0, results will never be returned")
-		}
 		filter.Pagination.Limit = *limit
 	}
 	if sort != nil {

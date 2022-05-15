@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	"anime-skip.com/public-api/internal"
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/gofrs/uuid"
 )
@@ -21,6 +22,10 @@ func UnmarshalUUID(v any) (*uuid.UUID, error) {
 		id, err := uuid.FromString(v)
 		return &id, err
 	default:
-		return nil, fmt.Errorf("%v is not a string", v)
+		return nil, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: fmt.Sprintf("%v is not a string", v),
+			Op:      "UnmarshalUUID",
+		}
 	}
 }

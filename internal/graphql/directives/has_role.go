@@ -28,7 +28,11 @@ func HasRole(ctx context1.Context, obj any, next graphql.Resolver, role internal
 	}
 
 	if !hasRole {
-		return nil, fmt.Errorf("Forbidden - you don't have the required role to perform this action (%s)", role)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (%s)", role),
+			Op:      "hasRole",
+		}
 	}
 	return next(ctx)
 }

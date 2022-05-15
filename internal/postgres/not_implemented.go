@@ -271,13 +271,3 @@ func updateTimestampType(ctx context.Context, tx internal.Tx, timestampType inte
 func deleteTimestampType(ctx context.Context, tx internal.Tx, timestampType internal.TimestampType, deletedBy uuid.UUID) (internal.TimestampType, error) {
 	return timestampType, internal.NewNotImplemented("deleteTimestampType")
 }
-
-// User
-
-func updateUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
-	return user, internal.NewNotImplemented("updateUser")
-}
-
-func deleteUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
-	return user, internal.NewNotImplemented("deleteUser")
-}

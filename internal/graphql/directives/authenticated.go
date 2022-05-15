@@ -2,8 +2,8 @@ package directives
 
 import (
 	ctx "context"
-	"errors"
 
+	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"github.com/99designs/gqlgen/graphql"
 )
@@ -16,7 +16,11 @@ func authenticate(ctx ctx.Context) (ctx.Context, error) {
 	services := context.GetServices(ctx)
 	token := context.GetAuthToken(ctx)
 	if token == "" {
-		return nil, errors.New("Unauthorized: Authorization header must be 'Bearer <token>'")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Unauthorized: Authorization header must be 'Bearer <token>'",
+			Op:      "authenticate",
+		}
 	}
 	details, err := services.AuthService.ValidateAccessToken(token)
 	if err != nil {

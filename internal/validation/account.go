@@ -1,15 +1,18 @@
 package validation
 
 import (
-	"errors"
 	"strings"
 
+	"anime-skip.com/public-api/internal"
 	"github.com/asaskevich/govalidator"
 )
 
 func AccountUsername(username string) error {
 	if len(strings.TrimSpace(username)) < 3 {
-		return errors.New("Username must be at least 3 characters long")
+		return &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Username must be at least 3 characters long",
+		}
 	}
 	return nil
 }
@@ -18,5 +21,8 @@ func AccountEmail(email string) error {
 	if govalidator.IsEmail(email) {
 		return nil
 	}
-	return errors.New("Email is not valid")
+	return &internal.Error{
+		Code:    internal.EINVALID,
+		Message: "Email is not valid",
+	}
 }

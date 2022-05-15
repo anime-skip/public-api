@@ -63,7 +63,7 @@ func findUser(ctx context.Context, tx internal.Tx, filter internal.UsersFilter) 
 	if err != nil {
 		return internal.ZeroFullUser, err
 	} else if len(all) == 0 {
-		return internal.ZeroFullUser, internal.NewNotFound("API client", "findUser")
+		return internal.ZeroFullUser, internal.NewNotFound("User", "findUser")
 	}
 	return all[0], nil
 }
@@ -90,7 +90,29 @@ func createUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (in
 
 	_, err = tx.ExecContext(ctx, sql, args...)
 	if err != nil {
-		return user, internal.SQLFailure("findUsers", err)
+		return user, internal.SQLFailure("createUser", err)
 	}
 	return user, nil
+}
+
+func updateUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
+	sql, args := sqlbuilder.Update("users", user.ID, map[string]any{
+		"deleted_at":     user.DeletedAt,
+		"username":       user.Username,
+		"email":          user.Email,
+		"password_hash":  user.PasswordHash,
+		"profile_url":    user.ProfileURL,
+		"email_verified": user.EmailVerified,
+		"role":           user.Role,
+	}).ToSQL()
+
+	_, err := tx.ExecContext(ctx, sql, args...)
+	if err != nil {
+		return user, internal.SQLFailure("updateUser", err)
+	}
+	return user, nil
+}
+
+func deleteUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
+	return user, internal.NewNotImplemented("deleteUser")
 }

@@ -18,13 +18,21 @@ func (r *Resolver) getLoginData(ctx context.Context, user internal.FullUser) (*i
 	accessToken, err := r.AuthService.CreateAccessToken(user)
 	if err != nil {
 		log.E("Failed to generate an auth token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
+		return nil, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Internal error logging in",
+			Err:     err,
+		}
 	}
 
 	refreshToken, err := r.AuthService.CreateRefreshToken(user)
 	if err != nil {
 		log.E("Failed to generate a refresh token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
+		return nil, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Internal error logging in",
+			Err:     err,
+		}
 	}
 
 	account := mappers.ToAccount(user)
@@ -318,11 +326,11 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken
 }
 
 func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*internal.Account, error) {
-	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
+	return nil, internal.NewNotImplemented("DeleteAccountRequest")
 }
 
 func (r *mutationResolver) DeleteAccount(ctx context.Context, deleteToken string) (*internal.Account, error) {
-	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
+	return nil, internal.NewNotImplemented("DeleteAccount")
 }
 
 // Queries
@@ -337,13 +345,19 @@ func (r *queryResolver) Login(ctx context.Context, usernameOrEmail string, passw
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameOrEmail, err)
 		// auth.LoginRetryTimer.Failure(usernameOrEmail)
-		return nil, fmt.Errorf("Bad login credentials")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
 	}
 
 	if err = r.AuthService.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
 		log.V("Failed validate password: %v", err)
 		// auth.LoginRetryTimer.Failure(usernameOrEmail)
-		return nil, fmt.Errorf("Bad login credentials")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
 	}
 
 	// defer auth.LoginRetryTimer.Success(usernameOrEmail)
@@ -353,7 +367,10 @@ func (r *queryResolver) Login(ctx context.Context, usernameOrEmail string, passw
 func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*internal.LoginData, error) {
 	claims, err := r.AuthService.ValidateRefreshToken(refreshToken)
 	if err != nil {
-		return nil, fmt.Errorf("Invalid refresh token")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Invalid refresh token",
+		}
 	}
 
 	user, err := r.UserService.Get(ctx, internal.UsersFilter{
@@ -361,7 +378,10 @@ func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (
 	})
 	if err != nil {
 		log.V("Failed to get user with id='%s': %v", claims.UserID, err)
-		return nil, fmt.Errorf("Bad login credentials")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
 	}
 
 	return r.getLoginData(ctx, user)

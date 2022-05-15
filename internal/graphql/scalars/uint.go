@@ -1,11 +1,11 @@
 package scalars
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"strconv"
 
+	"anime-skip.com/public-api/internal"
 	"github.com/99designs/gqlgen/graphql"
 )
 
@@ -26,17 +26,29 @@ func UnmarshalUInt(v any) (*uint, error) {
 		return UnmarshalUInt(i)
 	case int:
 		if v < 0 {
-			return nil, errors.New("Uint cannot be less than 0")
+			return nil, &internal.Error{
+				Code:    internal.EINVALID,
+				Message: "Uint cannot be less than 0",
+				Op:      "UnmarshalUInt",
+			}
 		}
 		ui := uint(v)
 		return &ui, nil
 	case int64:
 		if v < 0 {
-			return nil, errors.New("Uint cannot be less than 0")
+			return nil, &internal.Error{
+				Code:    internal.EINVALID,
+				Message: "Uint cannot be less than 0",
+				Op:      "UnmarshalUInt",
+			}
 		}
 		ui := uint(v)
 		return &ui, nil
 	default:
-		return nil, fmt.Errorf("%v is not a string", v)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("%v is not a uint", v),
+			Op:      "UnmarshalUInt",
+		}
 	}
 }

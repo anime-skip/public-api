@@ -2,7 +2,6 @@ package context
 
 import (
 	"context"
-	"errors"
 
 	"anime-skip.com/public-api/internal"
 )
@@ -16,7 +15,11 @@ func WithAuthClaims(ctx context.Context, claims internal.AuthClaims) context.Con
 func GetAuthClaims(ctx context.Context) (internal.AuthClaims, error) {
 	value, ok := ctx.Value(authClaimsKey).(internal.AuthClaims)
 	if !ok {
-		return internal.AuthClaims{}, errors.New("AuthClaims is not set yet, does this query/mutation use the @authenticated directive?")
+		return internal.AuthClaims{}, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "AuthClaims is not set yet, does this query/mutation use the @authenticated directive?",
+			Op:      "GetAuthClaims",
+		}
 	}
 	return value, nil
 }

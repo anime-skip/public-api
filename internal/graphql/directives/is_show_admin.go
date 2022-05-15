@@ -150,5 +150,9 @@ func IsShowAdmin(ctx context2.Context, params any, next graphql2.Resolver) (any,
 			return next(ctx)
 		}
 	}
-	return nil, fmt.Errorf("You are is not an admin of this show (id=%s)", showID)
+	return nil, &internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("You are is not an admin of this show (id=%s)", showID),
+		Op:      "IsShowAdmin",
+	}
 }
