@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	uuid "github.com/gofrs/uuid"
 )
@@ -117,7 +116,7 @@ func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.
 	}
 	for _, template := range templates {
 		_, err = deleteCascadeTemplate(ctx, tx, template, deletedBy)
-		if !errors.IsRecordNotFound(err) {
+		if !internal.IsNotFound(err) {
 			return internal.Episode{}, err
 		}
 	}
@@ -131,7 +130,7 @@ func deleteCascadeEpisode(ctx context.Context, tx internal.Tx, episode internal.
 	}
 	for _, timestamp := range timestamps {
 		_, err = deleteCascadeTimestamp(ctx, tx, timestamp, deletedBy)
-		if !errors.IsRecordNotFound(err) {
+		if !internal.IsNotFound(err) {
 			return internal.Episode{}, err
 		}
 	}

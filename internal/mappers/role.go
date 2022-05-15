@@ -1,8 +1,9 @@
 package mappers
 
 import (
+	"fmt"
+
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/errors"
 )
 
 func ToRoleEnum(i int) internal.Role {
@@ -14,7 +15,11 @@ func ToRoleEnum(i int) internal.Role {
 	case internal.ROLE_USER:
 		return internal.RoleUser
 	}
-	panic(errors.NewPanicedError("Unknown role integer: %d", i))
+	panic(&internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("Unknown role integer: %d", i),
+		Op:      "ToColorThemeEnum",
+	})
 }
 
 func ToRoleInt(role internal.Role) int {
@@ -26,5 +31,9 @@ func ToRoleInt(role internal.Role) int {
 	case internal.RoleUser:
 		return internal.ROLE_USER
 	}
-	panic(errors.NewPanicedError("Unknown role enum: %s", role))
+	panic(&internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("Unknown role enum: %s", role),
+		Op:      "ToColorThemeInt",
+	})
 }

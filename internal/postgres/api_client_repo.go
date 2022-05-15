@@ -84,7 +84,7 @@ func findAPIClients(ctx context.Context, tx internal.Tx, filter internal.APIClie
 			&client.AppName,
 			&client.Description,
 			&client.AllowedOrigins,
-			&client.RateLimitRPM,
+			&client.RateLimitRpm,
 		)
 		if err != nil {
 			return nil, &internal.Error{
@@ -110,19 +110,13 @@ func findAPIClient(ctx context.Context, tx internal.Tx, filter internal.APIClien
 }
 
 func createAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.APIClient, createdBy uuid.UUID) (internal.APIClient, error) {
-	var id uuid.UUID
-	err := utils.RandomID(&id)
-	if err != nil {
-		return apiClient, err
-	}
-	apiClient.ID = id.String()
-
+	apiClient.ID = utils.RandomString(32)
 	apiClient.CreatedAt = *now()
-	apiClient.CreatedByUserID = createdBy
+	apiClient.CreatedByUserID = &createdBy
 	apiClient.UpdatedAt = *now()
-	apiClient.UpdatedByUserID = createdBy
+	apiClient.UpdatedByUserID = &createdBy
 
-	_, err = tx.ExecContext(
+	_, err := tx.ExecContext(
 		ctx,
 		`
 			INSERT INTO api_clients
@@ -151,7 +145,7 @@ func createAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 		apiClient.AppName,
 		apiClient.Description,
 		apiClient.AllowedOrigins,
-		apiClient.RateLimitRPM,
+		apiClient.RateLimitRpm,
 	)
 
 	if err != nil {
@@ -167,7 +161,7 @@ func createAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 
 func updateAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.APIClient, updatedBy uuid.UUID) (internal.APIClient, error) {
 	apiClient.UpdatedAt = *now()
-	apiClient.UpdatedByUserID = updatedBy
+	apiClient.UpdatedByUserID = &updatedBy
 
 	_, err := tx.ExecContext(
 		ctx,
@@ -194,7 +188,7 @@ func updateAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 		apiClient.AppName,
 		apiClient.Description,
 		apiClient.AllowedOrigins,
-		apiClient.RateLimitRPM,
+		apiClient.RateLimitRpm,
 		apiClient.ID,
 	)
 

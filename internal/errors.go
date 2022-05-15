@@ -21,7 +21,7 @@ const (
 
 func NewNotImplemented(op string) error {
 	return &Error{
-		Message: "Not implemented",
+		Message: op + " not implemented",
 		Code:    EINTERNAL,
 		Op:      op,
 	}
@@ -35,7 +35,18 @@ func NewNotFound(recordName string, op string) error {
 	}
 }
 
-func ErrorMessage(err error) string {
+func IsNotFound(err error) bool {
+	if err == nil {
+		return false
+	} else if e, ok := err.(*Error); ok {
+		return e.Code == ENOTFOUND
+	} else if ok && e.Err != nil {
+		return IsNotFound(e.Err)
+	}
+	return false
+}
+
+func ErrorMessage(err any) string {
 	if err == nil {
 		return ""
 	} else if e, ok := err.(*Error); ok && e.Message != "" {
@@ -43,7 +54,7 @@ func ErrorMessage(err error) string {
 	} else if ok && e.Err != nil {
 		return ErrorMessage(e.Err)
 	}
-	return "An internal error has occurred. Please contact technical support."
+	return "An internal error has occurred. Contact support@anime-skip.com if the error persists"
 }
 
 func (e *Error) Error() string {

@@ -1,8 +1,9 @@
 package mappers
 
 import (
+	"fmt"
+
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/errors"
 )
 
 func ToColorThemeEnum(i int) internal.ColorTheme {
@@ -18,7 +19,11 @@ func ToColorThemeEnum(i int) internal.ColorTheme {
 	case internal.THEME_CRUNCHYROLL_ORANGE:
 		return internal.ColorThemeCrunchyrollOrange
 	}
-	panic(errors.NewPanicedError("Unknown role integer: %d", i))
+	panic(&internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("Unknown theme integer: %d", i),
+		Op:      "ToColorThemeEnum",
+	})
 }
 
 func ToColorThemeInt(theme internal.ColorTheme) int {
@@ -34,5 +39,9 @@ func ToColorThemeInt(theme internal.ColorTheme) int {
 	case internal.ColorThemeCrunchyrollOrange:
 		return internal.THEME_CRUNCHYROLL_ORANGE
 	}
-	panic(errors.NewPanicedError("Unknown theme enum: %s", theme))
+	panic(&internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("Unknown theme enum: %s", theme),
+		Op:      "ToColorThemeInt",
+	})
 }

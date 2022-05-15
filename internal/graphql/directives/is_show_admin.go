@@ -7,7 +7,6 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	graphql2 "github.com/99designs/gqlgen/graphql"
 	"github.com/gofrs/uuid"
@@ -106,10 +105,14 @@ func getShowIdFromParams(ctx context2.Context, params map[string]any, services i
 		}
 		names = append(names, name)
 	}
-	panic(errors.NewPanicedError(
-		"Internal error: No show id getter implemented for any of the args (%s)",
-		strings.Join(names, ", "),
-	))
+	return uuid.UUID{}, &internal.Error{
+		Code: internal.EINTERNAL,
+		Message: fmt.Sprintf(
+			"No show id getter implemented for any of the args (%s)",
+			strings.Join(names, ", "),
+		),
+		Op: "IsShowAdmin",
+	}
 }
 
 func IsShowAdmin(ctx context2.Context, params any, next graphql2.Resolver) (any, error) {

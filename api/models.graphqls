@@ -549,10 +549,10 @@ type ApiClient {
   userId: ID!
   "The user this client belongs to"
   user: User!
-  AppName: String!
-  Description: String!
-  AllowedOrigins: [String!]
-  RateLimitRPM: UInt
+  appName: String!
+  description: String!
+  allowedOrigins: [String!]
+  rateLimitRPM: UInt
 }
 
 input CreateApiClient {

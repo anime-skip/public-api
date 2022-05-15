@@ -7,7 +7,6 @@ import (
 	"github.com/vektah/gqlparser/v2/gqlerror"
 
 	"anime-skip.com/public-api/internal"
-	myerrors "anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/graphql/directives"
 	"anime-skip.com/public-api/internal/graphql/resolvers"
@@ -40,10 +39,19 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 	srv.SetRecoverFunc(func(ctx context.Context, paniced any) error {
 		// TODO notify bugsnag
 
-		if err, ok := paniced.(*myerrors.PanicedError); ok {
-			return gqlerror.Errorf(err.Error())
+		return gqlerror.Errorf(internal.ErrorMessage(paniced))
+	})
+	srv.SetErrorPresenter(func(ctx context.Context, err error) *gqlerror.Error {
+		if e, ok := err.(*gqlerror.Error); ok {
+			unwrapped := e.Unwrap()
+			if unwrapped != nil {
+				err = unwrapped
+			} else {
+				return e
+			}
 		}
-		return gqlerror.Errorf("Internal server error")
+		message := internal.ErrorMessage(err)
+		return gqlerror.Errorf(message)
 	})
 
 	if enableIntrospection {

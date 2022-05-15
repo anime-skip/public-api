@@ -143,3 +143,5 @@ models:
         resolver: true
       timestamp:
         resolver: true
+  APIClientChanges:
+    model: "map[string]interface{}"

@@ -54,24 +54,26 @@ type APIClient struct {
 	UserID *uuid.UUID `json:"userId"`
 	// The user this client belongs to
 	User           *User    `json:"user"`
-	AppName        string   `json:"AppName"`
-	Description    string   `json:"Description"`
-	AllowedOrigins []string `json:"AllowedOrigins"`
-	RateLimitRpm   *uint    `json:"RateLimitRPM"`
+	AppName        string   `json:"appName"`
+	Description    string   `json:"description"`
+	AllowedOrigins []string `json:"allowedOrigins"`
+	RateLimitRpm   *uint    `json:"rateLimitRPM"`
 }
 
 type APIClientChanges struct {
 	AppName        *string  `json:"AppName"`
 	Description    *string  `json:"Description"`
 	AllowedOrigins []string `json:"AllowedOrigins"`
-	RateLimitRpm   *uint    `json:"RateLimitRPM"`
+	// Rate limits can only be changed by Admins
+	RateLimitRpm *uint `json:"RateLimitRPM"`
 }
 
 type CreateAPIClient struct {
 	AppName        string   `json:"AppName"`
 	Description    string   `json:"Description"`
 	AllowedOrigins []string `json:"AllowedOrigins"`
-	RateLimitRpm   *uint    `json:"RateLimitRPM"`
+	// Rate limits can only be used by Admins
+	RateLimitRpm *uint `json:"RateLimitRPM"`
 }
 
 // Basic information about an episode, including season, numbers, a list of timestamps, and urls that

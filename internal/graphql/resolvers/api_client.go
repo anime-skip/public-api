@@ -4,7 +4,6 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/utils"
-	"github.com/gofrs/uuid"
 )
 
 // Helpers
@@ -15,11 +14,11 @@ func (r *mutationResolver) CreateAPIClient(ctx context.Context, client internal.
 	panic("unimplemented")
 }
 
-func (r *mutationResolver) DeleteAPIClient(ctx context.Context, id *uuid.UUID) (*internal.APIClient, error) {
+func (r *mutationResolver) DeleteAPIClient(ctx context.Context, id string) (*internal.APIClient, error) {
 	panic("unimplemented")
 }
 
-func (r *mutationResolver) UpdateAPIClient(ctx context.Context, id *uuid.UUID, changes *internal.APIClientChanges) (*internal.APIClient, error) {
+func (r *mutationResolver) UpdateAPIClient(ctx context.Context, id string, changes internal.APIClientChanges) (*internal.APIClient, error) {
 	panic("unimplemented")
 }
 

@@ -103,7 +103,7 @@ func insertAPIClient(tx internal.Tx, client internal.APIClient) error {
 		client.AppName,
 		client.Description,
 		client.AllowedOrigins,
-		client.RateLimitRPM,
+		client.RateLimitRpm,
 	)
 	return err
 }

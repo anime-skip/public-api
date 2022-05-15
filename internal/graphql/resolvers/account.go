@@ -6,7 +6,6 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -61,22 +60,30 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	_, err = r.UserService.Get(ctx, internal.UsersFilter{
 		Username: &username,
 	})
-	if err == nil {
-		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
+	if !internal.IsNotFound(err) {
+		return nil, err
 	}
-	if !errors.IsRecordNotFound(err) {
-		return nil, fmt.Errorf("Error checking for user with same username: %s", err.Error())
+	if err == nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Username '%s' is already taken, use a different one", username),
+			Op:      "CreateAccount",
+		}
 	}
 
 	log.V("Checking for existing email")
 	_, err = r.UserService.Get(ctx, internal.UsersFilter{
 		Email: &email,
 	})
-	if err == nil {
-		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
+	if !internal.IsNotFound(err) {
+		return nil, err
 	}
-	if !errors.IsRecordNotFound(err) {
-		return nil, fmt.Errorf("Error checking for user with same email: %s", err.Error())
+	if err == nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Email '%s' is already taken, use a different one", email),
+			Op:      "CreateAccount",
+		}
 	}
 
 	log.V("Generating passwordHash")
@@ -101,21 +108,21 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	err = r.EmailService.SendWelcome(ctx, createdUser)
 	if err != nil {
 		log.E("Failed to send welcome email: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		return nil, err
 	}
 
 	log.V("Creating access token")
 	accessToken, err := r.AuthService.CreateAccessToken(createdUser)
 	if err != nil {
 		log.E("Failed to create access token: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		return nil, err
 	}
 
 	log.V("Creating refresh token")
 	refreshToken, err := r.AuthService.CreateRefreshToken(createdUser)
 	if err != nil {
 		log.E("Failed to create refresh token: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		return nil, err
 	}
 
 	account := mappers.ToAccount(createdUser)
@@ -141,10 +148,18 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 
 func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
-		return nil, errors.New("New passwords do not match")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Passwords did not match",
+			Op:      "ChangePassword",
+		}
 	}
 	if newPassword == "" {
-		return nil, errors.New("New password is not valid, it cannot be empty")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "New password is not valid, it cannot be empty",
+			Op:      "ChangePassword",
+		}
 	}
 
 	auth, err := context.GetAuthClaims(ctx)
@@ -161,7 +176,11 @@ func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword strin
 
 	oldPasswordHash := utils.MD5(oldPassword)
 	if err = r.AuthService.ValidatePassword(oldPasswordHash, user.PasswordHash); err != nil {
-		return nil, fmt.Errorf("Old password is not correct")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Old password is not correct",
+			Op:      "ChangePassword",
+		}
 	}
 
 	newPasswordHash := utils.MD5(newPassword)
@@ -243,7 +262,7 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaRe
 	user, err := r.UserService.Get(ctx, internal.UsersFilter{
 		Email: &email,
 	})
-	if errors.IsRecordNotFound(err) {
+	if internal.IsNotFound(err) {
 		// Don't provide hints to if a user has an account or not
 		return true, nil
 	} else if err != nil {
@@ -264,7 +283,11 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaRe
 
 func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
-		return nil, errors.New("New passwords don't match")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Passwords did not match",
+			Op:      "ChangePassword",
+		}
 	}
 
 	claims, err := r.AuthService.ValidateResetPasswordToken(passwordResetToken)
