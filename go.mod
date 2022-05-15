@@ -10,7 +10,6 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v1.5.4
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.2.3
 	github.com/onsi/ginkgo v1.16.5
