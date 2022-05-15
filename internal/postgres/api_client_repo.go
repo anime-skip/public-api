@@ -15,7 +15,7 @@ func findAPIClients(ctx context.Context, tx internal.Tx, filter internal.APIClie
 	// Build query
 	where := []string{"1 = 1"}
 	args := []any{}
-	if !utils.ValueOr(filter.IncludeDeleted, false) {
+	if !filter.IncludeDeleted {
 		where = append(where, "deleted_at IS NULL")
 	}
 	if filter.UserID != nil {
