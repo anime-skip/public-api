@@ -3,7 +3,6 @@ package resolvers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -120,7 +119,20 @@ func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.U
 }
 
 func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*internal.Episode, error) {
-	panic(errors.NewPanicedError("queryResolver.SearchEpisodes not implemented"))
+	filter := internal.EpisodesFilter{
+		Pagination: &internal.Pagination{
+			Limit:  utils.ValueOr(limit, 25),
+			Offset: utils.ValueOr(offset, 0),
+		},
+		NameContains: search,
+		ShowID:       showID,
+		Sort:         utils.ValueOr(sort, "ASC"),
+	}
+	episodes, err := r.EpisodeService.List(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return utils.PtrSlice(episodes), nil
 }
 
 func (r *queryResolver) FindEpisodeByName(ctx context.Context, name string) ([]*internal.ThirdPartyEpisode, error) {

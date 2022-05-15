@@ -44,8 +44,12 @@ type EpisodesFilter struct {
 	ID             *uuid.UUID
 	Name           *string
 	NameContains   *string
+	Number         *string
+	Season         *string
+	AbsoluteNumber *string
 	ShowID         *uuid.UUID
 	IncludeDeleted bool
+	Sort           string
 }
 
 type EpisodeURLsFilter struct {

@@ -104,6 +104,7 @@ type TimestampService interface {
 	Get(ctx context.Context, filter TimestampsFilter) (Timestamp, error)
 	List(ctx context.Context, filter TimestampsFilter) ([]Timestamp, error)
 	Create(ctx context.Context, newTimestamp Timestamp, createdBy uuid.UUID) (Timestamp, error)
+	UpdateAll(ctx context.Context, create []Timestamp, update []Timestamp, delete []Timestamp, updatedBy uuid.UUID) (created []Timestamp, updated []Timestamp, deleted []Timestamp, err error)
 	Update(ctx context.Context, newTimestamp Timestamp, updatedBy uuid.UUID) (Timestamp, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Timestamp, error)
 }

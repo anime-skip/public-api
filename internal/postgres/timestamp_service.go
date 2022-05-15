@@ -39,6 +39,35 @@ func (s *timestampService) Update(ctx context.Context, newTimestamp internal.Tim
 	})
 }
 
+func (s *timestampService) UpdateAll(ctx context.Context, create []internal.Timestamp, update []internal.Timestamp, delete []internal.Timestamp, updatedBy uuid.UUID) (created []internal.Timestamp, updated []internal.Timestamp, deleted []internal.Timestamp, err error) {
+	_, err = inTx(ctx, s.db, true, nil, func(tx internal.Tx) (any, error) {
+		for _, toCreate := range create {
+			t, err := createTimestamp(ctx, tx, toCreate, updatedBy)
+			if err != nil {
+				return nil, err
+			}
+			created = append(created, t)
+		}
+		for _, toUpdate := range create {
+			t, err := updateTimestamp(ctx, tx, toUpdate, updatedBy)
+			if err != nil {
+				return nil, err
+			}
+			updated = append(updated, t)
+		}
+		for _, toDelete := range create {
+			t, err := deleteCascadeTimestamp(ctx, tx, toDelete, updatedBy)
+			if err != nil {
+				return nil, err
+			}
+			deleted = append(deleted, t)
+		}
+		return nil, nil
+	})
+
+	return
+}
+
 func (s *timestampService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (internal.Timestamp, error) {
 	return inTx(ctx, s.db, true, internal.ZeroTimestamp, func(tx internal.Tx) (internal.Timestamp, error) {
 		existing, err := findTimestamp(ctx, tx, internal.TimestampsFilter{

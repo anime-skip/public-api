@@ -17,3 +17,10 @@ func PtrSlice[T any](input []T) (output []*T) {
 	}
 	return
 }
+
+func ValueSlice[T any](input []*T) (output []T) {
+	for _, t := range input {
+		output = append(output, *t)
+	}
+	return
+}

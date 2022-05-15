@@ -3,7 +3,6 @@ package resolvers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -96,7 +95,57 @@ func (r *mutationResolver) DeleteTimestamp(ctx context.Context, id *uuid.UUID) (
 }
 
 func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*internal.InputTimestampOn, update []*internal.InputExistingTimestamp, delete []*uuid.UUID) (*internal.UpdatedTimestamps, error) {
-	panic(errors.NewPanicedError("mutationResolver.UpdateTimestamps not implemented"))
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	createTimestamps := []internal.Timestamp{}
+	updateTimestamps := []internal.Timestamp{}
+	deleteTimestamps := []internal.Timestamp{}
+	for _, c := range create {
+		newTimestamp := internal.Timestamp{
+			EpisodeID: c.EpisodeID,
+		}
+		mappers.ApplyGraphqlInputTimestamp(*c.Timestamp, &newTimestamp)
+		createTimestamps = append(createTimestamps, newTimestamp)
+	}
+	for _, u := range update {
+		newTimestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
+			ID: u.ID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		mappers.ApplyGraphqlInputTimestamp(*u.Timestamp, &newTimestamp)
+		updateTimestamps = append(updateTimestamps, newTimestamp)
+	}
+	for _, d := range delete {
+		existingTimestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
+			ID: d,
+		})
+		if err != nil {
+			return nil, err
+		}
+		deleteTimestamps = append(deleteTimestamps, existingTimestamp)
+	}
+
+	created, updated, deleted, err := r.TimestampService.UpdateAll(
+		ctx,
+		createTimestamps,
+		updateTimestamps,
+		deleteTimestamps,
+		auth.UserID,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+	return &internal.UpdatedTimestamps{
+		Created: utils.PtrSlice(created),
+		Updated: utils.PtrSlice(updated),
+		Deleted: utils.PtrSlice(deleted),
+	}, nil
 }
 
 // Queries
