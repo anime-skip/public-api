@@ -74,6 +74,7 @@ type ShowAdminsFilter struct {
 type ShowsFilter struct {
 	Pagination     *Pagination
 	ID             *uuid.UUID
+	Name           *string
 	NameContains   *string
 	Sort           string
 	IncludeDeleted bool
@@ -83,8 +84,9 @@ type TemplatesFilter struct {
 	Pagination      *Pagination
 	ID              *uuid.UUID
 	SourceEpisodeID *uuid.UUID
-	EpisodeID       *uuid.UUID
 	ShowID          *uuid.UUID
+	Season          *string
+	Type            *int
 	IncludeDeleted  bool
 }
 

@@ -3,7 +3,6 @@ package resolvers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -28,7 +27,7 @@ func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*interna
 
 func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*internal.Template, error) {
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
-		EpisodeID: episodeID,
+		SourceEpisodeID: episodeID,
 	})
 	if err != nil {
 		return nil, err
@@ -114,7 +113,55 @@ func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.
 }
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error) {
-	panic(errors.NewPanicedError("queryResolver.FindTemplateByDetails not implemented"))
+	templates := []internal.Template{}
+
+	// 1. Matching source episodeId
+	if episodeID != nil {
+		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
+			SourceEpisodeID: episodeID,
+		})
+		if err != nil {
+			return nil, err
+		} else if len(templates) > 0 {
+			return &templates[0], nil
+		}
+	}
+
+	if showName != nil {
+		show, err := r.ShowService.Get(ctx, internal.ShowsFilter{
+			Name: showName,
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		// 2. Matching showname (case sensitive) and season (case sensitive)
+		if season != nil {
+			templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
+				ShowID: show.ID,
+				Season: season,
+				Type:   utils.Ptr(internal.TEMPLATE_TYPE_SEASONS),
+			})
+			if err != nil {
+				return nil, err
+			} else if len(templates) > 0 {
+				return &templates[0], nil
+			}
+		}
+
+		// 3. Matching showname (case sensitive)
+		templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
+			ShowID: show.ID,
+			Type:   utils.Ptr(internal.TEMPLATE_TYPE_SHOW),
+		})
+		if err != nil {
+			return nil, err
+		} else if len(templates) > 0 {
+			return &templates[0], nil
+		}
+	}
+
+	return nil, internal.NewNotFound("Template", "FindTemplateByDetails")
 }
 
 // Fields
