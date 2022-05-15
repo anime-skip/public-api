@@ -32,7 +32,7 @@ type APIClientsFilter struct {
 	Pagination     *Pagination
 	ID             *string
 	UserID         *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type RecentlyAddedEpisodesFilter struct {
@@ -45,14 +45,13 @@ type EpisodesFilter struct {
 	Name           *string
 	NameContains   *string
 	ShowID         *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type EpisodeURLsFilter struct {
-	Pagination     *Pagination
-	URL            *string
-	EpisodeID      *uuid.UUID
-	IncludeDeleted *bool
+	Pagination *Pagination
+	URL        *string
+	EpisodeID  *uuid.UUID
 }
 
 type PreferencesFilter struct {
@@ -65,7 +64,7 @@ type ShowAdminsFilter struct {
 	ID             *uuid.UUID
 	ShowID         *uuid.UUID
 	UserID         *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type ShowsFilter struct {
@@ -73,7 +72,7 @@ type ShowsFilter struct {
 	ID             *uuid.UUID
 	NameContains   *string
 	Sort           string
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type TemplatesFilter struct {
@@ -82,27 +81,27 @@ type TemplatesFilter struct {
 	SourceEpisodeID *uuid.UUID
 	EpisodeID       *uuid.UUID
 	ShowID          *uuid.UUID
-	IncludeDeleted  *bool
+	IncludeDeleted  bool
 }
 
 type TemplateTimestampsFilter struct {
 	Pagination     *Pagination
 	TemplateID     *uuid.UUID
 	TimestampID    *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type TimestampsFilter struct {
 	Pagination     *Pagination
 	ID             *uuid.UUID
 	EpisodeID      *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type TimestampTypesFilter struct {
 	Pagination     *Pagination
 	ID             *uuid.UUID
-	IncludeDeleted *bool
+	IncludeDeleted bool
 }
 
 type UsersFilter struct {
@@ -111,7 +110,7 @@ type UsersFilter struct {
 	Username        *string
 	Email           *string
 	UsernameOrEmail *string
-	IncludeDeleted  *bool
+	IncludeDeleted  bool
 }
 
 type APIClient struct {

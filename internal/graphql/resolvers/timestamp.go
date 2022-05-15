@@ -17,7 +17,8 @@ func (r *Resolver) getTimestampByID(ctx context.Context, id *uuid.UUID) (*intern
 		return nil, nil
 	}
 	timestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

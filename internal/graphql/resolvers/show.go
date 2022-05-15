@@ -19,7 +19,8 @@ func (r *Resolver) getShowById(ctx context.Context, id *uuid.UUID) (*internal.Sh
 		return nil, nil
 	}
 	show, err := r.ShowService.Get(ctx, internal.ShowsFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

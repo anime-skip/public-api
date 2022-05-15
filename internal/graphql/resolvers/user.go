@@ -15,7 +15,8 @@ func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*internal.Us
 		return nil, nil
 	}
 	fullUser, err := r.UserService.Get(ctx, internal.UsersFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

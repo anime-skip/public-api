@@ -17,7 +17,8 @@ func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*interna
 		return nil, nil
 	}
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

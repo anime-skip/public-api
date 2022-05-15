@@ -16,7 +16,8 @@ func (r *Resolver) getTimestampTypeByID(ctx context.Context, id *uuid.UUID) (*in
 		return nil, nil
 	}
 	timestampType, err := r.TimestampTypeService.Get(ctx, internal.TimestampTypesFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err

@@ -17,7 +17,8 @@ func (r *Resolver) getEpisodeByID(ctx context.Context, id *uuid.UUID) (*internal
 		return nil, nil
 	}
 	episode, err := r.EpisodeService.Get(ctx, internal.EpisodesFilter{
-		ID: id,
+		ID:             id,
+		IncludeDeleted: true,
 	})
 	if err != nil {
 		return nil, err
