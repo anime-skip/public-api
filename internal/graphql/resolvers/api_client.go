@@ -43,7 +43,8 @@ func (r *mutationResolver) UpdateAPIClient(ctx context.Context, id string, chang
 	}
 
 	newAPIClient, err := r.APIClientService.Get(ctx, internal.APIClientsFilter{
-		ID: &id,
+		ID:     &id,
+		UserID: &auth.UserID,
 	})
 	if err != nil {
 		return nil, err
@@ -63,7 +64,7 @@ func (r *mutationResolver) DeleteAPIClient(ctx context.Context, id string) (*int
 		return nil, err
 	}
 
-	deleted, err := r.APIClientService.Delete(ctx, id, auth.UserID)
+	deleted, err := r.APIClientService.Delete(ctx, id, auth.UserID, auth.UserID)
 	if err != nil {
 		return nil, err
 	}
@@ -117,4 +118,16 @@ func (r *queryResolver) MyAPIClients(ctx context.Context, search *string, offset
 
 func (r *apiClientResolver) User(ctx context.Context, obj *internal.APIClient) (*internal.User, error) {
 	return r.getUserById(ctx, obj.UserID)
+}
+
+func (r *apiClientResolver) CreatedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error) {
+	return r.getUserById(ctx, obj.CreatedByUserID)
+}
+
+func (r *apiClientResolver) UpdatedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error) {
+	return r.getUserById(ctx, obj.UpdatedByUserID)
+}
+
+func (r *apiClientResolver) DeletedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error) {
+	return r.getUserById(ctx, obj.DeletedByUserID)
 }

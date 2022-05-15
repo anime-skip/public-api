@@ -39,10 +39,11 @@ func (s *apiClientService) Update(ctx context.Context, newAPIClient internal.API
 	})
 }
 
-func (s *apiClientService) Delete(ctx context.Context, id string, deletedBy uuid.UUID) (internal.APIClient, error) {
+func (s *apiClientService) Delete(ctx context.Context, id string, userID uuid.UUID, deletedBy uuid.UUID) (internal.APIClient, error) {
 	return inTx(ctx, s.db, true, internal.ZeroAPIClient, func(tx internal.Tx) (internal.APIClient, error) {
 		existing, err := findAPIClient(ctx, tx, internal.APIClientsFilter{
-			ID: &id,
+			ID:     &id,
+			UserID: &userID,
 		})
 		if err != nil {
 			return internal.ZeroAPIClient, err

@@ -19,7 +19,7 @@ type APIClientService interface {
 	List(ctx context.Context, filter APIClientsFilter) ([]APIClient, error)
 	Create(ctx context.Context, newAPIClient APIClient, createdBy uuid.UUID) (APIClient, error)
 	Update(ctx context.Context, newAPIClient APIClient, updatedBy uuid.UUID) (APIClient, error)
-	Delete(ctx context.Context, id string, deletedBy uuid.UUID) (APIClient, error)
+	Delete(ctx context.Context, id string, userID uuid.UUID, deletedBy uuid.UUID) (APIClient, error)
 }
 
 type AuthClaims struct {

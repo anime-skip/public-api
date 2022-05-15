@@ -8,14 +8,17 @@ import (
 	"github.com/gofrs/uuid"
 )
 
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
+
 // RandomString of a specific length
 func RandomString(length int) string {
-	source := rand.New(rand.NewSource(time.Now().Unix()))
 	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
 
 	s := make([]rune, length)
 	for i := range s {
-		s[i] = letters[source.Intn(len(letters))]
+		s[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(s)
 }

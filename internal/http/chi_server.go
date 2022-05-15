@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/go-chi/chi"
@@ -13,6 +14,7 @@ import (
 	"anime-skip.com/public-api/internal/config"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/utils"
 )
 
 type chiServer struct {
@@ -53,6 +55,7 @@ func (s *chiServer) Start() error {
 	router.Route(s.graphqlPath, func(r chi.Router) {
 		r.Use(s.ipMiddleware)
 		r.Use(s.directivesMiddleware)
+		r.Use(s.apiClientMiddleware)
 		r.Handle("/", s.graphqlHandler.Handler)
 	})
 
@@ -76,6 +79,29 @@ func (s *chiServer) directivesMiddleware(next http.Handler) http.Handler {
 		ctx = context.WithServices(ctx, s.services)
 		ctx = context.WithAuthToken(ctx, getAuthToken(r))
 		next.ServeHTTP(rw, r.WithContext(ctx))
+	})
+}
+
+func (s *chiServer) apiClientMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		clientID := utils.Ptr(r.Header.Get("X-Client-ID"))
+		if clientID == nil || strings.TrimSpace(*clientID) == "" {
+			writeJson(rw, map[string]any{
+				"errors": []map[string]any{{"message": "The X-Client-ID header must be passed"}},
+			}, http.StatusOK)
+			return
+		}
+		_, err := s.services.APIClientService.Get(r.Context(), internal.APIClientsFilter{
+			ID: utils.Ptr(strings.TrimSpace(*clientID)),
+		})
+
+		if err != nil {
+			writeJson(rw, map[string]any{
+				"errors": []map[string]any{{"message": "Invalid X-Client-ID header, API client not found"}},
+			}, http.StatusOK)
+		} else {
+			next.ServeHTTP(rw, r)
+		}
 	})
 }
 

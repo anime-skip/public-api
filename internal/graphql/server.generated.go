@@ -381,6 +381,12 @@ type AccountResolver interface {
 	Preferences(ctx context.Context, obj *internal.Account) (*internal.Preferences, error)
 }
 type ApiClientResolver interface {
+	CreatedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error)
+
+	UpdatedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error)
+
+	DeletedBy(ctx context.Context, obj *internal.APIClient) (*internal.User, error)
+
 	User(ctx context.Context, obj *internal.APIClient) (*internal.User, error)
 }
 type EpisodeResolver interface {
@@ -5523,14 +5529,14 @@ func (ec *executionContext) _ApiClient_createdBy(ctx context.Context, field grap
 		Object:     "ApiClient",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.CreatedBy, nil
+		return ec.resolvers.ApiClient().CreatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5628,14 +5634,14 @@ func (ec *executionContext) _ApiClient_updatedBy(ctx context.Context, field grap
 		Object:     "ApiClient",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.UpdatedBy, nil
+		return ec.resolvers.ApiClient().UpdatedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5727,14 +5733,14 @@ func (ec *executionContext) _ApiClient_deletedBy(ctx context.Context, field grap
 		Object:     "ApiClient",
 		Field:      field,
 		Args:       nil,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.DeletedBy, nil
+		return ec.resolvers.ApiClient().DeletedBy(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16705,15 +16711,25 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "createdBy":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_createdBy(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ApiClient_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "updatedAt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ApiClient_updatedAt(ctx, field, obj)
@@ -16735,15 +16751,25 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "updatedBy":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_updatedBy(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ApiClient_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
-			}
+			})
 		case "deletedAt":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ApiClient_deletedAt(ctx, field, obj)
@@ -16759,12 +16785,22 @@ func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet
 			out.Values[i] = innerFunc(ctx)
 
 		case "deletedBy":
+			field := field
+
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
-				return ec._ApiClient_deletedBy(ctx, field, obj)
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._ApiClient_deletedBy(ctx, field, obj)
+				return res
 			}
 
-			out.Values[i] = innerFunc(ctx)
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
 
+			})
 		case "userId":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ApiClient_userId(ctx, field, obj)

@@ -36,6 +36,7 @@ There are minor changes to the GraphQL schema, none of which should introduce br
 - [ ] Track Client IDs
 - [ ] Implement repo layer
 - [ ] GitHub actions
+- [ ] Require valid client ids
 
 ### Todo Before Publishing
 

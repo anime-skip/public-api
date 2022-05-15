@@ -145,6 +145,12 @@ models:
         resolver: true
   ApiClient:
     fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
       user:
         resolver: true
   ApiClientChanges:
