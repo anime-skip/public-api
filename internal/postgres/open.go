@@ -1,15 +1,13 @@
 package postgres
 
 import (
+	"database/sql"
 	"fmt"
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
-	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
-
-//go:generate go run ../../cmd/sql-gen/main.go
 
 func Open(url string, disableSsl bool, targetVersion int, enableSeeding bool) internal.Database {
 	log.D("Connecting to postgres...")
@@ -18,7 +16,7 @@ func Open(url string, disableSsl bool, targetVersion int, enableSeeding bool) in
 		sslmode = "disable"
 	}
 	connectionString := fmt.Sprintf("%s?sslmode=%s", url, sslmode)
-	db, err := sqlx.Open("postgres", connectionString)
+	db, err := sql.Open("postgres", connectionString)
 	if err != nil {
 		panic(err)
 	}

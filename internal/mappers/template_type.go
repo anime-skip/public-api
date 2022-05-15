@@ -2,28 +2,27 @@ package mappers
 
 import (
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 )
 
-func ToTemplateTypeInt(templateType graphql.TemplateType) int {
+func ToTemplateTypeInt(templateType internal.TemplateType) int {
 	switch templateType {
-	case graphql.TemplateTypeShow:
+	case internal.TemplateTypeShow:
 		return internal.TEMPLATE_TYPE_SHOW
-	case graphql.TemplateTypeSeasons:
+	case internal.TemplateTypeSeasons:
 		return internal.TEMPLATE_TYPE_SEASONS
 	}
 	log.E("Invalid template type enum: %v", templateType)
 	return -1
 }
 
-func ToTemplateTypeEnum(value int) graphql.TemplateType {
+func ToTemplateTypeEnum(value int) internal.TemplateType {
 	switch value {
 	case internal.TEMPLATE_TYPE_SHOW:
-		return graphql.TemplateTypeShow
+		return internal.TemplateTypeShow
 	case internal.TEMPLATE_TYPE_SEASONS:
-		return graphql.TemplateTypeSeasons
+		return internal.TemplateTypeSeasons
 	}
 	log.E("Invalid template type int: %d", value)
-	return graphql.TemplateTypeShow
+	return internal.TemplateTypeShow
 }

@@ -3,28 +3,27 @@ package mappers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 )
 
-func ToRoleEnum(i int) graphql.Role {
+func ToRoleEnum(i int) internal.Role {
 	switch i {
 	case internal.ROLE_DEV:
-		return graphql.RoleDev
+		return internal.RoleDev
 	case internal.ROLE_ADMIN:
-		return graphql.RoleAdmin
+		return internal.RoleAdmin
 	case internal.ROLE_USER:
-		return graphql.RoleUser
+		return internal.RoleUser
 	}
 	panic(errors.NewPanicedError("Unknown role integer: %d", i))
 }
 
-func ToRoleInt(role graphql.Role) int {
+func ToRoleInt(role internal.Role) int {
 	switch role {
-	case graphql.RoleDev:
+	case internal.RoleDev:
 		return internal.ROLE_DEV
-	case graphql.RoleAdmin:
+	case internal.RoleAdmin:
 		return internal.ROLE_ADMIN
-	case graphql.RoleUser:
+	case internal.RoleUser:
 		return internal.ROLE_USER
 	}
 	panic(errors.NewPanicedError("Unknown role enum: %s", role))

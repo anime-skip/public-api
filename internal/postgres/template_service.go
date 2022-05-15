@@ -15,42 +15,38 @@ func NewTemplateService(db internal.Database) internal.TemplateService {
 	return &templateService{db}
 }
 
-func (s *templateService) GetByID(ctx context.Context, id uuid.UUID) (internal.Template, error) {
-	return getTemplateByID(ctx, s.db, id)
+func (s *templateService) Get(ctx context.Context, filter internal.TemplatesFilter) (internal.Template, error) {
+	return inTx(ctx, s.db, false, internal.ZeroTemplate, func(tx internal.Tx) (internal.Template, error) {
+		return findTemplate(ctx, tx, filter)
+	})
 }
 
-func (s *templateService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]internal.Template, error) {
-	return getTemplatesByShowID(ctx, s.db, showID)
+func (s *templateService) List(ctx context.Context, filter internal.TemplatesFilter) ([]internal.Template, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.Template, error) {
+		return findTemplates(ctx, tx, filter)
+	})
 }
 
-func (s *templateService) GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (internal.Template, error) {
-	return getTemplateBySourceEpisodeID(ctx, s.db, episodeID)
+func (s *templateService) Create(ctx context.Context, newTemplate internal.Template, createdBy uuid.UUID) (internal.Template, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTemplate, func(tx internal.Tx) (internal.Template, error) {
+		return createTemplate(ctx, tx, newTemplate, createdBy)
+	})
 }
 
-func (s *templateService) Create(ctx context.Context, newTemplate internal.Template) (internal.Template, error) {
-	return insertTemplate(ctx, s.db, newTemplate)
+func (s *templateService) Update(ctx context.Context, newTemplate internal.Template, updatedBy uuid.UUID) (internal.Template, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTemplate, func(tx internal.Tx) (internal.Template, error) {
+		return updateTemplate(ctx, tx, newTemplate, updatedBy)
+	})
 }
 
-func (s *templateService) Update(ctx context.Context, newTemplate internal.Template) (internal.Template, error) {
-	return updateTemplate(ctx, s.db, newTemplate)
-}
-
-func (s *templateService) Delete(ctx context.Context, id uuid.UUID) (internal.Template, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Template{}, err
-	}
-	defer tx.Rollback()
-
-	existing, err := getTemplateByIDInTx(ctx, tx, id)
-	if err != nil {
-		return internal.Template{}, err
-	}
-
-	deleted, err := deleteCascadeTemplate(ctx, tx, existing)
-	if err != nil {
-		return internal.Template{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+func (s *templateService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (internal.Template, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTemplate, func(tx internal.Tx) (internal.Template, error) {
+		existing, err := findTemplate(ctx, tx, internal.TemplatesFilter{
+			ID: &id,
+		})
+		if err != nil {
+			return internal.ZeroTemplate, err
+		}
+		return deleteCascadeTemplate(ctx, tx, existing, deletedBy)
+	})
 }

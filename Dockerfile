@@ -1,5 +1,5 @@
 # build the application in a container
-FROM golang:1.17-alpine as builder
+FROM golang:1.18-alpine as builder
 # Define user for scratch image
 ENV USER=appuser
 ENV UID=10001

@@ -1,6 +1,10 @@
 package internal
 
-import "github.com/gofrs/uuid"
+import (
+	"context"
+
+	"github.com/gofrs/uuid"
+)
 
 var (
 	TIMESTAMP_ID_CANON = uuid.FromStringOrNil("9edc0037-fa4e-47a7-a29a-d9c43368daa8")
@@ -19,3 +23,61 @@ var (
 	// TIMESTAMP_ID_TITLE_CARD    = "67321535-a4ea-4f21-8bed-fb3c8286b510"
 	TIMESTAMP_ID_UNKNOWN = uuid.FromStringOrNil("ae57fcf9-27b0-49a7-9a99-a91aa7518a29")
 )
+
+var (
+	ZeroApiStatus              = ApiStatus{}
+	ZeroAPIClient              = APIClient{}
+	ZeroAccount                = Account{}
+	ZeroEpisode                = Episode{}
+	ZeroEpisodeURL             = EpisodeURL{}
+	ZeroInputEpisode           = InputEpisode{}
+	ZeroInputEpisodeURL        = InputEpisodeURL{}
+	ZeroInputExistingTimestamp = InputExistingTimestamp{}
+	ZeroInputShow              = InputShow{}
+	ZeroInputShowAdmin         = InputShowAdmin{}
+	ZeroInputTemplate          = InputTemplate{}
+	ZeroInputTemplateTimestamp = InputTemplateTimestamp{}
+	ZeroInputTimestamp         = InputTimestamp{}
+	ZeroInputTimestampOn       = InputTimestampOn{}
+	ZeroInputTimestampType     = InputTimestampType{}
+	ZeroLoginData              = LoginData{}
+	ZeroPreferences            = Preferences{}
+	ZeroShow                   = Show{}
+	ZeroShowAdmin              = ShowAdmin{}
+	ZeroTemplate               = Template{}
+	ZeroTemplateTimestamp      = TemplateTimestamp{}
+	ZeroThirdPartyEpisode      = ThirdPartyEpisode{}
+	ZeroThirdPartyShow         = ThirdPartyShow{}
+	ZeroThirdPartyTimestamp    = ThirdPartyTimestamp{}
+	ZeroTimestamp              = Timestamp{}
+	ZeroTimestampType          = TimestampType{}
+	ZeroUpdatedTimestamps      = UpdatedTimestamps{}
+	ZeroUser                   = User{}
+	ZeroFullUser               = FullUser{}
+)
+
+func NewPreferences(ctx context.Context, userID uuid.UUID) Preferences {
+	return Preferences{
+		UserID: &userID,
+
+		EnableAutoSkip:             true,
+		EnableAutoPlay:             true,
+		MinimizeToolbarWhenEditing: false,
+		HideTimelineWhenMinimized:  false,
+		ColorTheme:                 ColorThemeAnimeSkipBlue,
+
+		SkipBranding:     true,
+		SkipIntros:       true,
+		SkipNewIntros:    false,
+		SkipMixedIntros:  false,
+		SkipRecaps:       true,
+		SkipFiller:       true,
+		SkipCanon:        false,
+		SkipTransitions:  true,
+		SkipCredits:      true,
+		SkipNewCredits:   false,
+		SkipMixedCredits: false,
+		SkipPreview:      true,
+		SkipTitleCard:    true,
+	}
+}

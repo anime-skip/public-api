@@ -7,8 +7,8 @@ exec:
   filename: internal/graphql/server.generated.go
 
 model:
-  filename: internal/graphql/models.generated.go
-  package: graphql
+  filename: internal/models.generated.go
+  package: internal
 
 resolver:
   package: resolvers
@@ -50,7 +50,7 @@ models:
       preferences:
         resolver: true
   InputPreferences:
-    model: "map[string]interface{}"
+    model: "map[string]any"
   Preferences:
     fields:
       createdBy:

@@ -1,11 +1,9 @@
 package resolvers
 
 import (
-	"context"
-
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -14,139 +12,151 @@ import (
 
 // Helpers
 
-func (r *Resolver) getEpisodeByID(ctx context.Context, id *uuid.UUID) (*graphql.Episode, error) {
+func (r *Resolver) getEpisodeByID(ctx context.Context, id *uuid.UUID) (*internal.Episode, error) {
 	if id == nil {
 		return nil, nil
 	}
-	internalEpisode, err := r.EpisodeService.GetByID(ctx, *id)
+	episode, err := r.EpisodeService.Get(ctx, internal.EpisodesFilter{
+		ID: id,
+	})
 	if err != nil {
 		return nil, err
 	}
-	episode := mappers.ToGraphqlEpisode(internalEpisode)
 	return &episode, nil
 }
 
-func (r *Resolver) getEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
-	internalEpisodes, err := r.EpisodeService.GetByShowID(ctx, *showID)
+func (r *Resolver) getEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Episode, error) {
+	episodes, err := r.EpisodeService.List(ctx, internal.EpisodesFilter{
+		ShowID: showID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	episodes := mappers.ToGraphqlEpisodePointers(internalEpisodes)
-	return episodes, nil
+	return utils.PtrSlice(episodes), nil
 }
 
 // Mutations
 
-func (r *mutationResolver) CreateEpisode(ctx context.Context, showID *uuid.UUID, episodeInput graphql.InputEpisode) (*graphql.Episode, error) {
-	internalInput := internal.Episode{
-		BaseEntity: internal.BaseEntity{
-			ID: utils.RandomID(),
-		},
-		ShowID: *showID,
-	}
-	mappers.ApplyGraphqlInputEpisode(episodeInput, &internalInput)
-
-	created, err := r.EpisodeService.Create(ctx, internalInput)
+func (r *mutationResolver) CreateEpisode(ctx context.Context, showID *uuid.UUID, episodeInput internal.InputEpisode) (*internal.Episode, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlEpisode(created)
-	return &result, nil
+	internalInput := internal.Episode{
+		ShowID: showID,
+	}
+	mappers.ApplyGraphqlInputEpisode(episodeInput, &internalInput)
+
+	created, err := r.EpisodeService.Create(ctx, internalInput, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &created, nil
 }
 
-func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID *uuid.UUID, newEpisode graphql.InputEpisode) (*graphql.Episode, error) {
+func (r *mutationResolver) UpdateEpisode(ctx context.Context, episodeID *uuid.UUID, newEpisode internal.InputEpisode) (*internal.Episode, error) {
 	log.V("Updating: %v", episodeID)
-	existing, err := r.EpisodeService.GetByID(ctx, *episodeID)
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := r.EpisodeService.Get(ctx, internal.EpisodesFilter{
+		ID: episodeID,
+	})
 	if err != nil {
 		return nil, err
 	}
 	mappers.ApplyGraphqlInputEpisode(newEpisode, &existing)
 	log.V("Updating to %+v", existing)
-	created, err := r.EpisodeService.Update(ctx, existing)
+	updated, err := r.EpisodeService.Update(ctx, existing, auth.UserID)
 	if err != nil {
 		log.V("Failed to update: %v", err)
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlEpisode(created)
-	return &result, nil
+	return &updated, nil
 }
 
-func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
-	deleted, err := r.EpisodeService.Delete(ctx, *episodeID)
+func (r *mutationResolver) DeleteEpisode(ctx context.Context, episodeID *uuid.UUID) (*internal.Episode, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlEpisode(deleted)
-	return &result, nil
+	deleted, err := r.EpisodeService.Delete(ctx, *episodeID, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleted, nil
 }
 
 // Queries
 
-func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*graphql.Episode, error) {
-	filter := internal.GetRecentlyAddedFilter{
+func (r *queryResolver) RecentlyAddedEpisodes(ctx context.Context, limit *int, offset *int) ([]*internal.Episode, error) {
+	filter := internal.RecentlyAddedEpisodesFilter{
 		Pagination: internal.Pagination{
-			Limit:  utils.IntOr(limit, 10),
-			Offset: utils.IntOr(offset, 0),
+			Limit:  utils.ValueOr(limit, 10),
+			Offset: utils.ValueOr(offset, 0),
 		},
 	}
-	internalEpisodes, err := r.EpisodeService.GetRecentlyAdded(ctx, filter)
+	episodes, err := r.EpisodeService.ListRecentlyAdded(ctx, filter)
 	if err != nil {
 		return nil, err
 	}
-	episodes := mappers.ToGraphqlEpisodePointers(internalEpisodes)
-	return episodes, nil
+	return utils.PtrSlice(episodes), nil
 }
 
-func (r *queryResolver) FindEpisode(ctx context.Context, episodeID *uuid.UUID) (*graphql.Episode, error) {
+func (r *queryResolver) FindEpisode(ctx context.Context, episodeID *uuid.UUID) (*internal.Episode, error) {
 	return r.getEpisodeByID(ctx, episodeID)
 }
 
-func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Episode, error) {
+func (r *queryResolver) FindEpisodesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Episode, error) {
 	return r.getEpisodesByShowID(ctx, showID)
 }
 
-func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*graphql.Episode, error) {
+func (r *queryResolver) SearchEpisodes(ctx context.Context, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) ([]*internal.Episode, error) {
 	panic(errors.NewPanicedError("queryResolver.SearchEpisodes not implemented"))
 }
 
-func (r *queryResolver) FindEpisodeByName(ctx context.Context, name string) ([]*graphql.ThirdPartyEpisode, error) {
-	internalEpisodes, err := r.ThirdPartyService.FindEpisodeByName(ctx, name)
+func (r *queryResolver) FindEpisodeByName(ctx context.Context, name string) ([]*internal.ThirdPartyEpisode, error) {
+	episodes, err := r.ThirdPartyService.FindEpisodeByName(ctx, name)
 	if err != nil {
 		return nil, err
 	}
 
-	return mappers.ToGraphqlThirdPartyEpisodePointers(internalEpisodes), nil
+	return utils.PtrSlice(episodes), nil
 }
 
 // Fields
 
-func (r *episodeResolver) CreatedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
+func (r *episodeResolver) CreatedBy(ctx context.Context, obj *internal.Episode) (*internal.User, error) {
 	return r.getUserById(ctx, obj.CreatedByUserID)
 }
 
-func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
+func (r *episodeResolver) UpdatedBy(ctx context.Context, obj *internal.Episode) (*internal.User, error) {
 	return r.getUserById(ctx, obj.UpdatedByUserID)
 }
 
-func (r *episodeResolver) DeletedBy(ctx context.Context, obj *graphql.Episode) (*graphql.User, error) {
+func (r *episodeResolver) DeletedBy(ctx context.Context, obj *internal.Episode) (*internal.User, error) {
 	return r.getUserById(ctx, obj.DeletedByUserID)
 }
 
-func (r *episodeResolver) Show(ctx context.Context, obj *graphql.Episode) (*graphql.Show, error) {
+func (r *episodeResolver) Show(ctx context.Context, obj *internal.Episode) (*internal.Show, error) {
 	return r.getShowById(ctx, obj.ShowID)
 }
 
-func (r *episodeResolver) Timestamps(ctx context.Context, obj *graphql.Episode) ([]*graphql.Timestamp, error) {
+func (r *episodeResolver) Timestamps(ctx context.Context, obj *internal.Episode) ([]*internal.Timestamp, error) {
 	return r.getTimestampsByEpisodeID(ctx, obj.ID)
 }
 
-func (r *episodeResolver) Urls(ctx context.Context, obj *graphql.Episode) ([]*graphql.EpisodeURL, error) {
+func (r *episodeResolver) Urls(ctx context.Context, obj *internal.Episode) ([]*internal.EpisodeURL, error) {
 	return r.getEpisodeURLsByEpisodeID(ctx, obj.ID)
 }
 
-func (r *episodeResolver) Template(ctx context.Context, obj *graphql.Episode) (*graphql.Template, error) {
+func (r *episodeResolver) Template(ctx context.Context, obj *internal.Episode) (*internal.Template, error) {
 	return r.getTemplateByEpisodeID(ctx, obj.ID)
 }

@@ -1,16 +1,16 @@
 package directives
 
 import (
-	ctx "context"
+	context1 "context"
 	"fmt"
 
+	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	gql "anime-skip.com/public-api/internal/graphql"
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func HasRole(ctx ctx.Context, obj interface{}, next graphql.Resolver, role gql.Role) (interface{}, error) {
-	ctx, err := authenticate(ctx)
+func HasRole(ctx context1.Context, obj any, next graphql.Resolver, role internal.Role) (res any, err error) {
+	ctx, err = authenticate(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -21,9 +21,9 @@ func HasRole(ctx ctx.Context, obj interface{}, next graphql.Resolver, role gql.R
 	}
 
 	hasRole := false
-	if role == gql.RoleAdmin {
+	if role == internal.RoleAdmin {
 		hasRole = auth.IsAdmin || auth.IsDev
-	} else if role == gql.RoleDev {
+	} else if role == internal.RoleDev {
 		hasRole = auth.IsDev
 	}
 

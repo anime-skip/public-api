@@ -15,7 +15,7 @@ func MarshalUUID(id *uuid.UUID) graphql.Marshaler {
 	})
 }
 
-func UnmarshalUUID(v interface{}) (*uuid.UUID, error) {
+func UnmarshalUUID(v any) (*uuid.UUID, error) {
 	switch v := v.(type) {
 	case string:
 		id, err := uuid.FromString(v)

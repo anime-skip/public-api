@@ -4,8 +4,6 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/errors"
-	"github.com/gofrs/uuid"
 )
 
 type userService struct {
@@ -16,33 +14,35 @@ func NewUserService(db internal.Database) internal.UserService {
 	return &userService{db}
 }
 
-func (s *userService) GetByID(ctx context.Context, id uuid.UUID) (internal.User, error) {
-	return getUserByID(ctx, s.db, id)
+func (s *userService) Get(ctx context.Context, filter internal.UsersFilter) (internal.FullUser, error) {
+	return inTx(ctx, s.db, false, internal.ZeroFullUser, func(tx internal.Tx) (internal.FullUser, error) {
+		return findUser(ctx, tx, filter)
+	})
 }
 
-func (s *userService) GetByUsername(ctx context.Context, username string) (internal.User, error) {
-	return getUserByUsername(ctx, s.db, username)
+func (s *userService) List(ctx context.Context, filter internal.UsersFilter) ([]internal.FullUser, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.FullUser, error) {
+		return findUsers(ctx, tx, filter)
+	})
 }
 
-func (s *userService) GetByEmail(ctx context.Context, email string) (internal.User, error) {
-	return getUserByEmail(ctx, s.db, email)
-}
-
-func (s *userService) GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (internal.User, error) {
-	user, err := getUserByUsername(ctx, s.db, usernameOrEmail)
-	if err == nil {
+func (s *userService) CreateAccount(ctx context.Context, newUser internal.FullUser) (internal.FullUser, error) {
+	return inTx(ctx, s.db, true, internal.ZeroFullUser, func(tx internal.Tx) (internal.FullUser, error) {
+		user, err := createUser(ctx, tx, newUser)
+		if err != nil {
+			return internal.ZeroFullUser, err
+		}
+		defaultPreferences := internal.NewPreferences(ctx, user.ID)
+		_, err = createPreferences(ctx, tx, defaultPreferences)
+		if err != nil {
+			return internal.ZeroFullUser, err
+		}
 		return user, nil
-	}
-	if !errors.IsRecordNotFound(err) {
-		return internal.User{}, err
-	}
-	return getUserByEmail(ctx, s.db, usernameOrEmail)
+	})
 }
 
-func (s *userService) CreateInTx(ctx context.Context, tx internal.Tx, user internal.User) (internal.User, error) {
-	return insertUserInTx(ctx, tx, user)
-}
-
-func (s *userService) Update(ctx context.Context, newUser internal.User) (internal.User, error) {
-	return updateUser(ctx, s.db, newUser)
+func (s *userService) Update(ctx context.Context, newUser internal.FullUser) (internal.FullUser, error) {
+	return inTx(ctx, s.db, true, internal.ZeroFullUser, func(tx internal.Tx) (internal.FullUser, error) {
+		return updateUser(ctx, tx, newUser)
+	})
 }

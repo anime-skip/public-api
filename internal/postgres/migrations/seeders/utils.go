@@ -9,19 +9,7 @@ import (
 
 var now = time.Now()
 
-func basicEntity(id string) internal.BaseEntity {
-	return internal.BaseEntity{
-		ID:              uuid.FromStringOrNil(id),
-		CreatedAt:       now,
-		CreatedByUserID: adminUUID,
-		UpdatedAt:       now,
-		UpdatedByUserID: adminUUID,
-		DeletedAt:       nil,
-		DeletedByUserID: nil,
-	}
-}
-
-func insertUser(tx internal.Tx, user internal.User, createdAt string) error {
+func insertUser(tx internal.Tx, user internal.FullUser, createdAt string) error {
 	_, err := tx.Exec(
 		`INSERT INTO users(
 			id,  created_at,  username,  email,  password_hash,  profile_url,  email_verified,  role
@@ -51,7 +39,13 @@ func insertPreferences(tx internal.Tx, userID uuid.UUID, createdAt string) error
 	return err
 }
 
-func insertTimestampType(tx internal.Tx, timestampType internal.TimestampType) error {
+type PartialTimestamp struct {
+	Name        string
+	Description string
+	ID          string
+}
+
+func insertTimestampType(tx internal.Tx, timestampType PartialTimestamp) error {
 	_, err := tx.Exec(
 		`INSERT INTO timestamp_types(
 			id,
@@ -59,28 +53,24 @@ func insertTimestampType(tx internal.Tx, timestampType internal.TimestampType) e
 			created_by_user_id,
 			updated_at,
 			updated_by_user_id,
-			deleted_at,
-			deleted_by_user_id,
 			name,
 			description
 		) VALUES (
-			$1, $2, $3, $4, $5, $6, $7, $8, $9
+			$1, $2, $3, $4, $5, $6, $7
 		)`,
 		timestampType.ID,
-		timestampType.CreatedAt,
-		timestampType.CreatedByUserID,
-		timestampType.UpdatedAt,
-		timestampType.UpdatedByUserID,
-		timestampType.DeletedAt,
-		timestampType.DeletedByUserID,
+		now,
+		adminUUID,
+		now,
+		adminUUID,
 		timestampType.Name,
 		timestampType.Description,
 	)
 	return err
 }
 
-func deleteTimestampType(tx internal.Tx, timestampTypeID uuid.UUID) error {
-	_, err := tx.Exec("DELETE FROM timestamp_types WHERE id=$1", timestampTypeID)
+func deleteTimestampType(tx internal.Tx, id string) error {
+	_, err := tx.Exec("DELETE FROM timestamp_types WHERE id=$1", uuid.FromStringOrNil(id))
 	return err
 }
 

@@ -31,6 +31,7 @@ There are minor changes to the GraphQL schema, none of which should introduce br
 - [x] Implement authorizer that matches v1 authorization
   > The new injectable authorizor needs to match the existing logic so no-one gets logged out
 - [x] Re-implement resolvers (delete as completed)
+- [ ] get many queries aren't correct (missing the where condition for the specific field)
 - [ ] `ctrl+shift+f` "not implemented"
 - [ ] `ctrl+shift+f` "TODO"
 - [ ] Track Client IDs

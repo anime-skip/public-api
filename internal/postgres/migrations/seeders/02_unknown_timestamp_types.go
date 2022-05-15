@@ -6,10 +6,10 @@ import (
 	"anime-skip.com/public-api/internal/postgres/migrations/sqlx_migration"
 )
 
-var unknownTimestampType = internal.TimestampType{
+var unknownTimestampType = PartialTimestamp{
 	Name:        "Unknown",
 	Description: "A timestamp that was imported from a different system that didn't have enough information to decide what type it was. These are treated as unskippable",
-	BaseEntity:  basicEntity(config.TIMESTAMP_ID_UNKNOWN),
+	ID:          config.TIMESTAMP_ID_UNKNOWN,
 }
 
 // SeedUnknownTimestampType inserts the a new type, "Unknown"

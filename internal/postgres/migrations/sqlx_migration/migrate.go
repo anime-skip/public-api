@@ -12,7 +12,10 @@ func RunAllMigrations(tx internal.Tx, name string, migrations []*Migration) erro
 }
 
 func RunMigrations(tx internal.Tx, name string, migrations []*Migration, targetVersion int) error {
-	tx.MustExec(`CREATE TABLE IF NOT EXISTS migrations (id text PRIMARY KEY)`)
+	_, err := tx.Exec(`CREATE TABLE IF NOT EXISTS migrations (id text PRIMARY KEY)`)
+	if err != nil {
+		return err
+	}
 	existing, err := getExistingMigrationIds(tx)
 	if err != nil {
 		return err
@@ -66,7 +69,7 @@ func RunMigrations(tx internal.Tx, name string, migrations []*Migration, targetV
 }
 
 func getExistingMigrationIds(tx internal.Tx) ([]ExistingMigration, error) {
-	rows, err := tx.Queryx("SELECT * FROM migrations")
+	rows, err := tx.Query("SELECT id FROM migrations")
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +78,7 @@ func getExistingMigrationIds(tx internal.Tx) ([]ExistingMigration, error) {
 	existing := []ExistingMigration{}
 	for rows.Next() {
 		var m ExistingMigration
-		err = rows.StructScan(&m)
+		err = rows.Scan(&m.ID)
 		if err != nil {
 			return nil, err
 		}

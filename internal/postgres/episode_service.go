@@ -15,42 +15,44 @@ func NewEpisodeService(db internal.Database) internal.EpisodeService {
 	return &episodeService{db}
 }
 
-func (s *episodeService) GetRecentlyAdded(ctx context.Context, params internal.GetRecentlyAddedFilter) ([]internal.Episode, error) {
-	return getRecentlyAddedEpisodes(ctx, s.db, params)
+func (s *episodeService) Get(ctx context.Context, filter internal.EpisodesFilter) (internal.Episode, error) {
+	return inTx(ctx, s.db, false, internal.ZeroEpisode, func(tx internal.Tx) (internal.Episode, error) {
+		return findEpisode(ctx, tx, filter)
+	})
 }
 
-func (s *episodeService) GetByID(ctx context.Context, id uuid.UUID) (internal.Episode, error) {
-	return getEpisodeByID(ctx, s.db, id)
+func (s *episodeService) List(ctx context.Context, filter internal.EpisodesFilter) ([]internal.Episode, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.Episode, error) {
+		return findEpisodes(ctx, tx, filter)
+	})
 }
 
-func (s *episodeService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]internal.Episode, error) {
-	return getEpisodesByShowID(ctx, s.db, showID)
+func (s *episodeService) ListRecentlyAdded(ctx context.Context, filter internal.RecentlyAddedEpisodesFilter) ([]internal.Episode, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.Episode, error) {
+		return findRecentlyAddedEpisodes(ctx, tx, filter)
+	})
 }
 
-func (s *episodeService) Create(ctx context.Context, newEpisode internal.Episode) (internal.Episode, error) {
-	return insertEpisode(ctx, s.db, newEpisode)
+func (s *episodeService) Create(ctx context.Context, newEpisode internal.Episode, createdBy uuid.UUID) (internal.Episode, error) {
+	return inTx(ctx, s.db, true, internal.ZeroEpisode, func(tx internal.Tx) (internal.Episode, error) {
+		return createEpisode(ctx, tx, newEpisode, createdBy)
+	})
 }
 
-func (s *episodeService) Update(ctx context.Context, newEpisode internal.Episode) (internal.Episode, error) {
-	return updateEpisode(ctx, s.db, newEpisode)
+func (s *episodeService) Update(ctx context.Context, newEpisode internal.Episode, updatedBy uuid.UUID) (internal.Episode, error) {
+	return inTx(ctx, s.db, true, internal.ZeroEpisode, func(tx internal.Tx) (internal.Episode, error) {
+		return updateEpisode(ctx, tx, newEpisode, updatedBy)
+	})
 }
 
-func (s *episodeService) Delete(ctx context.Context, id uuid.UUID) (internal.Episode, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Episode{}, err
-	}
-	defer tx.Rollback()
-
-	existing, err := getEpisodeByIDInTx(ctx, tx, id)
-	if err != nil {
-		return internal.Episode{}, err
-	}
-
-	deleted, err := deleteCascadeEpisode(ctx, tx, existing)
-	if err != nil {
-		return internal.Episode{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+func (s *episodeService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (internal.Episode, error) {
+	return inTx(ctx, s.db, true, internal.ZeroEpisode, func(tx internal.Tx) (internal.Episode, error) {
+		existing, err := findEpisode(ctx, tx, internal.EpisodesFilter{
+			ID: &id,
+		})
+		if err != nil {
+			return internal.ZeroEpisode, err
+		}
+		return deleteCascadeEpisode(ctx, tx, existing, deletedBy)
+	})
 }

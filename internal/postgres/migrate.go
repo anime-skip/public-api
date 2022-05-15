@@ -9,10 +9,13 @@ import (
 
 // migrate all the migrations and seeders
 func migrate(db internal.Database, dbVersion int, enableSeeding bool) error {
-	tx := db.MustBegin()
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
 	defer tx.Rollback()
 
-	err := sqlx_migration.RunMigrations(tx, "schema migrations", []*sqlx_migration.Migration{
+	err = sqlx_migration.RunMigrations(tx, "schema migrations", []*sqlx_migration.Migration{
 		/* 0  */ tables.CreateUsersTable,
 		/* 1  */ tables.CreatePreferencesTable,
 		/* 2  */ tables.CreateShowsTable,

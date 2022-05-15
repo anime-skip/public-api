@@ -15,42 +15,38 @@ func NewShowAdminService(db internal.Database) internal.ShowAdminService {
 	return &showAdminService{db}
 }
 
-func (s *showAdminService) GetByID(ctx context.Context, id uuid.UUID) (internal.ShowAdmin, error) {
-	return getShowAdminByID(ctx, s.db, id)
+func (s *showAdminService) Get(ctx context.Context, filter internal.ShowAdminsFilter) (internal.ShowAdmin, error) {
+	return inTx(ctx, s.db, false, internal.ZeroShowAdmin, func(tx internal.Tx) (internal.ShowAdmin, error) {
+		return findShowAdmin(ctx, tx, filter)
+	})
 }
 
-func (s *showAdminService) GetByUserID(ctx context.Context, userID uuid.UUID) ([]internal.ShowAdmin, error) {
-	return getShowAdminsByUserID(ctx, s.db, userID)
+func (s *showAdminService) List(ctx context.Context, filter internal.ShowAdminsFilter) ([]internal.ShowAdmin, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.ShowAdmin, error) {
+		return findShowAdmins(ctx, tx, filter)
+	})
 }
 
-func (s *showAdminService) GetByShowID(ctx context.Context, showID uuid.UUID) ([]internal.ShowAdmin, error) {
-	return getShowAdminsByShowID(ctx, s.db, showID)
+func (s *showAdminService) Create(ctx context.Context, newShowAdmin internal.ShowAdmin, createdBy uuid.UUID) (internal.ShowAdmin, error) {
+	return inTx(ctx, s.db, true, internal.ZeroShowAdmin, func(tx internal.Tx) (internal.ShowAdmin, error) {
+		return createShowAdmin(ctx, tx, newShowAdmin, createdBy)
+	})
 }
 
-func (s *showAdminService) Create(ctx context.Context, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	return insertShowAdmin(ctx, s.db, newShowAdmin)
+func (s *showAdminService) Update(ctx context.Context, newShowAdmin internal.ShowAdmin, updatedBy uuid.UUID) (internal.ShowAdmin, error) {
+	return inTx(ctx, s.db, true, internal.ZeroShowAdmin, func(tx internal.Tx) (internal.ShowAdmin, error) {
+		return updateShowAdmin(ctx, tx, newShowAdmin, updatedBy)
+	})
 }
 
-func (s *showAdminService) Update(ctx context.Context, newShowAdmin internal.ShowAdmin) (internal.ShowAdmin, error) {
-	return updateShowAdmin(ctx, s.db, newShowAdmin)
-}
-
-func (s *showAdminService) Delete(ctx context.Context, id uuid.UUID) (internal.ShowAdmin, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.ShowAdmin{}, err
-	}
-	defer tx.Rollback()
-
-	existing, err := getShowAdminByIDInTx(ctx, tx, id)
-	if err != nil {
-		return internal.ShowAdmin{}, err
-	}
-
-	deleted, err := deleteCascadeShowAdmin(ctx, tx, existing)
-	if err != nil {
-		return internal.ShowAdmin{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+func (s *showAdminService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (internal.ShowAdmin, error) {
+	return inTx(ctx, s.db, true, internal.ZeroShowAdmin, func(tx internal.Tx) (internal.ShowAdmin, error) {
+		existing, err := findShowAdmin(ctx, tx, internal.ShowAdminsFilter{
+			ID: &id,
+		})
+		if err != nil {
+			return internal.ZeroShowAdmin, err
+		}
+		return deleteCascadeShowAdmin(ctx, tx, existing, deletedBy)
+	})
 }

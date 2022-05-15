@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/mappers"
 )
 
@@ -12,7 +11,7 @@ import (
 
 // Mutations
 
-func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {
+func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error) {
 	internalInput := internal.TemplateTimestamp{}
 	mappers.ApplyGraphqlInputTemplateTimestamp(templateTimestamp, &internalInput)
 
@@ -21,31 +20,26 @@ func (r *mutationResolver) AddTimestampToTemplate(ctx context.Context, templateT
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTemplateTimestamp(created)
-	return &result, nil
+	return &created, nil
 }
 
-func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp graphql.InputTemplateTimestamp) (*graphql.TemplateTimestamp, error) {
-	internalTemplateTimestamp := internal.TemplateTimestamp{}
-	mappers.ApplyGraphqlInputTemplateTimestamp(templateTimestamp, &internalTemplateTimestamp)
-
-	deleted, err := r.TemplateTimestampService.Delete(ctx, internalTemplateTimestamp)
+func (r *mutationResolver) RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error) {
+	deleted, err := r.TemplateTimestampService.Delete(ctx, templateTimestamp)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTemplateTimestamp(deleted)
-	return &result, nil
+	return &deleted, nil
 }
 
 // Queries
 
 // Fields
 
-func (r *templateTimestampResolver) Template(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Template, error) {
+func (r *templateTimestampResolver) Template(ctx context.Context, obj *internal.TemplateTimestamp) (*internal.Template, error) {
 	return r.getTemplateByID(ctx, obj.TemplateID)
 }
 
-func (r *templateTimestampResolver) Timestamp(ctx context.Context, obj *graphql.TemplateTimestamp) (*graphql.Timestamp, error) {
+func (r *templateTimestampResolver) Timestamp(ctx context.Context, obj *internal.TemplateTimestamp) (*internal.Timestamp, error) {
 	return r.getTimestampByID(ctx, obj.TimestampID)
 }

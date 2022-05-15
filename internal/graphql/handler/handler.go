@@ -37,7 +37,7 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 	srv.AddTransport(transport.Options{})
 	srv.AddTransport(transport.POST{})
 
-	srv.SetRecoverFunc(func(ctx context.Context, paniced interface{}) error {
+	srv.SetRecoverFunc(func(ctx context.Context, paniced any) error {
 		// TODO notify bugsnag
 
 		if err, ok := paniced.(*myerrors.PanicedError); ok {

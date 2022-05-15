@@ -5,17 +5,20 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
+	uuid "github.com/gofrs/uuid"
 )
 
-func deleteCascadeTemplate(ctx context.Context, tx internal.Tx, template internal.Template) (internal.Template, error) {
+func deleteCascadeTemplate(ctx context.Context, tx internal.Tx, template internal.Template, deletedBy uuid.UUID) (internal.Template, error) {
 	log.V("Deleting template: %v", template.ID)
-	deletedTemplate, err := deleteTemplateInTx(ctx, tx, template)
+	deletedTemplate, err := deleteTemplate(ctx, tx, template, deletedBy)
 	if err != nil {
 		return internal.Template{}, err
 	}
 
 	log.V("Deleting template timestamps")
-	templateTimestamps, err := getTemplateTimestampsByTemplateIDInTx(ctx, tx, template.ID)
+	templateTimestamps, err := findTemplateTimestamps(ctx, tx, internal.TemplateTimestampsFilter{
+		TemplateID: template.ID,
+	})
 	if err != nil {
 		return internal.Template{}, err
 	}

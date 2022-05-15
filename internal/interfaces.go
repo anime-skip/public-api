@@ -15,10 +15,11 @@ type RecaptchaService interface {
 }
 
 type APIClientService interface {
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]APIClient, error)
-	Create(ctx context.Context, newAPIClient APIClient) (APIClient, error)
-	Update(ctx context.Context, newAPIClient APIClient) (APIClient, error)
-	Delete(ctx context.Context, id string) (APIClient, error)
+	Get(ctx context.Context, filter APIClientsFilter) (APIClient, error)
+	List(ctx context.Context, filter APIClientsFilter) ([]APIClient, error)
+	Create(ctx context.Context, newAPIClient APIClient, createdBy uuid.UUID) (APIClient, error)
+	Update(ctx context.Context, newAPIClient APIClient, updatedBy uuid.UUID) (APIClient, error)
+	Delete(ctx context.Context, id string, deletedBy uuid.UUID) (APIClient, error)
 }
 
 type AuthClaims struct {
@@ -32,109 +33,94 @@ type AuthService interface {
 	ValidateVerifyEmailToken(token string) (AuthClaims, error)
 	ValidateResetPasswordToken(token string) (AuthClaims, error)
 	ValidatePassword(inputPasswordHash, knownPasswordHash string) error
-	CreateAccessToken(user User) (string, error)
-	CreateRefreshToken(user User) (string, error)
-	CreateVerifyEmailToken(user User) (string, error)
-	CreateResetPasswordToken(user User) (string, error)
+	CreateAccessToken(user FullUser) (string, error)
+	CreateRefreshToken(user FullUser) (string, error)
+	CreateVerifyEmailToken(user FullUser) (string, error)
+	CreateResetPasswordToken(user FullUser) (string, error)
 	CreateEncryptedPassword(password string) (string, error)
 }
 
 type EmailService interface {
-	SendWelcome(ctx context.Context, user User) error
-	SendVerification(ctx context.Context, user User, token string) error
-	SendResetPassword(ctx context.Context, user User, token string) error
+	SendWelcome(ctx context.Context, user FullUser) error
+	SendVerification(ctx context.Context, user FullUser, token string) error
+	SendResetPassword(ctx context.Context, user FullUser, token string) error
 }
 
-type GetRecentlyAddedFilter struct {
-	Pagination
-}
 type EpisodeService interface {
-	GetRecentlyAdded(ctx context.Context, filter GetRecentlyAddedFilter) ([]Episode, error)
-	GetByID(ctx context.Context, id uuid.UUID) (Episode, error)
-	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Episode, error)
-	Create(ctx context.Context, newEpisode Episode) (Episode, error)
-	Update(ctx context.Context, newEpisode Episode) (Episode, error)
-	Delete(ctx context.Context, id uuid.UUID) (Episode, error)
+	ListRecentlyAdded(ctx context.Context, filter RecentlyAddedEpisodesFilter) ([]Episode, error)
+	Get(ctx context.Context, filter EpisodesFilter) (Episode, error)
+	List(ctx context.Context, filter EpisodesFilter) ([]Episode, error)
+	Create(ctx context.Context, newEpisode Episode, createdBy uuid.UUID) (Episode, error)
+	Update(ctx context.Context, newEpisode Episode, updatedBy uuid.UUID) (Episode, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Episode, error)
 }
 
 type EpisodeURLService interface {
-	GetByURL(ctx context.Context, url string) (EpisodeURL, error)
-	GetByEpisodeId(ctx context.Context, episodeID uuid.UUID) ([]EpisodeURL, error)
-	Create(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
-	Update(ctx context.Context, newEpisodeURL EpisodeURL) (EpisodeURL, error)
+	Get(ctx context.Context, filter EpisodeURLsFilter) (EpisodeURL, error)
+	List(ctx context.Context, filter EpisodeURLsFilter) ([]EpisodeURL, error)
+	Create(ctx context.Context, newEpisodeURL EpisodeURL, createdBy uuid.UUID) (EpisodeURL, error)
+	Update(ctx context.Context, newEpisodeURL EpisodeURL, updatedBy uuid.UUID) (EpisodeURL, error)
 	Delete(ctx context.Context, url string) (EpisodeURL, error)
 }
 
 type PreferencesService interface {
-	GetByUserID(ctx context.Context, userID uuid.UUID) (Preferences, error)
-	NewDefault(ctx context.Context, userID uuid.UUID) Preferences
-	CreateInTx(ctx context.Context, tx Tx, newPreferences Preferences) (Preferences, error)
+	Get(ctx context.Context, filter PreferencesFilter) (Preferences, error)
 	Update(ctx context.Context, newPreferences Preferences) (Preferences, error)
 }
 
 type ShowAdminService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
-	GetByUserID(ctx context.Context, userID uuid.UUID) ([]ShowAdmin, error)
-	GetByShowID(ctx context.Context, showID uuid.UUID) ([]ShowAdmin, error)
-	Create(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
-	Update(ctx context.Context, newShowAdmin ShowAdmin) (ShowAdmin, error)
-	Delete(ctx context.Context, id uuid.UUID) (ShowAdmin, error)
-}
-
-type ShowSearchFilter struct {
-	Pagination
-	Search string
-	Sort   string
+	Get(ctx context.Context, filter ShowAdminsFilter) (ShowAdmin, error)
+	List(ctx context.Context, filter ShowAdminsFilter) ([]ShowAdmin, error)
+	Create(ctx context.Context, newShowAdmin ShowAdmin, createdBy uuid.UUID) (ShowAdmin, error)
+	Update(ctx context.Context, newShowAdmin ShowAdmin, updatedBy uuid.UUID) (ShowAdmin, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (ShowAdmin, error)
 }
 
 type ShowService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (Show, error)
+	Get(ctx context.Context, filter ShowsFilter) (Show, error)
+	List(ctx context.Context, filter ShowsFilter) ([]Show, error)
 	GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error)
-	Search(ctx context.Context, filter ShowSearchFilter) ([]Show, error)
-	Create(ctx context.Context, newShow Show) (Show, error)
-	Update(ctx context.Context, newShow Show) (Show, error)
-	Delete(ctx context.Context, id uuid.UUID) (Show, error)
+	Create(ctx context.Context, newShow Show, createdBy uuid.UUID) (Show, error)
+	Update(ctx context.Context, newShow Show, updatedBy uuid.UUID) (Show, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Show, error)
 }
 
 type TemplateService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (Template, error)
-	GetByShowID(ctx context.Context, showID uuid.UUID) ([]Template, error)
-	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) (Template, error)
-	Create(ctx context.Context, newTemplate Template) (Template, error)
-	Update(ctx context.Context, newTemplate Template) (Template, error)
-	Delete(ctx context.Context, id uuid.UUID) (Template, error)
+	Get(ctx context.Context, filter TemplatesFilter) (Template, error)
+	List(ctx context.Context, filter TemplatesFilter) ([]Template, error)
+	Create(ctx context.Context, newTemplate Template, createdBy uuid.UUID) (Template, error)
+	Update(ctx context.Context, newTemplate Template, updatedBy uuid.UUID) (Template, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Template, error)
 }
 
 type TemplateTimestampService interface {
-	GetByTimestampID(ctx context.Context, timestampID uuid.UUID) (TemplateTimestamp, error)
-	GetByTemplateID(ctx context.Context, templateID uuid.UUID) ([]TemplateTimestamp, error)
+	Get(ctx context.Context, filter TemplateTimestampsFilter) (TemplateTimestamp, error)
+	List(ctx context.Context, filter TemplateTimestampsFilter) ([]TemplateTimestamp, error)
 	Create(ctx context.Context, newTemplateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
-	Delete(ctx context.Context, templateTimestamp TemplateTimestamp) (TemplateTimestamp, error)
+	Delete(ctx context.Context, templateTimestamp InputTemplateTimestamp) (TemplateTimestamp, error)
 }
 
 type TimestampService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (Timestamp, error)
-	GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) ([]Timestamp, error)
-	Create(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
-	Update(ctx context.Context, newTimestamp Timestamp) (Timestamp, error)
-	Delete(ctx context.Context, id uuid.UUID) (Timestamp, error)
+	Get(ctx context.Context, filter TimestampsFilter) (Timestamp, error)
+	List(ctx context.Context, filter TimestampsFilter) ([]Timestamp, error)
+	Create(ctx context.Context, newTimestamp Timestamp, createdBy uuid.UUID) (Timestamp, error)
+	Update(ctx context.Context, newTimestamp Timestamp, updatedBy uuid.UUID) (Timestamp, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Timestamp, error)
 }
 
 type TimestampTypeService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (TimestampType, error)
-	GetAll(ctx context.Context) ([]TimestampType, error)
-	Create(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
-	Update(ctx context.Context, newTimestampType TimestampType) (TimestampType, error)
-	Delete(ctx context.Context, id uuid.UUID) (TimestampType, error)
+	Get(ctx context.Context, filter TimestampTypesFilter) (TimestampType, error)
+	List(ctx context.Context, filter TimestampTypesFilter) ([]TimestampType, error)
+	Create(ctx context.Context, newTimestampType TimestampType, createdBy uuid.UUID) (TimestampType, error)
+	Update(ctx context.Context, newTimestampType TimestampType, updatedBy uuid.UUID) (TimestampType, error)
+	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (TimestampType, error)
 }
 
 type UserService interface {
-	GetByID(ctx context.Context, id uuid.UUID) (User, error)
-	GetByUsername(ctx context.Context, username string) (User, error)
-	GetByEmail(ctx context.Context, email string) (User, error)
-	GetByUsernameOrEmail(ctx context.Context, usernameOrEmail string) (User, error)
-	CreateInTx(ctx context.Context, tx Tx, newUser User) (User, error)
-	Update(ctx context.Context, user User) (User, error)
+	Get(ctx context.Context, filter UsersFilter) (FullUser, error)
+	List(ctx context.Context, filter UsersFilter) ([]FullUser, error)
+	CreateAccount(ctx context.Context, newUser FullUser) (FullUser, error)
+	Update(ctx context.Context, newUser FullUser) (FullUser, error)
 }
 
 type ThirdPartyService interface {
@@ -158,12 +144,4 @@ type Services struct {
 	TimestampTypeService     TimestampTypeService
 	UserService              UserService
 	ThirdPartyService        ThirdPartyService
-}
-
-type DirectiveServices struct {
-	AuthService       AuthService
-	EpisodeService    EpisodeService
-	EpisodeURLService EpisodeURLService
-	ShowAdminService  ShowAdminService
-	TemplateService   TemplateService
 }

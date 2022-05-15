@@ -3,22 +3,24 @@ package resolvers
 import (
 	"context"
 
-	"anime-skip.com/public-api/internal/graphql"
+	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/mappers"
 	"github.com/gofrs/uuid"
 )
 
 // Helpers
 
-func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*graphql.User, error) {
+func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*internal.User, error) {
 	if id == nil {
 		return nil, nil
 	}
-	internalUser, err := r.UserService.GetByID(ctx, *id)
+	fullUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: id,
+	})
 	if err != nil {
 		return nil, err
 	}
-	user := mappers.ToGraphqlUser(internalUser)
+	user := mappers.ToUser(fullUser)
 	return &user, nil
 }
 
@@ -26,21 +28,23 @@ func (r *Resolver) getUserById(ctx context.Context, id *uuid.UUID) (*graphql.Use
 
 // Queries
 
-func (r *queryResolver) FindUser(ctx context.Context, userID *uuid.UUID) (*graphql.User, error) {
+func (r *queryResolver) FindUser(ctx context.Context, userID *uuid.UUID) (*internal.User, error) {
 	return r.getUserById(ctx, userID)
 }
 
-func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*graphql.User, error) {
-	user, err := r.UserService.GetByUsername(ctx, username)
+func (r *queryResolver) FindUserByUsername(ctx context.Context, username string) (*internal.User, error) {
+	fullUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		Username: &username,
+	})
 	if err != nil {
 		return nil, err
 	}
-	gqlUser := mappers.ToGraphqlUser(user)
-	return &gqlUser, nil
+	user := mappers.ToUser(fullUser)
+	return &user, nil
 }
 
 // Fields
 
-func (r *userResolver) AdminOfShows(ctx context.Context, obj *graphql.User) ([]*graphql.ShowAdmin, error) {
+func (r *userResolver) AdminOfShows(ctx context.Context, obj *internal.User) ([]*internal.ShowAdmin, error) {
 	return r.getShowAdminsByUserId(ctx, obj.ID)
 }

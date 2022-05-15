@@ -3,36 +3,35 @@ package mappers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 )
 
-func ToColorThemeEnum(i int) graphql.ColorTheme {
+func ToColorThemeEnum(i int) internal.ColorTheme {
 	switch i {
 	case internal.THEME_PER_SERVICE:
-		return graphql.ColorThemePerService
+		return internal.ColorThemePerService
 	case internal.THEME_ANIME_SKIP_BLUE:
-		return graphql.ColorThemeAnimeSkipBlue
+		return internal.ColorThemeAnimeSkipBlue
 	case internal.THEME_VRV_YELLOW:
-		return graphql.ColorThemeVrvYellow
+		return internal.ColorThemeVrvYellow
 	case internal.THEME_FUNIMATION_PURPLE:
-		return graphql.ColorThemeFunimationPurple
+		return internal.ColorThemeFunimationPurple
 	case internal.THEME_CRUNCHYROLL_ORANGE:
-		return graphql.ColorThemeCrunchyrollOrange
+		return internal.ColorThemeCrunchyrollOrange
 	}
 	panic(errors.NewPanicedError("Unknown role integer: %d", i))
 }
 
-func ToColorThemeInt(theme graphql.ColorTheme) int {
+func ToColorThemeInt(theme internal.ColorTheme) int {
 	switch theme {
-	case graphql.ColorThemePerService:
+	case internal.ColorThemePerService:
 		return internal.THEME_PER_SERVICE
-	case graphql.ColorThemeAnimeSkipBlue:
+	case internal.ColorThemeAnimeSkipBlue:
 		return internal.THEME_ANIME_SKIP_BLUE
-	case graphql.ColorThemeVrvYellow:
+	case internal.ColorThemeVrvYellow:
 		return internal.THEME_VRV_YELLOW
-	case graphql.ColorThemeFunimationPurple:
+	case internal.ColorThemeFunimationPurple:
 		return internal.THEME_FUNIMATION_PURPLE
-	case graphql.ColorThemeCrunchyrollOrange:
+	case internal.ColorThemeCrunchyrollOrange:
 		return internal.THEME_CRUNCHYROLL_ORANGE
 	}
 	panic(errors.NewPanicedError("Unknown theme enum: %s", theme))

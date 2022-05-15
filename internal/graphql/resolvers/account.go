@@ -8,7 +8,6 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -17,7 +16,7 @@ import (
 
 // Helpers
 
-func (r *Resolver) getLoginData(ctx go_context.Context, user internal.User) (*graphql.LoginData, error) {
+func (r *Resolver) getLoginData(ctx go_context.Context, user internal.FullUser) (*internal.LoginData, error) {
 	accessToken, err := r.AuthService.CreateAccessToken(user)
 	if err != nil {
 		log.E("Failed to generate an auth token: %v", err)
@@ -30,8 +29,8 @@ func (r *Resolver) getLoginData(ctx go_context.Context, user internal.User) (*gr
 		return nil, fmt.Errorf("Failed to login")
 	}
 
-	account := mappers.ToGraphqlAccount(user)
-	return &graphql.LoginData{
+	account := mappers.ToAccount(user)
+	return &internal.LoginData{
 		AuthToken:    accessToken,
 		RefreshToken: refreshToken,
 		Account:      &account,
@@ -40,7 +39,7 @@ func (r *Resolver) getLoginData(ctx go_context.Context, user internal.User) (*gr
 
 // Mutations
 
-func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*graphql.LoginData, error) {
+func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*internal.LoginData, error) {
 	log.V("Additional input validation")
 	username = strings.TrimSpace(username)
 	email = strings.TrimSpace(email)
@@ -60,7 +59,9 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}
 
 	log.V("Checking for existing username")
-	_, err = r.UserService.GetByUsername(ctx, username)
+	_, err = r.UserService.Get(ctx, internal.UsersFilter{
+		Username: &username,
+	})
 	if err == nil {
 		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
 	}
@@ -69,7 +70,9 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}
 
 	log.V("Checking for existing email")
-	_, err = r.UserService.GetByEmail(ctx, email)
+	_, err = r.UserService.Get(ctx, internal.UsersFilter{
+		Email: &email,
+	})
 	if err == nil {
 		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
 	}
@@ -83,25 +86,14 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 		return nil, err
 	}
 
-	tx := r.DB.MustBeginTx(ctx, nil)
-	defer tx.Rollback()
-
-	log.V("Creating user")
-	createdUser, err := r.UserService.CreateInTx(ctx, tx, internal.User{
-		ID:            utils.RandomID(),
+	log.V("Creating user and preferences")
+	createdUser, err := r.UserService.CreateAccount(ctx, internal.FullUser{
 		Username:      username,
 		Email:         email,
 		PasswordHash:  encryptedPasswordHash,
 		EmailVerified: false,
 		Role:          internal.ROLE_USER,
 	})
-	if err != nil {
-		return nil, err
-	}
-
-	log.V("Creating Preferences")
-	defaultPreferences := r.PreferencesService.NewDefault(ctx, createdUser.ID)
-	_, err = r.PreferencesService.CreateInTx(ctx, tx, defaultPreferences)
 	if err != nil {
 		return nil, err
 	}
@@ -127,9 +119,7 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 		return nil, fmt.Errorf("Failed to create user")
 	}
 
-	log.V("Commiting transaction")
-	tx.Commit()
-	account := mappers.ToGraphqlAccount(createdUser)
+	account := mappers.ToAccount(createdUser)
 
 	log.V("Creating email token")
 	verifyEmailToken, err := r.AuthService.CreateVerifyEmailToken(createdUser)
@@ -143,14 +133,14 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}
 
 	log.V("Returning LoginData")
-	return &graphql.LoginData{
+	return &internal.LoginData{
 		AuthToken:    accessToken,
 		RefreshToken: refreshToken,
 		Account:      &account,
 	}, nil
 }
 
-func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*graphql.LoginData, error) {
+func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
 		return nil, errors.New("New passwords do not match")
 	}
@@ -163,7 +153,9 @@ func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword st
 		return nil, err
 	}
 
-	user, err := r.UserService.GetByID(ctx, auth.UserID)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +191,9 @@ func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recap
 	if err != nil {
 		return nil, err
 	}
-	user, err := r.UserService.GetByID(ctx, auth.UserID)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -213,14 +207,16 @@ func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recap
 	return &isSent, err
 }
 
-func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validationToken string) (*graphql.Account, error) {
+func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validationToken string) (*internal.Account, error) {
 	claims, err := r.AuthService.ValidateVerifyEmailToken(validationToken)
 	if err != nil {
 		return nil, err
 	}
 
 	// Update the user to have their email verified
-	existingUser, err := r.UserService.GetByID(ctx, claims.UserID)
+	existingUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -230,7 +226,7 @@ func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validation
 		return nil, err
 	}
 
-	account := mappers.ToGraphqlAccount(updatedUser)
+	account := mappers.ToAccount(updatedUser)
 	return &account, nil
 }
 
@@ -245,7 +241,9 @@ func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptch
 		return false, err
 	}
 
-	user, err := r.UserService.GetByEmail(ctx, email)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		Email: &email,
+	})
 	if errors.IsRecordNotFound(err) {
 		// Don't provide hints to if a user has an account or not
 		return true, nil
@@ -265,7 +263,7 @@ func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptch
 	return true, nil
 }
 
-func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*graphql.LoginData, error) {
+func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
 		return nil, errors.New("New passwords don't match")
 	}
@@ -281,7 +279,9 @@ func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetTo
 		return nil, err
 	}
 
-	existingUser, err := r.UserService.GetByID(ctx, claims.UserID)
+	existingUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -295,21 +295,23 @@ func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetTo
 	return r.getLoginData(ctx, newUser)
 }
 
-func (r *mutationResolver) DeleteAccountRequest(ctx go_context.Context, passwordHash string) (*graphql.Account, error) {
+func (r *mutationResolver) DeleteAccountRequest(ctx go_context.Context, passwordHash string) (*internal.Account, error) {
 	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
 }
 
-func (r *mutationResolver) DeleteAccount(ctx go_context.Context, deleteToken string) (*graphql.Account, error) {
+func (r *mutationResolver) DeleteAccount(ctx go_context.Context, deleteToken string) (*internal.Account, error) {
 	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
 }
 
 // Queries
 
-func (r *queryResolver) Login(ctx go_context.Context, usernameOrEmail string, passwordHash string) (*graphql.LoginData, error) {
+func (r *queryResolver) Login(ctx go_context.Context, usernameOrEmail string, passwordHash string) (*internal.LoginData, error) {
 	usernameOrEmail = strings.TrimSpace(usernameOrEmail)
 	passwordHash = strings.TrimSpace(passwordHash)
 
-	user, err := r.UserService.GetByUsernameOrEmail(ctx, usernameOrEmail)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		UsernameOrEmail: &usernameOrEmail,
+	})
 	if err != nil {
 		log.V("Failed to get user for username or email = '%s': %v", usernameOrEmail, err)
 		// auth.LoginRetryTimer.Failure(usernameOrEmail)
@@ -326,13 +328,15 @@ func (r *queryResolver) Login(ctx go_context.Context, usernameOrEmail string, pa
 	return r.getLoginData(ctx, user)
 }
 
-func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string) (*graphql.LoginData, error) {
+func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string) (*internal.LoginData, error) {
 	claims, err := r.AuthService.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid refresh token")
 	}
 
-	user, err := r.UserService.GetByID(ctx, claims.UserID)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
 	if err != nil {
 		log.V("Failed to get user with id='%s': %v", claims.UserID, err)
 		return nil, fmt.Errorf("Bad login credentials")
@@ -343,32 +347,35 @@ func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string
 
 // Fields
 
-func (r *queryResolver) Account(ctx go_context.Context) (*graphql.Account, error) {
+func (r *queryResolver) Account(ctx go_context.Context) (*internal.Account, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-	internalUser, err := r.UserService.GetByID(ctx, auth.UserID)
+	internalUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	account := mappers.ToGraphqlAccount(internalUser)
+	account := mappers.ToAccount(internalUser)
 	return &account, nil
 }
 
-func (r *accountResolver) Preferences(ctx go_context.Context, obj *graphql.Account) (*graphql.Preferences, error) {
+func (r *accountResolver) Preferences(ctx go_context.Context, obj *internal.Account) (*internal.Preferences, error) {
 	return r.getPreferences(ctx, *obj.ID)
 }
 
-func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *graphql.Account) ([]*graphql.ShowAdmin, error) {
+func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *internal.Account) ([]*internal.ShowAdmin, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-	internalShowAdmins, err := r.ShowAdminService.GetByUserID(ctx, auth.UserID)
+	showAdmins, err := r.ShowAdminService.List(ctx, internal.ShowAdminsFilter{
+		UserID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	showAdmins := mappers.ToGraphqlShowAdminPointers(internalShowAdmins)
-	return showAdmins, nil
+	return utils.PtrSlice(showAdmins), nil
 }

@@ -32,7 +32,7 @@ func NewAnimeSkipEmailService(
 	}
 }
 
-func (s *animeSkipEmailService) sendEmail(ctx context.Context, endpoint string, body map[string]interface{}) error {
+func (s *animeSkipEmailService) sendEmail(ctx context.Context, endpoint string, body map[string]any) error {
 	if !s.enabled {
 		return nil
 	}
@@ -71,22 +71,22 @@ func (s *animeSkipEmailService) sendEmail(ctx context.Context, endpoint string, 
 	return nil
 }
 
-func (s *animeSkipEmailService) SendWelcome(ctx context.Context, user internal.User) error {
-	return s.sendEmail(ctx, "welcome", map[string]interface{}{
+func (s *animeSkipEmailService) SendWelcome(ctx context.Context, user internal.FullUser) error {
+	return s.sendEmail(ctx, "welcome", map[string]any{
 		"emails":   []string{user.Email},
 		"username": user.Username,
 	})
 }
 
-func (s *animeSkipEmailService) SendVerification(ctx context.Context, user internal.User, token string) error {
-	return s.sendEmail(ctx, "verification", map[string]interface{}{
+func (s *animeSkipEmailService) SendVerification(ctx context.Context, user internal.FullUser, token string) error {
+	return s.sendEmail(ctx, "verification", map[string]any{
 		"emails": []string{user.Email},
 		"token":  token,
 	})
 }
 
-func (s *animeSkipEmailService) SendResetPassword(ctx context.Context, user internal.User, token string) error {
-	return s.sendEmail(ctx, "reset-password", map[string]interface{}{
+func (s *animeSkipEmailService) SendResetPassword(ctx context.Context, user internal.FullUser, token string) error {
+	return s.sendEmail(ctx, "reset-password", map[string]any{
 		"emails": []string{user.Email},
 		"token":  token,
 	})

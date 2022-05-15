@@ -15,38 +15,38 @@ func NewTimestampService(db internal.Database) internal.TimestampService {
 	return &timestampService{db}
 }
 
-func (s *timestampService) GetByID(ctx context.Context, id uuid.UUID) (internal.Timestamp, error) {
-	return getTimestampByID(ctx, s.db, id)
+func (s *timestampService) Get(ctx context.Context, filter internal.TimestampsFilter) (internal.Timestamp, error) {
+	return inTx(ctx, s.db, false, internal.ZeroTimestamp, func(tx internal.Tx) (internal.Timestamp, error) {
+		return findTimestamp(ctx, tx, filter)
+	})
 }
 
-func (s *timestampService) GetByEpisodeID(ctx context.Context, episodeID uuid.UUID) ([]internal.Timestamp, error) {
-	return getTimestampsByEpisodeID(ctx, s.db, episodeID)
+func (s *timestampService) List(ctx context.Context, filter internal.TimestampsFilter) ([]internal.Timestamp, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.Timestamp, error) {
+		return findTimestamps(ctx, tx, filter)
+	})
 }
 
-func (s *timestampService) Create(ctx context.Context, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
-	return insertTimestamp(ctx, s.db, newTimestamp)
+func (s *timestampService) Create(ctx context.Context, newTimestamp internal.Timestamp, createdBy uuid.UUID) (internal.Timestamp, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTimestamp, func(tx internal.Tx) (internal.Timestamp, error) {
+		return createTimestamp(ctx, tx, newTimestamp, createdBy)
+	})
 }
 
-func (s *timestampService) Update(ctx context.Context, newTimestamp internal.Timestamp) (internal.Timestamp, error) {
-	return updateTimestamp(ctx, s.db, newTimestamp)
+func (s *timestampService) Update(ctx context.Context, newTimestamp internal.Timestamp, updatedBy uuid.UUID) (internal.Timestamp, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTimestamp, func(tx internal.Tx) (internal.Timestamp, error) {
+		return updateTimestamp(ctx, tx, newTimestamp, updatedBy)
+	})
 }
 
-func (s *timestampService) Delete(ctx context.Context, id uuid.UUID) (internal.Timestamp, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.Timestamp{}, err
-	}
-	defer tx.Rollback()
-
-	existing, err := getTimestampByIDInTx(ctx, tx, id)
-	if err != nil {
-		return internal.Timestamp{}, err
-	}
-
-	deleted, err := deleteCascadeTimestamp(ctx, tx, existing)
-	if err != nil {
-		return internal.Timestamp{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+func (s *timestampService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (internal.Timestamp, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTimestamp, func(tx internal.Tx) (internal.Timestamp, error) {
+		existing, err := findTimestamp(ctx, tx, internal.TimestampsFilter{
+			ID: &id,
+		})
+		if err != nil {
+			return internal.ZeroTimestamp, err
+		}
+		return deleteCascadeTimestamp(ctx, tx, existing, deletedBy)
+	})
 }

@@ -1,11 +1,9 @@
 package resolvers
 
 import (
-	"context"
-
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -14,145 +12,164 @@ import (
 
 // Helpers
 
-func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*graphql.Template, error) {
+func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*internal.Template, error) {
 	if id == nil {
 		return nil, nil
 	}
-	internalTemplate, err := r.TemplateService.GetByID(ctx, *id)
+	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
+		ID: id,
+	})
 	if err != nil {
 		return nil, err
 	}
-	template := mappers.ToGraphqlTemplate(internalTemplate)
 	return &template, nil
 }
 
-func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*graphql.Template, error) {
-	internalTemplate, err := r.TemplateService.GetByEpisodeID(ctx, *episodeID)
+func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*internal.Template, error) {
+	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
+		EpisodeID: episodeID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	template := mappers.ToGraphqlTemplate(internalTemplate)
 	return &template, nil
 }
 
-func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Template, error) {
-	internalTemplates, err := r.TemplateService.GetByShowID(ctx, *showID)
+func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Template, error) {
+	templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
+		ShowID: showID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	templates := mappers.ToGraphqlTemplatePointers(internalTemplates)
-	return templates, nil
+	return utils.PtrSlice(templates), nil
 }
 
 // Mutations
 
-func (r *mutationResolver) CreateTemplate(ctx context.Context, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
-	internalInput := internal.Template{
-		BaseEntity: internal.BaseEntity{
-			ID: utils.RandomID(),
-		},
-	}
-	mappers.ApplyGraphqlInputTemplate(newTemplate, &internalInput)
-
-	created, err := r.TemplateService.Create(ctx, internalInput)
+func (r *mutationResolver) CreateTemplate(ctx context.Context, input internal.InputTemplate) (*internal.Template, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTemplate(created)
-	return &result, nil
+	newTemplate := internal.Template{}
+	mappers.ApplyGraphqlInputTemplate(input, &newTemplate)
+
+	created, err := r.TemplateService.Create(ctx, newTemplate, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &created, nil
 }
 
-func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID *uuid.UUID, newTemplate graphql.InputTemplate) (*graphql.Template, error) {
+func (r *mutationResolver) UpdateTemplate(ctx context.Context, templateID *uuid.UUID, newTemplate internal.InputTemplate) (*internal.Template, error) {
 	log.V("Updating: %v", templateID)
-	existing, err := r.TemplateService.GetByID(ctx, *templateID)
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	existing, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
+		ID: templateID,
+	})
 	if err != nil {
 		return nil, err
 	}
 	mappers.ApplyGraphqlInputTemplate(newTemplate, &existing)
 	log.V("Updating to %+v", existing)
-	created, err := r.TemplateService.Update(ctx, existing)
+	template, err := r.TemplateService.Update(ctx, existing, auth.UserID)
 	if err != nil {
 		log.V("Failed to update: %v", err)
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTemplate(created)
-	return &result, nil
+	return &template, nil
 }
 
-func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
-	deleted, err := r.TemplateService.Delete(ctx, *templateID)
+func (r *mutationResolver) DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*internal.Template, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTemplate(deleted)
-	return &result, nil
+	deleted, err := r.TemplateService.Delete(ctx, *templateID, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleted, nil
 }
 
 // Queries
 
-func (r *queryResolver) FindTemplate(ctx context.Context, templateID *uuid.UUID) (*graphql.Template, error) {
+func (r *queryResolver) FindTemplate(ctx context.Context, templateID *uuid.UUID) (*internal.Template, error) {
 	return r.getTemplateByID(ctx, templateID)
 }
 
-func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*graphql.Template, error) {
+func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Template, error) {
 	return r.getTemplatesByShowID(ctx, showID)
 }
 
-func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*graphql.Template, error) {
+func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error) {
 	panic(errors.NewPanicedError("queryResolver.FindTemplateByDetails not implemented"))
 }
 
 // Fields
 
-func (r *templateResolver) CreatedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
+func (r *templateResolver) CreatedBy(ctx context.Context, obj *internal.Template) (*internal.User, error) {
 	return r.getUserById(ctx, obj.CreatedByUserID)
 }
 
-func (r *templateResolver) UpdatedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
+func (r *templateResolver) UpdatedBy(ctx context.Context, obj *internal.Template) (*internal.User, error) {
 	return r.getUserById(ctx, obj.UpdatedByUserID)
 }
 
-func (r *templateResolver) DeletedBy(ctx context.Context, obj *graphql.Template) (*graphql.User, error) {
+func (r *templateResolver) DeletedBy(ctx context.Context, obj *internal.Template) (*internal.User, error) {
 	return r.getUserById(ctx, obj.DeletedByUserID)
 }
 
-func (r *templateResolver) Show(ctx context.Context, obj *graphql.Template) (*graphql.Show, error) {
+func (r *templateResolver) Show(ctx context.Context, obj *internal.Template) (*internal.Show, error) {
 	return r.getShowById(ctx, obj.ShowID)
 }
 
-func (r *templateResolver) SourceEpisode(ctx context.Context, obj *graphql.Template) (*graphql.Episode, error) {
+func (r *templateResolver) SourceEpisode(ctx context.Context, obj *internal.Template) (*internal.Episode, error) {
 	return r.getEpisodeByID(ctx, obj.SourceEpisodeID)
 }
 
-func (r *templateResolver) Timestamps(ctx context.Context, obj *graphql.Template) ([]*graphql.Timestamp, error) {
-	templateTimestamps, err := r.TemplateTimestampService.GetByTemplateID(ctx, *obj.ID)
+func (r *templateResolver) Timestamps(ctx context.Context, obj *internal.Template) ([]*internal.Timestamp, error) {
+	templateTimestamps, err := r.TemplateTimestampService.List(ctx, internal.TemplateTimestampsFilter{
+		TemplateID: obj.ID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	timestamps := []internal.Timestamp{}
 	for _, templateTimestamp := range templateTimestamps {
-		timestamp, err := r.TimestampService.GetByID(ctx, templateTimestamp.TimestampID)
+		timestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
+			ID: templateTimestamp.TimestampID,
+		})
 		if err != nil {
 			return nil, err
 		}
 		timestamps = append(timestamps, timestamp)
 	}
-	return mappers.ToGraphqlTimestampPointers(timestamps), nil
+	return utils.PtrSlice(timestamps), nil
 }
 
-func (r *templateResolver) TimestampIds(ctx context.Context, obj *graphql.Template) ([]*uuid.UUID, error) {
-	templateTimestamps, err := r.TemplateTimestampService.GetByTemplateID(ctx, *obj.ID)
+func (r *templateResolver) TimestampIds(ctx context.Context, obj *internal.Template) ([]*uuid.UUID, error) {
+	templateTimestamps, err := r.TemplateTimestampService.List(ctx, internal.TemplateTimestampsFilter{
+		TemplateID: obj.ID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	ids := []*uuid.UUID{}
 	for _, timestamp := range templateTimestamps {
-		ids = append(ids, &timestamp.TimestampID)
+		ids = append(ids, timestamp.TimestampID)
 	}
 	return ids, nil
 }

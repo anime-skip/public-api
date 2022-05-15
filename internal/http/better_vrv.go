@@ -12,6 +12,7 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
 
@@ -237,35 +238,35 @@ func createSection(hasSection *bool, sectionStart *float64, sectionEnd *float64,
 			// Have both
 			start = &internal.ThirdPartyTimestamp{
 				At:     *sectionStart,
-				TypeID: typeID,
+				TypeID: &typeID,
 			}
 			end = &internal.ThirdPartyTimestamp{
 				At:     *sectionEnd,
-				TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+				TypeID: &internal.TIMESTAMP_ID_UNKNOWN,
 			}
 		} else if sectionStart != nil {
 			// Only have start
 			start = &internal.ThirdPartyTimestamp{
 				At:     *sectionStart,
-				TypeID: typeID,
+				TypeID: &typeID,
 			}
 			if sectionDuration > 0 {
 				end = &internal.ThirdPartyTimestamp{
 					At:     *sectionStart + sectionDuration,
-					TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+					TypeID: &internal.TIMESTAMP_ID_UNKNOWN,
 				}
 			}
 		} else if sectionEnd != nil {
 			// Only have end
 			end = &internal.ThirdPartyTimestamp{
 				At:     *sectionEnd,
-				TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+				TypeID: &internal.TIMESTAMP_ID_UNKNOWN,
 			}
 
 			if sectionDuration > 0 {
 				start = &internal.ThirdPartyTimestamp{
 					At:     *sectionEnd - sectionDuration,
-					TypeID: typeID,
+					TypeID: &typeID,
 				}
 			}
 		}
@@ -322,7 +323,7 @@ func parseBetterVRVEpisode(input betterVRVEpisode) *internal.ThirdPartyEpisode {
 	isRecap := preview.Start != nil && preview.Start.At == 0
 	if isRecap {
 		if preview.Start != nil {
-			preview.Start.TypeID = internal.TIMESTAMP_ID_RECAP
+			preview.Start.TypeID = &internal.TIMESTAMP_ID_RECAP
 		}
 		addPreview()
 	}
@@ -362,7 +363,7 @@ func parseBetterVRVEpisode(input betterVRVEpisode) *internal.ThirdPartyEpisode {
 			second := timestamps[secondIndex]
 			if math.Abs(first.At-second.At) < SAME_DIFF_THRESHOLD_SECONDS {
 				var typeID = first.TypeID
-				if second.TypeID != internal.TIMESTAMP_ID_UNKNOWN {
+				if *second.TypeID != internal.TIMESTAMP_ID_UNKNOWN {
 					typeID = second.TypeID
 				}
 				combinedTimestamp := internal.ThirdPartyTimestamp{
@@ -381,7 +382,7 @@ func parseBetterVRVEpisode(input betterVRVEpisode) *internal.ThirdPartyEpisode {
 	if len(timestamps) > 0 && timestamps[0].At != 0 {
 		zeroTimestamp := internal.ThirdPartyTimestamp{
 			At:     0,
-			TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+			TypeID: &internal.TIMESTAMP_ID_UNKNOWN,
 		}
 		timestamps = append([]internal.ThirdPartyTimestamp{zeroTimestamp}, timestamps...)
 	}
@@ -395,8 +396,8 @@ func parseBetterVRVEpisode(input betterVRVEpisode) *internal.ThirdPartyEpisode {
 		Name:           &episodeTitle,
 		Number:         nil,
 		Season:         season,
-		Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-		Timestamps:     timestamps,
+		Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+		Timestamps:     utils.PtrSlice(timestamps),
 		ShowID:         input.Series.ObjectID,
 	}
 }

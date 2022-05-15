@@ -8,88 +8,97 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	graphql2 "github.com/99designs/gqlgen/graphql"
 	"github.com/gofrs/uuid"
 )
 
-type showIDGetter = func(ctx context2.Context, s internal.DirectiveServices, arg interface{}) (uuid.UUID, error)
+type showIDGetter = func(ctx context2.Context, s internal.Services, arg any) (uuid.UUID, error)
 
 var showIDGetters = map[string]showIDGetter{
 	"showId": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showId: (%T) %+v", arg, arg)
 		return uuid.FromString(arg.(string))
 	},
 	"showAdminInput": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showAdminInput: (%T) %+v", arg, arg)
-		showAdmin := arg.(*graphql.InputShowAdmin)
+		showAdmin := arg.(*internal.InputShowAdmin)
 		return *showAdmin.ShowID, nil
 	},
 	"showAdminId": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showAdminId: (%T) %+v", arg, arg)
 		showAdminId, err := uuid.FromString(arg.(string))
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		showAdmin, err := s.ShowAdminService.GetByID(ctx, showAdminId)
+		showAdmin, err := s.ShowAdminService.Get(ctx, internal.ShowAdminsFilter{
+			ID: &showAdminId,
+		})
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		return showAdmin.ID, nil
+		return *showAdmin.ID, nil
 	},
 	"episodeId": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.episodeId: (%T) %+v", arg, arg)
 		episodeID, err := uuid.FromString(arg.(string))
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		episode, err := s.EpisodeService.GetByID(ctx, episodeID)
+		episode, err := s.EpisodeService.Get(ctx, internal.EpisodesFilter{
+			ID: &episodeID,
+		})
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		return episode.ShowID, nil
+		return *episode.ShowID, nil
 	},
 	"episodeUrl": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.episodeUrl: (%T) %+v", arg, arg)
 		url := arg.(string)
-		episodeURL, err := s.EpisodeURLService.GetByURL(ctx, url)
+		episodeURL, err := s.EpisodeURLService.Get(ctx, internal.EpisodeURLsFilter{
+			URL: &url,
+		})
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		episode, err := s.EpisodeService.GetByID(ctx, episodeURL.EpisodeID)
+		episode, err := s.EpisodeService.Get(ctx, internal.EpisodesFilter{
+			ID: episodeURL.EpisodeID,
+		})
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		return episode.ShowID, nil
+		return *episode.ShowID, nil
 	},
 	"templateId": func(
-		ctx context2.Context, s internal.DirectiveServices, arg interface{},
+		ctx context2.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.templateId: (%T) %+v", arg, arg)
 		templateID, err := uuid.FromString(arg.(string))
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		template, err := s.TemplateService.GetByID(ctx, templateID)
+		template, err := s.TemplateService.Get(ctx, internal.TemplatesFilter{
+			ID: &templateID,
+		})
 		if err != nil {
 			return uuid.UUID{}, err
 		}
-		return template.ShowID, nil
+		return *template.ShowID, nil
 	},
 }
 
-func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, services internal.DirectiveServices) (uuid.UUID, error) {
+func getShowIdFromParams(ctx context2.Context, params map[string]any, services internal.Services) (uuid.UUID, error) {
 	names := []string{}
 	for name, value := range params {
 		if getter, ok := showIDGetters[name]; ok {
@@ -103,7 +112,7 @@ func getShowIdFromParams(ctx context2.Context, params map[string]interface{}, se
 	))
 }
 
-func IsShowAdmin(ctx context2.Context, params interface{}, next graphql2.Resolver) (interface{}, error) {
+func IsShowAdmin(ctx context2.Context, params any, next graphql2.Resolver) (any, error) {
 	log.V("@isShowAdmin(%+v)", params)
 
 	// Authenticate first, arg directives run before field directives (notably, `@authenticated``)
@@ -121,18 +130,20 @@ func IsShowAdmin(ctx context2.Context, params interface{}, next graphql2.Resolve
 		return next(ctx)
 	}
 
-	services := context.GetDirectiveServices(ctx)
-	showID, err := getShowIdFromParams(ctx, params.(map[string]interface{}), services)
+	services := context.GetServices(ctx)
+	showID, err := getShowIdFromParams(ctx, params.(map[string]any), services)
 	if err != nil {
 		return nil, err
 	}
-	admins, err := services.ShowAdminService.GetByShowID(ctx, showID)
+	admins, err := services.ShowAdminService.List(ctx, internal.ShowAdminsFilter{
+		ShowID: &showID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	for _, admin := range admins {
-		if admin.UserID == auth.UserID {
+		if *admin.UserID == auth.UserID {
 			return next(ctx)
 		}
 	}

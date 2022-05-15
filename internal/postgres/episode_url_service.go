@@ -15,38 +15,38 @@ func NewEpisodeURLService(db internal.Database) internal.EpisodeURLService {
 	return &episodeURLService{db}
 }
 
-func (s *episodeURLService) GetByURL(ctx context.Context, url string) (internal.EpisodeURL, error) {
-	return getEpisodeURLByURL(ctx, s.db, url)
+func (s *episodeURLService) Get(ctx context.Context, filter internal.EpisodeURLsFilter) (internal.EpisodeURL, error) {
+	return inTx(ctx, s.db, false, internal.ZeroEpisodeURL, func(tx internal.Tx) (internal.EpisodeURL, error) {
+		return findEpisodeURL(ctx, tx, filter)
+	})
 }
 
-func (s *episodeURLService) GetByEpisodeId(ctx context.Context, episodeID uuid.UUID) ([]internal.EpisodeURL, error) {
-	return getEpisodeURLsByEpisodeID(ctx, s.db, episodeID)
+func (s *episodeURLService) List(ctx context.Context, filter internal.EpisodeURLsFilter) ([]internal.EpisodeURL, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.EpisodeURL, error) {
+		return findEpisodeURLs(ctx, tx, filter)
+	})
 }
 
-func (s *episodeURLService) Create(ctx context.Context, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
-	return insertEpisodeURL(ctx, s.db, newEpisodeURL)
+func (s *episodeURLService) Create(ctx context.Context, newEpisodeURL internal.EpisodeURL, createdBy uuid.UUID) (internal.EpisodeURL, error) {
+	return inTx(ctx, s.db, true, internal.ZeroEpisodeURL, func(tx internal.Tx) (internal.EpisodeURL, error) {
+		return createEpisodeURL(ctx, tx, newEpisodeURL, createdBy)
+	})
 }
 
-func (s *episodeURLService) Update(ctx context.Context, newEpisodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
-	return updateEpisodeURL(ctx, s.db, newEpisodeURL)
+func (s *episodeURLService) Update(ctx context.Context, newEpisodeURL internal.EpisodeURL, updatedBy uuid.UUID) (internal.EpisodeURL, error) {
+	return inTx(ctx, s.db, true, internal.ZeroEpisodeURL, func(tx internal.Tx) (internal.EpisodeURL, error) {
+		return updateEpisodeURL(ctx, tx, newEpisodeURL, updatedBy)
+	})
 }
 
 func (s *episodeURLService) Delete(ctx context.Context, url string) (internal.EpisodeURL, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.EpisodeURL{}, err
-	}
-	defer tx.Rollback()
-
-	existing, err := getEpisodeURLByURLInTx(ctx, tx, url)
-	if err != nil {
-		return internal.EpisodeURL{}, err
-	}
-
-	deleted, err := deleteCascadeEpisodeURL(ctx, tx, existing)
-	if err != nil {
-		return internal.EpisodeURL{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+	return inTx(ctx, s.db, true, internal.ZeroEpisodeURL, func(tx internal.Tx) (internal.EpisodeURL, error) {
+		existing, err := findEpisodeURL(ctx, tx, internal.EpisodeURLsFilter{
+			URL: &url,
+		})
+		if err != nil {
+			return internal.ZeroEpisodeURL, err
+		}
+		return deleteCascadeEpisodeURL(ctx, tx, existing)
+	})
 }

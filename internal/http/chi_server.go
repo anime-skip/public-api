@@ -16,11 +16,11 @@ import (
 )
 
 type chiServer struct {
-	port              int
-	enablePlayground  bool
-	graphqlPath       string
-	graphqlHandler    internal.GraphQLHandler
-	directiveServices internal.DirectiveServices
+	port             int
+	enablePlayground bool
+	graphqlPath      string
+	graphqlHandler   internal.GraphQLHandler
+	services         internal.Services
 }
 
 func NewChiServer(
@@ -28,15 +28,15 @@ func NewChiServer(
 	enablePlayground bool,
 	graphqlPath string,
 	graphqlHandler internal.GraphQLHandler,
-	directiveServices internal.DirectiveServices,
+	services internal.Services,
 ) internal.Server {
 	log.D("Using Chi for routing...")
 	return &chiServer{
-		port:              port,
-		enablePlayground:  enablePlayground,
-		graphqlPath:       graphqlPath,
-		graphqlHandler:    graphqlHandler,
-		directiveServices: directiveServices,
+		port:             port,
+		enablePlayground: enablePlayground,
+		graphqlPath:      graphqlPath,
+		graphqlHandler:   graphqlHandler,
+		services:         services,
 	}
 }
 
@@ -73,7 +73,7 @@ func (s *chiServer) statusHandler(rw http.ResponseWriter, r *http.Request) {
 func (s *chiServer) directivesMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		ctx = context.WithDirectiveServices(ctx, s.directiveServices)
+		ctx = context.WithServices(ctx, s.services)
 		ctx = context.WithAuthToken(ctx, getAuthToken(r))
 		next.ServeHTTP(rw, r.WithContext(ctx))
 	})
@@ -103,7 +103,7 @@ func (s *chiServer) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func writeJson(rw http.ResponseWriter, data interface{}, status int) {
+func writeJson(rw http.ResponseWriter, data any, status int) {
 	rw.Header().Add("Content-Type", "application/json")
 	body, err := json.Marshal(data)
 	if err != nil {

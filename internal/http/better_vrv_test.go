@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/utils"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -81,19 +82,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -113,19 +114,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     100,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -145,19 +146,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     30,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     120,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -177,15 +178,15 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     80,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -207,19 +208,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_CREDITS,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CREDITS),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -239,19 +240,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_CREDITS,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CREDITS),
 						},
 						{
 							At:     100,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -271,19 +272,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     -10,
-							TypeID: internal.TIMESTAMP_ID_CREDITS,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CREDITS),
 						},
 						{
 							At:     80,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -305,19 +306,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_CANON,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CANON),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -337,15 +338,15 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_CANON,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CANON),
 						},
 					},
 				}
@@ -365,15 +366,15 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -395,19 +396,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_PREVIEW,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_PREVIEW),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -427,15 +428,15 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     10,
-							TypeID: internal.TIMESTAMP_ID_PREVIEW,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_PREVIEW),
 						},
 					},
 				}
@@ -455,15 +456,15 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     20,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -490,19 +491,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_RECAP,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_RECAP),
 						},
 						{
 							At:     29,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     110,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -525,19 +526,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_RECAP,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_RECAP),
 						},
 						{
 							At:     90,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     180,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -560,23 +561,23 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_RECAP,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_RECAP),
 						},
 						{
 							At:     30,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     90,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     180,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -605,27 +606,27 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_INTRO,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_INTRO),
 						},
 						{
 							At:     90,
-							TypeID: internal.TIMESTAMP_ID_CREDITS,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CREDITS),
 						},
 						{
 							At:     179,
-							TypeID: internal.TIMESTAMP_ID_CANON,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CANON),
 						},
 						{
 							At:     190,
-							TypeID: internal.TIMESTAMP_ID_PREVIEW,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_PREVIEW),
 						},
 						{
 							At:     200,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}
@@ -648,19 +649,19 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 					Number:         nil,
 					AbsoluteNumber: newStringPointer("123"),
 					Season:         newStringPointer("21"),
-					Source:         internal.TIMESTAMP_SOURCE_BETTER_VRV,
-					Timestamps: []internal.ThirdPartyTimestamp{
+					Source:         utils.Ptr(internal.TimestampSourceBetterVrv),
+					Timestamps: []*internal.ThirdPartyTimestamp{
 						{
 							At:     0,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 						{
 							At:     1000,
-							TypeID: internal.TIMESTAMP_ID_CANON,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_CANON),
 						},
 						{
 							At:     1020,
-							TypeID: internal.TIMESTAMP_ID_UNKNOWN,
+							TypeID: utils.Ptr(internal.TIMESTAMP_ID_UNKNOWN),
 						},
 					},
 				}

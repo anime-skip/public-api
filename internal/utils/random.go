@@ -3,7 +3,7 @@ package utils
 import (
 	"math/rand"
 
-	"anime-skip.com/public-api/internal/errors"
+	"anime-skip.com/public-api/internal"
 	"github.com/gofrs/uuid"
 )
 
@@ -18,10 +18,16 @@ func RandomString(length int) string {
 	return string(s)
 }
 
-func RandomID() uuid.UUID {
+func RandomID(target *uuid.UUID) error {
 	id, err := uuid.NewV4()
 	if err != nil {
-		panic(errors.NewPanicedError("Failed to create id: %v", err))
+		return &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Failed to generate uuid",
+			Op:      "utils.RandomID",
+			Err:     err,
+		}
 	}
-	return id
+	*target = id
+	return nil
 }

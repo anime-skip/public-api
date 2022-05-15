@@ -8,7 +8,7 @@ type PanicedError struct {
 
 var Paniced = &PanicedError{}
 
-func NewPanicedError(format string, vars ...interface{}) *PanicedError {
+func NewPanicedError(format string, vars ...any) *PanicedError {
 	return &PanicedError{
 		message: fmt.Sprintf(format, vars...),
 	}

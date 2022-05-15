@@ -9,7 +9,7 @@ import (
 )
 
 var adminUUID = uuid.FromStringOrNil("00000000-0000-0000-0000-000000000000")
-var adminUser = &internal.User{
+var adminUser = &internal.FullUser{
 	ID:            adminUUID,
 	CreatedAt:     time.Now(),
 	DeletedAt:     nil,

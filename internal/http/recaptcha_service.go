@@ -60,7 +60,7 @@ func (s *googleRecaptchaService) Verify(ctx go_context.Context, response string)
 		return errors.New(errorMessage)
 	}
 
-	var responseJson map[string]interface{}
+	var responseJson map[string]any
 	err = json.Unmarshal(body, &responseJson)
 	if err != nil {
 		log.E("(VerifyRecaptcha) Response body was not valid JSON: %v", err)

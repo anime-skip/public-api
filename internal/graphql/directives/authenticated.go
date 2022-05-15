@@ -13,7 +13,7 @@ func authenticate(ctx ctx.Context) (ctx.Context, error) {
 		return ctx, nil
 	}
 
-	services := context.GetDirectiveServices(ctx)
+	services := context.GetServices(ctx)
 	token := context.GetAuthToken(ctx)
 	if token == "" {
 		return nil, errors.New("Unauthorized: Authorization header must be 'Bearer <token>'")
@@ -27,7 +27,7 @@ func authenticate(ctx ctx.Context) (ctx.Context, error) {
 	return ctx, nil
 }
 
-func Authenticated(ctx ctx.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
+func Authenticated(ctx ctx.Context, obj any, next graphql.Resolver) (any, error) {
 	ctx, err := authenticate(ctx)
 	if err != nil {
 		return nil, err

@@ -65,13 +65,6 @@ func main() {
 			utils.NewCachedThirdPartyService(betterVRV, 30*time.Minute),
 		}),
 	}
-	directiveServices := internal.DirectiveServices{
-		AuthService:       jwtAuthService,
-		EpisodeService:    pgEpisodeService,
-		EpisodeURLService: pgEpisodeURLService,
-		ShowAdminService:  pgShowAdminService,
-		TemplateService:   pgTemplateService,
-	}
 
 	graphqlHandler := handler.NewGraphqlHandler(
 		pg,
@@ -84,7 +77,7 @@ func main() {
 		config.EnvBool("ENABLE_PLAYGROUND"),
 		"/graphql",
 		graphqlHandler,
-		directiveServices,
+		services,
 	)
 
 	err := server.Start()

@@ -1,15 +1,13 @@
 module anime-skip.com/public-api
 
-go 1.17
+go 1.18
 
 require (
 	github.com/99designs/gqlgen v0.16.0
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
-	github.com/dave/jennifer v1.5.0
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/ettle/strcase v0.1.1
 	github.com/go-chi/chi v1.5.4
 	github.com/gofrs/uuid v4.2.0+incompatible
 	github.com/jmoiron/sqlx v1.3.4

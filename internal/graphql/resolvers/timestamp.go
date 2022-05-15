@@ -1,11 +1,9 @@
 package resolvers
 
 import (
-	"context"
-
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/errors"
-	"anime-skip.com/public-api/internal/graphql"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
@@ -14,107 +12,120 @@ import (
 
 // Helpers
 
-func (r *Resolver) getTimestampByID(ctx context.Context, id *uuid.UUID) (*graphql.Timestamp, error) {
+func (r *Resolver) getTimestampByID(ctx context.Context, id *uuid.UUID) (*internal.Timestamp, error) {
 	if id == nil {
 		return nil, nil
 	}
-	internalTimestamp, err := r.TimestampService.GetByID(ctx, *id)
+	timestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
+		ID: id,
+	})
 	if err != nil {
 		return nil, err
 	}
-	timestamp := mappers.ToGraphqlTimestamp(internalTimestamp)
 	return &timestamp, nil
 }
 
-func (r *Resolver) getTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.Timestamp, error) {
-	internalTimestamps, err := r.TimestampService.GetByEpisodeID(ctx, *episodeID)
+func (r *Resolver) getTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*internal.Timestamp, error) {
+	timestamps, err := r.TimestampService.List(ctx, internal.TimestampsFilter{
+		EpisodeID: episodeID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	episodes := mappers.ToGraphqlTimestampPointers(internalTimestamps)
-	return episodes, nil
+	return utils.PtrSlice(timestamps), nil
 }
 
 // Mutations
 
-func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID *uuid.UUID, timestampInput graphql.InputTimestamp) (*graphql.Timestamp, error) {
-	internalInput := internal.Timestamp{
-		BaseEntity: internal.BaseEntity{
-			ID: utils.RandomID(),
-		},
-		EpisodeID: *episodeID,
-	}
-	mappers.ApplyGraphqlInputTimestamp(timestampInput, &internalInput)
-
-	created, err := r.TimestampService.Create(ctx, internalInput)
+func (r *mutationResolver) CreateTimestamp(ctx context.Context, episodeID *uuid.UUID, input internal.InputTimestamp) (*internal.Timestamp, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTimestamp(created)
-	return &result, nil
+	newTimestamp := internal.Timestamp{
+		EpisodeID: episodeID,
+	}
+	mappers.ApplyGraphqlInputTimestamp(input, &newTimestamp)
+
+	created, err := r.TimestampService.Create(ctx, newTimestamp, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &created, nil
 }
 
-func (r *mutationResolver) UpdateTimestamp(ctx context.Context, timestampID *uuid.UUID, newTimestamp graphql.InputTimestamp) (*graphql.Timestamp, error) {
-	log.V("Updating: %v", timestampID)
-	existing, err := r.TimestampService.GetByID(ctx, *timestampID)
+func (r *mutationResolver) UpdateTimestamp(ctx context.Context, id *uuid.UUID, changes internal.InputTimestamp) (*internal.Timestamp, error) {
+	log.V("Updating: %v", id)
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-	mappers.ApplyGraphqlInputTimestamp(newTimestamp, &existing)
-	log.V("Updating to %+v", existing)
-	created, err := r.TimestampService.Update(ctx, existing)
+
+	newTimestamp, err := r.TimestampService.Get(ctx, internal.TimestampsFilter{
+		ID: id,
+	})
+	if err != nil {
+		return nil, err
+	}
+	mappers.ApplyGraphqlInputTimestamp(changes, &newTimestamp)
+	log.V("Updating to %+v", newTimestamp)
+	updated, err := r.TimestampService.Update(ctx, newTimestamp, auth.UserID)
 	if err != nil {
 		log.V("Failed to update: %v", err)
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTimestamp(created)
-	return &result, nil
+	return &updated, nil
 }
 
-func (r *mutationResolver) DeleteTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
-	deleted, err := r.TimestampService.Delete(ctx, *timestampID)
+func (r *mutationResolver) DeleteTimestamp(ctx context.Context, id *uuid.UUID) (*internal.Timestamp, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	result := mappers.ToGraphqlTimestamp(deleted)
-	return &result, nil
+	deleted, err := r.TimestampService.Delete(ctx, *id, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &deleted, nil
 }
 
-func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*graphql.InputTimestampOn, update []*graphql.InputExistingTimestamp, delete []*uuid.UUID) (*graphql.UpdatedTimestamps, error) {
+func (r *mutationResolver) UpdateTimestamps(ctx context.Context, create []*internal.InputTimestampOn, update []*internal.InputExistingTimestamp, delete []*uuid.UUID) (*internal.UpdatedTimestamps, error) {
 	panic(errors.NewPanicedError("mutationResolver.UpdateTimestamps not implemented"))
 }
 
 // Queries
 
-func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID *uuid.UUID) (*graphql.Timestamp, error) {
+func (r *queryResolver) FindTimestamp(ctx context.Context, timestampID *uuid.UUID) (*internal.Timestamp, error) {
 	return r.getTimestampByID(ctx, timestampID)
 }
 
-func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*graphql.Timestamp, error) {
+func (r *queryResolver) FindTimestampsByEpisodeID(ctx context.Context, episodeID *uuid.UUID) ([]*internal.Timestamp, error) {
 	return r.getTimestampsByEpisodeID(ctx, episodeID)
 }
 
 // Fields
 
-func (r *timestampResolver) CreatedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
+func (r *timestampResolver) CreatedBy(ctx context.Context, obj *internal.Timestamp) (*internal.User, error) {
 	return r.getUserById(ctx, obj.CreatedByUserID)
 }
 
-func (r *timestampResolver) UpdatedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
+func (r *timestampResolver) UpdatedBy(ctx context.Context, obj *internal.Timestamp) (*internal.User, error) {
 	return r.getUserById(ctx, obj.UpdatedByUserID)
 }
 
-func (r *timestampResolver) DeletedBy(ctx context.Context, obj *graphql.Timestamp) (*graphql.User, error) {
+func (r *timestampResolver) DeletedBy(ctx context.Context, obj *internal.Timestamp) (*internal.User, error) {
 	return r.getUserById(ctx, obj.DeletedByUserID)
 }
 
-func (r *timestampResolver) Type(ctx context.Context, obj *graphql.Timestamp) (*graphql.TimestampType, error) {
+func (r *timestampResolver) Type(ctx context.Context, obj *internal.Timestamp) (*internal.TimestampType, error) {
 	return r.getTimestampTypeByID(ctx, obj.TypeID)
 }
 
-func (r *timestampResolver) Episode(ctx context.Context, obj *graphql.Timestamp) (*graphql.Episode, error) {
+func (r *timestampResolver) Episode(ctx context.Context, obj *internal.Timestamp) (*internal.Episode, error) {
 	return r.getEpisodeByID(ctx, obj.EpisodeID)
 }

@@ -48,7 +48,7 @@ func init() {
 }
 
 // V prints verbose (LOG_LEVEL=0) logs
-func V(format string, a ...interface{}) {
+func V(format string, a ...any) {
 	if logLevel > LOG_LEVEL_VERBOSE {
 		return
 	}
@@ -56,7 +56,7 @@ func V(format string, a ...interface{}) {
 }
 
 // D prints debug (LOG_LEVEL=1) logs
-func D(format string, a ...interface{}) {
+func D(format string, a ...any) {
 	if logLevel > LOG_LEVEL_DEBUG {
 		return
 	}
@@ -64,7 +64,7 @@ func D(format string, a ...interface{}) {
 }
 
 // I prints debug (LOG_LEVEL=2) logs
-func I(format string, a ...interface{}) {
+func I(format string, a ...any) {
 	if logLevel > LOG_LEVEL_DEBUG {
 		return
 	}
@@ -72,7 +72,7 @@ func I(format string, a ...interface{}) {
 }
 
 // W prints warning (LOG_LEVEL=3) logs
-func W(format string, a ...interface{}) {
+func W(format string, a ...any) {
 	if logLevel > LOG_LEVEL_WARNING {
 		return
 	}
@@ -80,7 +80,7 @@ func W(format string, a ...interface{}) {
 }
 
 // E prints error (LOG_LEVEL=4) logs
-func E(format string, a ...interface{}) {
+func E(format string, a ...any) {
 	if logLevel > LOG_LEVEL_ERROR {
 		return
 	}
@@ -88,11 +88,11 @@ func E(format string, a ...interface{}) {
 }
 
 // Spew will pretty-print object deeply (along with their types), making it useful for debugging
-func Spew(obj ...interface{}) {
+func Spew(obj ...any) {
 	spew.Dump(obj...)
 }
 
-func printColored(color string, logType string, format string, a ...interface{}) {
+func printColored(color string, logType string, format string, a ...any) {
 	str := fmt.Sprintf(format, a...)
 	fmt.Printf("%s[ %s ] %s%s\n", color, logType, str, reset)
 }

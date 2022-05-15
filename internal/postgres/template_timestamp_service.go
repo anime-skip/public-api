@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
-	uuid "github.com/gofrs/uuid"
 )
 
 type templateTimestampService struct {
@@ -15,29 +14,39 @@ func NewTemplateTimestampService(db internal.Database) internal.TemplateTimestam
 	return &templateTimestampService{db}
 }
 
+func (s *templateTimestampService) Get(ctx context.Context, filter internal.TemplateTimestampsFilter) (internal.TemplateTimestamp, error) {
+	return inTx(ctx, s.db, false, internal.ZeroTemplateTimestamp, func(tx internal.Tx) (internal.TemplateTimestamp, error) {
+		return findTemplateTimestamp(ctx, tx, filter)
+	})
+}
+
+func (s *templateTimestampService) List(ctx context.Context, filter internal.TemplateTimestampsFilter) ([]internal.TemplateTimestamp, error) {
+	return inTx(ctx, s.db, false, nil, func(tx internal.Tx) ([]internal.TemplateTimestamp, error) {
+		return findTemplateTimestamps(ctx, tx, filter)
+	})
+}
+
 func (s *templateTimestampService) Create(ctx context.Context, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	return insertTemplateTimestamp(ctx, s.db, newTemplateTimestamp)
+	return inTx(ctx, s.db, true, internal.ZeroTemplateTimestamp, func(tx internal.Tx) (internal.TemplateTimestamp, error) {
+		return createTemplateTimestamp(ctx, tx, newTemplateTimestamp)
+	})
 }
 
-func (s *templateTimestampService) Delete(ctx context.Context, existing internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	tx, err := s.db.BeginTxx(ctx, nil)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	defer tx.Rollback()
-
-	deleted, err := deleteCascadeTemplateTimestamp(ctx, tx, existing)
-	if err != nil {
-		return internal.TemplateTimestamp{}, err
-	}
-	tx.Commit()
-	return deleted, nil
+func (s *templateTimestampService) Update(ctx context.Context, newTemplateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTemplateTimestamp, func(tx internal.Tx) (internal.TemplateTimestamp, error) {
+		return updateTemplateTimestamp(ctx, tx, newTemplateTimestamp)
+	})
 }
 
-func (s *templateTimestampService) GetByTimestampID(ctx context.Context, timestampID uuid.UUID) (internal.TemplateTimestamp, error) {
-	return getTemplateTimestampByTimestampID(ctx, s.db, timestampID)
-}
-
-func (s *templateTimestampService) GetByTemplateID(ctx context.Context, templateID uuid.UUID) ([]internal.TemplateTimestamp, error) {
-	return getTemplateTimestampsByTemplateID(ctx, s.db, templateID)
+func (s *templateTimestampService) Delete(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (internal.TemplateTimestamp, error) {
+	return inTx(ctx, s.db, true, internal.ZeroTemplateTimestamp, func(tx internal.Tx) (internal.TemplateTimestamp, error) {
+		existing, err := findTemplateTimestamp(ctx, tx, internal.TemplateTimestampsFilter{
+			TemplateID:  templateTimestamp.TemplateID,
+			TimestampID: templateTimestamp.TemplateID,
+		})
+		if err != nil {
+			return internal.ZeroTemplateTimestamp, err
+		}
+		return deleteCascadeTemplateTimestamp(ctx, tx, existing)
+	})
 }

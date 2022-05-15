@@ -1,6 +1,6 @@
 """
 A user's role in the system. Higher roles allow a user write access to certain data that a normal
-user would not. Some queries and mutations are only alloed by certain roles
+user would not. Some queries and mutations are only allowed by certain roles
 """
 enum Role {
   "Highest role. Has super user access to all queries and mutations"
