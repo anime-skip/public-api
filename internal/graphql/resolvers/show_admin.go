@@ -3,7 +3,6 @@ package resolvers
 import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
-	"anime-skip.com/public-api/internal/errors"
 	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
 )
@@ -33,7 +32,7 @@ func (r *Resolver) getShowAdminsByUserId(ctx context.Context, userID *uuid.UUID)
 // Mutations
 
 func (r *mutationResolver) CreateShowAdmin(ctx context.Context, showAdminInput internal.InputShowAdmin) (*internal.ShowAdmin, error) {
-	panic(errors.NewPanicedError("TODO - show admins are disabled"))
+	return nil, internal.NewNotImplemented("CreateShowAdmin")
 }
 
 func (r *mutationResolver) DeleteShowAdmin(ctx context.Context, id *uuid.UUID) (*internal.ShowAdmin, error) {

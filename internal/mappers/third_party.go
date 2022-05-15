@@ -22,16 +22,12 @@ func InternalTimestampToThirdPartyTimestamp(timestamp internal.Timestamp) intern
 }
 
 func InternalEpisodeToThirdPartyEpisode(episode internal.Episode, show internal.ThirdPartyShow, timestamps []internal.ThirdPartyTimestamp) internal.ThirdPartyEpisode {
-	var baseDuration float64
-	if episode.BaseDuration != nil {
-		baseDuration = *episode.BaseDuration
-	}
 	return internal.ThirdPartyEpisode{
 		ID:             episode.ID,
 		Season:         episode.Season,
 		Number:         episode.Number,
 		AbsoluteNumber: episode.AbsoluteNumber,
-		BaseDuration:   &baseDuration, // TODO: Refactor and make it not a pointer so it can be assigned directly
+		BaseDuration:   episode.BaseDuration,
 		Name:           episode.Name,
 		Source:         utils.Ptr(internal.TimestampSourceAnimeSkip),
 		ShowID:         episode.ShowID.String(),
