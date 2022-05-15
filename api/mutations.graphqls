@@ -196,4 +196,12 @@ type Mutation {
   removeTimestampFromTemplate(
     templateTimestamp: InputTemplateTimestamp!
   ): TemplateTimestamp! @authenticated
+
+  "Create a new API client for the authenticated user to use"
+  createApiClient(client: CreateApiClient!): ApiClient! @authenticated
+  "Update one of the authenticated user's API clients"
+  updateApiClient(id: String!, changes: ApiClientChanges!): ApiClient!
+    @authenticated
+  "Delete one of the authenticated user's API clients"
+  deleteApiClient(id: String!): ApiClient! @authenticated
 }

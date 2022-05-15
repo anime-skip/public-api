@@ -75,6 +75,25 @@ type ComplexityRoot struct {
 		Username      func(childComplexity int) int
 	}
 
+	ApiClient struct {
+		AllowedOrigins  func(childComplexity int) int
+		AppName         func(childComplexity int) int
+		CreatedAt       func(childComplexity int) int
+		CreatedBy       func(childComplexity int) int
+		CreatedByUserID func(childComplexity int) int
+		DeletedAt       func(childComplexity int) int
+		DeletedBy       func(childComplexity int) int
+		DeletedByUserID func(childComplexity int) int
+		Description     func(childComplexity int) int
+		ID              func(childComplexity int) int
+		RateLimitRpm    func(childComplexity int) int
+		UpdatedAt       func(childComplexity int) int
+		UpdatedBy       func(childComplexity int) int
+		UpdatedByUserID func(childComplexity int) int
+		User            func(childComplexity int) int
+		UserID          func(childComplexity int) int
+	}
+
 	Episode struct {
 		AbsoluteNumber  func(childComplexity int) int
 		BaseDuration    func(childComplexity int) int
@@ -122,6 +141,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		AddTimestampToTemplate      func(childComplexity int, templateTimestamp internal.InputTemplateTimestamp) int
 		ChangePassword              func(childComplexity int, oldPassword string, newPassword string, confirmNewPassword string) int
+		CreateAPIClient             func(childComplexity int, client internal.CreateAPIClient) int
 		CreateAccount               func(childComplexity int, username string, email string, passwordHash string, recaptchaResponse string) int
 		CreateEpisode               func(childComplexity int, showID *uuid.UUID, episodeInput internal.InputEpisode) int
 		CreateEpisodeURL            func(childComplexity int, episodeID *uuid.UUID, episodeURLInput internal.InputEpisodeURL) int
@@ -130,6 +150,7 @@ type ComplexityRoot struct {
 		CreateTemplate              func(childComplexity int, newTemplate internal.InputTemplate) int
 		CreateTimestamp             func(childComplexity int, episodeID *uuid.UUID, timestampInput internal.InputTimestamp) int
 		CreateTimestampType         func(childComplexity int, timestampTypeInput internal.InputTimestampType) int
+		DeleteAPIClient             func(childComplexity int, id *uuid.UUID) int
 		DeleteAccount               func(childComplexity int, deleteToken string) int
 		DeleteAccountRequest        func(childComplexity int, passwordHash string) int
 		DeleteEpisode               func(childComplexity int, episodeID *uuid.UUID) int
@@ -144,6 +165,7 @@ type ComplexityRoot struct {
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
 		SavePreferences             func(childComplexity int, preferences map[string]interface{}) int
+		UpdateAPIClient             func(childComplexity int, id *uuid.UUID, changes *internal.APIClientChanges) int
 		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode internal.InputEpisode) int
 		UpdateEpisodeURL            func(childComplexity int, episodeURL string, newEpisodeURL internal.InputEpisodeURL) int
 		UpdateShow                  func(childComplexity int, showID *uuid.UUID, newShow internal.InputShow) int
@@ -184,6 +206,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Account                    func(childComplexity int) int
 		AllTimestampTypes          func(childComplexity int) int
+		FindAPIClient              func(childComplexity int, id string) int
 		FindEpisode                func(childComplexity int, episodeID *uuid.UUID) int
 		FindEpisodeByName          func(childComplexity int, name string) int
 		FindEpisodeURL             func(childComplexity int, episodeURL string) int
@@ -203,6 +226,7 @@ type ComplexityRoot struct {
 		FindUserByUsername         func(childComplexity int, username string) int
 		Login                      func(childComplexity int, usernameEmail string, passwordHash string) int
 		LoginRefresh               func(childComplexity int, refreshToken string) int
+		MyAPIClients               func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
 		RecentlyAddedEpisodes      func(childComplexity int, limit *int, offset *int) int
 		SearchEpisodes             func(childComplexity int, search *string, showID *uuid.UUID, offset *int, limit *int, sort *string) int
 		SearchShows                func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
@@ -409,6 +433,9 @@ type MutationResolver interface {
 	DeleteTemplate(ctx context.Context, templateID *uuid.UUID) (*internal.Template, error)
 	AddTimestampToTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error)
 	RemoveTimestampFromTemplate(ctx context.Context, templateTimestamp internal.InputTemplateTimestamp) (*internal.TemplateTimestamp, error)
+	CreateAPIClient(ctx context.Context, client internal.CreateAPIClient) (*internal.APIClient, error)
+	UpdateAPIClient(ctx context.Context, id *uuid.UUID, changes *internal.APIClientChanges) (*internal.APIClient, error)
+	DeleteAPIClient(ctx context.Context, id *uuid.UUID) (*internal.APIClient, error)
 }
 type PreferencesResolver interface {
 	User(ctx context.Context, obj *internal.Preferences) (*internal.User, error)
@@ -438,6 +465,8 @@ type QueryResolver interface {
 	FindTemplate(ctx context.Context, templateID *uuid.UUID) (*internal.Template, error)
 	FindTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Template, error)
 	FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error)
+	MyAPIClients(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*internal.APIClient, error)
+	FindAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *internal.Show) (*internal.User, error)
@@ -590,6 +619,118 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Account.Username(childComplexity), true
+
+	case "ApiClient.AllowedOrigins":
+		if e.complexity.ApiClient.AllowedOrigins == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.AllowedOrigins(childComplexity), true
+
+	case "ApiClient.AppName":
+		if e.complexity.ApiClient.AppName == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.AppName(childComplexity), true
+
+	case "ApiClient.createdAt":
+		if e.complexity.ApiClient.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.CreatedAt(childComplexity), true
+
+	case "ApiClient.createdBy":
+		if e.complexity.ApiClient.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.CreatedBy(childComplexity), true
+
+	case "ApiClient.createdByUserId":
+		if e.complexity.ApiClient.CreatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.CreatedByUserID(childComplexity), true
+
+	case "ApiClient.deletedAt":
+		if e.complexity.ApiClient.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.DeletedAt(childComplexity), true
+
+	case "ApiClient.deletedBy":
+		if e.complexity.ApiClient.DeletedBy == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.DeletedBy(childComplexity), true
+
+	case "ApiClient.deletedByUserId":
+		if e.complexity.ApiClient.DeletedByUserID == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.DeletedByUserID(childComplexity), true
+
+	case "ApiClient.Description":
+		if e.complexity.ApiClient.Description == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.Description(childComplexity), true
+
+	case "ApiClient.id":
+		if e.complexity.ApiClient.ID == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.ID(childComplexity), true
+
+	case "ApiClient.RateLimitRPM":
+		if e.complexity.ApiClient.RateLimitRpm == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.RateLimitRpm(childComplexity), true
+
+	case "ApiClient.updatedAt":
+		if e.complexity.ApiClient.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.UpdatedAt(childComplexity), true
+
+	case "ApiClient.updatedBy":
+		if e.complexity.ApiClient.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.UpdatedBy(childComplexity), true
+
+	case "ApiClient.updatedByUserId":
+		if e.complexity.ApiClient.UpdatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.UpdatedByUserID(childComplexity), true
+
+	case "ApiClient.user":
+		if e.complexity.ApiClient.User == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.User(childComplexity), true
+
+	case "ApiClient.userId":
+		if e.complexity.ApiClient.UserID == nil {
+			break
+		}
+
+		return e.complexity.ApiClient.UserID(childComplexity), true
 
 	case "Episode.absoluteNumber":
 		if e.complexity.Episode.AbsoluteNumber == nil {
@@ -860,6 +1001,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.ChangePassword(childComplexity, args["oldPassword"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string)), true
 
+	case "Mutation.createApiClient":
+		if e.complexity.Mutation.CreateAPIClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createApiClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateAPIClient(childComplexity, args["client"].(internal.CreateAPIClient)), true
+
 	case "Mutation.createAccount":
 		if e.complexity.Mutation.CreateAccount == nil {
 			break
@@ -955,6 +1108,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateTimestampType(childComplexity, args["timestampTypeInput"].(internal.InputTimestampType)), true
+
+	case "Mutation.deleteApiClient":
+		if e.complexity.Mutation.DeleteAPIClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deleteApiClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeleteAPIClient(childComplexity, args["id"].(*uuid.UUID)), true
 
 	case "Mutation.deleteAccount":
 		if e.complexity.Mutation.DeleteAccount == nil {
@@ -1123,6 +1288,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.SavePreferences(childComplexity, args["preferences"].(map[string]interface{})), true
+
+	case "Mutation.updateApiClient":
+		if e.complexity.Mutation.UpdateAPIClient == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_updateApiClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.UpdateAPIClient(childComplexity, args["id"].(*uuid.UUID), args["changes"].(*internal.APIClientChanges)), true
 
 	case "Mutation.updateEpisode":
 		if e.complexity.Mutation.UpdateEpisode == nil {
@@ -1402,6 +1579,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AllTimestampTypes(childComplexity), true
 
+	case "Query.findApiClient":
+		if e.complexity.Query.FindAPIClient == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findApiClient_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindAPIClient(childComplexity, args["id"].(string)), true
+
 	case "Query.findEpisode":
 		if e.complexity.Query.FindEpisode == nil {
 			break
@@ -1629,6 +1818,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.LoginRefresh(childComplexity, args["refreshToken"].(string)), true
+
+	case "Query.myApiClients":
+		if e.complexity.Query.MyAPIClients == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myApiClients_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyAPIClients(childComplexity, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.recentlyAddedEpisodes":
 		if e.complexity.Query.RecentlyAddedEpisodes == nil {
@@ -2650,7 +2851,7 @@ type Episode implements BaseModel {
   name: String
   "The show that the episode belongs to"
   show: Show!
-  "The id of the show that the episode blongs to"
+  "The id of the show that the episode belongs to"
   showId: ID!
   """
   The list of current timestamps.
@@ -2671,8 +2872,8 @@ Episode info provided by a third party. See ` + "`" + `Episode` + "`" + ` for a 
 When creating data based on this type, fill out and post an episode, then timestamps based on the
 data here. All fields will map 1 to 1 with the exception of ` + "`" + `source` + "`" + `. Since a source belongs to a
 episode for third party data, but belongs to timestamps in Anime Skip, the source should be
-propogated down to each of the timestamps. This way when more timestamps are added, a episode can
-have muliple timestamp sources.
+propagated down to each of the timestamps. This way when more timestamps are added, a episode can
+have multiple timestamp sources.
 
 > Make sure to fill out the ` + "`" + `source` + "`" + ` field so that original owner of the timestamp is maintained
 """
@@ -2748,7 +2949,7 @@ input InputEpisodeUrl {
   timestampsOffset: Float
 }
 
-"Account info that should only be accessible by the authorised user"
+"Account info that should only be accessible by the authorized user"
 type Account {
   id: ID!
   createdAt: Time!
@@ -2762,7 +2963,7 @@ type Account {
   """
   The linking object that associates a user to the shows they are admins of.
 
-  > This data is also accessible on the ` + "`" + `User` + "`" + ` model. It has been added here for convienience
+  > This data is also accessible on the ` + "`" + `User` + "`" + ` model. It has been added here for convenience
   """
   adminOfShows: [ShowAdmin!]!
 
@@ -2818,7 +3019,7 @@ type Preferences {
   skipFiller: Boolean!
   "Whether or not the user whats to skip canon content. Default: ` + "`" + `false` + "`" + `"
   skipCanon: Boolean!
-  "Whether or not the user whats to skip commertial transitions. Default: ` + "`" + `true` + "`" + `"
+  "Whether or not the user whats to skip commercial transitions. Default: ` + "`" + `true` + "`" + `"
   skipTransitions: Boolean!
   "Whether or not the user whats to skip credits/outros. Default: ` + "`" + `true` + "`" + `"
   skipCredits: Boolean!
@@ -2976,7 +3177,7 @@ type Timestamp implements BaseModel {
   "The id specifying the type the timestamp is"
   typeId: ID!
   """
-  The type the timestamp is. Thid field is a constant string so including it has no effect on
+  The type the timestamp is. This field is a constant string so including it has no effect on
   performance or query complexity.
   """
   type: TimestampType!
@@ -3102,6 +3303,41 @@ type TemplateTimestamp {
 input InputTemplateTimestamp {
   templateId: ID!
   timestampId: ID!
+}
+
+type ApiClient {
+  id: String!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+  "The ID of the user this client belongs to"
+  userId: ID!
+  "The user this client belongs to"
+  user: User!
+  AppName: String!
+  Description: String!
+  AllowedOrigins: [String!]
+  RateLimitRPM: UInt
+}
+
+input CreateApiClient {
+  AppName: String!
+  Description: String!
+  AllowedOrigins: [String!]
+  RateLimitRPM: UInt
+}
+
+input ApiClientChanges {
+  AppName: String
+  Description: String
+  AllowedOrigins: [String!]
+  RateLimitRPM: UInt
 }
 `, BuiltIn: false},
 	{Name: "api/mutations.graphqls", Input: `type Mutation {
@@ -3302,6 +3538,13 @@ input InputTemplateTimestamp {
   removeTimestampFromTemplate(
     templateTimestamp: InputTemplateTimestamp!
   ): TemplateTimestamp! @authenticated
+
+  "Create a new API client for the authenticated user to use"
+  createApiClient(client: CreateApiClient!): ApiClient! @authenticated
+  "Update one of the authenticated user's API clients"
+  updateApiClient(id: ID!, changes: ApiClientChanges): ApiClient! @authenticated
+  "Delete one of the authenticated user's API clients"
+  deleteApiClient(id: ID!): ApiClient! @authenticated
 }
 `, BuiltIn: false},
 	{Name: "api/queries.graphqls", Input: `type Query {
@@ -3419,6 +3662,17 @@ input InputTemplateTimestamp {
     showName: String
     season: String
   ): Template!
+
+  "List or search through the authenticated user's API clients"
+  myApiClients(
+    search: String
+    offset: Int = 0
+    limit: Int = 10
+    sort: String = "ASC"
+  ): [ApiClient!]! @authenticated
+
+  "Find an API Client that you created based on it's ID. This will not return other users' clients"
+  findApiClient(id: String!): ApiClient! @authenticated
 }
 `, BuiltIn: false},
 	{Name: "api/return_types.graphqls", Input: `"""
@@ -3449,6 +3703,11 @@ Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
 ` + "`" + `` + "`" + `` + "`" + `
 """
 scalar Time
+
+"""
+A positive integer, specifically Golang's [uint](https://pkg.go.dev/builtin#uint)
+"""
+scalar UInt
 `, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -3559,6 +3818,21 @@ func (ec *executionContext) field_Mutation_createAccount_args(ctx context.Contex
 		}
 	}
 	args["recaptchaResponse"] = arg3
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createApiClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 internal.CreateAPIClient
+	if tmp, ok := rawArgs["client"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("client"))
+		arg0, err = ec.unmarshalNCreateApiClient2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐCreateAPIClient(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["client"] = arg0
 	return args, nil
 }
 
@@ -3745,6 +4019,21 @@ func (ec *executionContext) field_Mutation_deleteAccount_args(ctx context.Contex
 		}
 	}
 	args["deleteToken"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deleteApiClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -4019,6 +4308,30 @@ func (ec *executionContext) field_Mutation_savePreferences_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_updateApiClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *internal.APIClientChanges
+	if tmp, ok := rawArgs["changes"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("changes"))
+		arg1, err = ec.unmarshalOApiClientChanges2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientChanges(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["changes"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_updateEpisodeUrl_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4223,6 +4536,21 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findApiClient_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -4535,6 +4863,48 @@ func (ec *executionContext) field_Query_login_args(ctx context.Context, rawArgs 
 		}
 	}
 	args["passwordHash"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myApiClients_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["search"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["search"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["sort"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg3
 	return args, nil
 }
 
@@ -5038,6 +5408,551 @@ func (ec *executionContext) _Account_preferences(ctx context.Context, field grap
 	res := resTmp.(*internal.Preferences)
 	fc.Result = res
 	return ec.marshalNPreferences2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐPreferences(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_id(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_createdAt(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_createdBy(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_updatedAt(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_updatedBy(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_deletedAt(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_deletedBy(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedBy, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_userId(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_user(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.User, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_AppName(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AppName, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_Description(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_AllowedOrigins(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.AllowedOrigins, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]string)
+	fc.Result = res
+	return ec.marshalOString2ᚕstringᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _ApiClient_RateLimitRPM(ctx context.Context, field graphql.CollectedField, obj *internal.APIClient) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "ApiClient",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.RateLimitRpm, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uint)
+	fc.Result = res
+	return ec.marshalOUInt2ᚖuint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_id(ctx context.Context, field graphql.CollectedField, obj *internal.Episode) (ret graphql.Marshaler) {
@@ -8092,6 +9007,192 @@ func (ec *executionContext) _Mutation_removeTimestampFromTemplate(ctx context.Co
 	return ec.marshalNTemplateTimestamp2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTemplateTimestamp(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createApiClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createApiClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateAPIClient(rctx, args["client"].(internal.CreateAPIClient))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.APIClient); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.APIClient`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.APIClient)
+	fc.Result = res
+	return ec.marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_updateApiClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_updateApiClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateAPIClient(rctx, args["id"].(*uuid.UUID), args["changes"].(*internal.APIClientChanges))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.APIClient); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.APIClient`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.APIClient)
+	fc.Result = res
+	return ec.marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deleteApiClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deleteApiClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteAPIClient(rctx, args["id"].(*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.APIClient); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.APIClient`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.APIClient)
+	fc.Result = res
+	return ec.marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.CollectedField, obj *internal.Preferences) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -9941,6 +11042,130 @@ func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, fi
 	res := resTmp.(*internal.Template)
 	fc.Result = res
 	return ec.marshalNTemplate2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTemplate(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_myApiClients(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_myApiClients_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().MyAPIClients(rctx, args["search"].(*string), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*internal.APIClient); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*anime-skip.com/public-api/internal.APIClient`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*internal.APIClient)
+	fc.Result = res
+	return ec.marshalNApiClient2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_findApiClient(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_findApiClient_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindAPIClient(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.APIClient); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.APIClient`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.APIClient)
+	fc.Result = res
+	return ec.marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -14864,6 +16089,100 @@ func (ec *executionContext) ___Type_ofType(ctx context.Context, field graphql.Co
 
 // region    **************************** input.gotpl *****************************
 
+func (ec *executionContext) unmarshalInputApiClientChanges(ctx context.Context, obj interface{}) (internal.APIClientChanges, error) {
+	var it internal.APIClientChanges
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "AppName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AppName"))
+			it.AppName, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
+			it.Description, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "AllowedOrigins":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AllowedOrigins"))
+			it.AllowedOrigins, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "RateLimitRPM":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RateLimitRPM"))
+			it.RateLimitRpm, err = ec.unmarshalOUInt2ᚖuint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputCreateApiClient(ctx context.Context, obj interface{}) (internal.CreateAPIClient, error) {
+	var it internal.CreateAPIClient
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "AppName":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AppName"))
+			it.AppName, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "Description":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("Description"))
+			it.Description, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "AllowedOrigins":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("AllowedOrigins"))
+			it.AllowedOrigins, err = ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "RateLimitRPM":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("RateLimitRPM"))
+			it.RateLimitRpm, err = ec.unmarshalOUInt2ᚖuint(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj interface{}) (internal.InputEpisode, error) {
 	var it internal.InputEpisode
 	asMap := map[string]interface{}{}
@@ -15432,6 +16751,172 @@ func (ec *executionContext) _Account(ctx context.Context, sel ast.SelectionSet, 
 				return innerFunc(ctx)
 
 			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var apiClientImplementors = []string{"ApiClient"}
+
+func (ec *executionContext) _ApiClient(ctx context.Context, sel ast.SelectionSet, obj *internal.APIClient) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, apiClientImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("ApiClient")
+		case "id":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_id(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdAt":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_createdAt(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdByUserId":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_createdByUserId(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createdBy":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_createdBy(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedAt":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_updatedAt(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedByUserId":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_updatedByUserId(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updatedBy":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_updatedBy(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deletedAt":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_deletedAt(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "deletedByUserId":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_deletedByUserId(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "deletedBy":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_deletedBy(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "userId":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_userId(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "user":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_user(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "AppName":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_AppName(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Description":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_Description(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "AllowedOrigins":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_AllowedOrigins(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
+		case "RateLimitRPM":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._ApiClient_RateLimitRPM(ctx, field, obj)
+			}
+
+			out.Values[i] = innerFunc(ctx)
+
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16255,6 +17740,36 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		case "removeTimestampFromTemplate":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Mutation_removeTimestampFromTemplate(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "createApiClient":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createApiClient(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "updateApiClient":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_updateApiClient(ctx, field)
+			}
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "deleteApiClient":
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_deleteApiClient(ctx, field)
 			}
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, innerFunc)
@@ -17099,6 +18614,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findTemplateByDetails(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "myApiClients":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myApiClients(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "findApiClient":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findApiClient(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -19114,6 +20675,64 @@ func (ec *executionContext) marshalNAccount2ᚖanimeᚑskipᚗcomᚋpublicᚑapi
 	return ec._Account(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNApiClient2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx context.Context, sel ast.SelectionSet, v internal.APIClient) graphql.Marshaler {
+	return ec._ApiClient(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNApiClient2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientᚄ(ctx context.Context, sel ast.SelectionSet, v []*internal.APIClient) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNApiClient2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClient(ctx context.Context, sel ast.SelectionSet, v *internal.APIClient) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._ApiClient(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -19137,6 +20756,11 @@ func (ec *executionContext) unmarshalNColorTheme2animeᚑskipᚗcomᚋpublicᚑa
 
 func (ec *executionContext) marshalNColorTheme2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐColorTheme(ctx context.Context, sel ast.SelectionSet, v internal.ColorTheme) graphql.Marshaler {
 	return v
+}
+
+func (ec *executionContext) unmarshalNCreateApiClient2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐCreateAPIClient(ctx context.Context, v interface{}) (internal.CreateAPIClient, error) {
+	res, err := ec.unmarshalInputCreateApiClient(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) marshalNEpisode2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐEpisode(ctx context.Context, sel ast.SelectionSet, v internal.Episode) graphql.Marshaler {
@@ -20232,6 +21856,14 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
+func (ec *executionContext) unmarshalOApiClientChanges2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐAPIClientChanges(ctx context.Context, v interface{}) (*internal.APIClientChanges, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputApiClientChanges(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -20423,6 +22055,22 @@ func (ec *executionContext) marshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋpubl
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) unmarshalOUInt2ᚖuint(ctx context.Context, v interface{}) (*uint, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := scalars.UnmarshalUInt(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOUInt2ᚖuint(ctx context.Context, sel ast.SelectionSet, v *uint) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	res := scalars.MarshalUInt(v)
+	return res
 }
 
 func (ec *executionContext) marshalOUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx context.Context, sel ast.SelectionSet, v *internal.User) graphql.Marshaler {

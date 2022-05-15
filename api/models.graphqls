@@ -80,7 +80,7 @@ type Episode implements BaseModel {
   name: String
   "The show that the episode belongs to"
   show: Show!
-  "The id of the show that the episode blongs to"
+  "The id of the show that the episode belongs to"
   showId: ID!
   """
   The list of current timestamps.
@@ -101,8 +101,8 @@ Episode info provided by a third party. See `Episode` for a description of each 
 When creating data based on this type, fill out and post an episode, then timestamps based on the
 data here. All fields will map 1 to 1 with the exception of `source`. Since a source belongs to a
 episode for third party data, but belongs to timestamps in Anime Skip, the source should be
-propogated down to each of the timestamps. This way when more timestamps are added, a episode can
-have muliple timestamp sources.
+propagated down to each of the timestamps. This way when more timestamps are added, a episode can
+have multiple timestamp sources.
 
 > Make sure to fill out the `source` field so that original owner of the timestamp is maintained
 """
@@ -178,7 +178,7 @@ input InputEpisodeUrl {
   timestampsOffset: Float
 }
 
-"Account info that should only be accessible by the authorised user"
+"Account info that should only be accessible by the authorized user"
 type Account {
   id: ID!
   createdAt: Time!
@@ -192,7 +192,7 @@ type Account {
   """
   The linking object that associates a user to the shows they are admins of.
 
-  > This data is also accessible on the `User` model. It has been added here for convienience
+  > This data is also accessible on the `User` model. It has been added here for convenience
   """
   adminOfShows: [ShowAdmin!]!
 
@@ -248,7 +248,7 @@ type Preferences {
   skipFiller: Boolean!
   "Whether or not the user whats to skip canon content. Default: `false`"
   skipCanon: Boolean!
-  "Whether or not the user whats to skip commertial transitions. Default: `true`"
+  "Whether or not the user whats to skip commercial transitions. Default: `true`"
   skipTransitions: Boolean!
   "Whether or not the user whats to skip credits/outros. Default: `true`"
   skipCredits: Boolean!
@@ -406,7 +406,7 @@ type Timestamp implements BaseModel {
   "The id specifying the type the timestamp is"
   typeId: ID!
   """
-  The type the timestamp is. Thid field is a constant string so including it has no effect on
+  The type the timestamp is. This field is a constant string so including it has no effect on
   performance or query complexity.
   """
   type: TimestampType!
@@ -532,4 +532,41 @@ type TemplateTimestamp {
 input InputTemplateTimestamp {
   templateId: ID!
   timestampId: ID!
+}
+
+type ApiClient {
+  id: String!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+  "The ID of the user this client belongs to"
+  userId: ID!
+  "The user this client belongs to"
+  user: User!
+  AppName: String!
+  Description: String!
+  AllowedOrigins: [String!]
+  RateLimitRPM: UInt
+}
+
+input CreateApiClient {
+  AppName: String!
+  Description: String!
+  AllowedOrigins: [String!]
+  "Rate limits can only be used by Admins"
+  RateLimitRPM: UInt
+}
+
+input ApiClientChanges {
+  AppName: String
+  Description: String
+  AllowedOrigins: [String!]
+  "Rate limits can only be changed by Admins"
+  RateLimitRPM: UInt
 }

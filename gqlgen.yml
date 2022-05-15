@@ -17,6 +17,8 @@ resolver:
 models:
   ID:
     model: anime-skip.com/public-api/internal/graphql/scalars.UUID
+  UInt:
+    model: anime-skip.com/public-api/internal/graphql/scalars.UInt
   Episode:
     fields:
       createdBy:

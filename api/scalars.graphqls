@@ -8,3 +8,8 @@ Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
 ```
 """
 scalar Time
+
+"""
+A positive integer, specifically Golang's [uint](https://pkg.go.dev/builtin#uint)
+"""
+scalar UInt

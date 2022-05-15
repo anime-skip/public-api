@@ -32,6 +32,8 @@ type APIClientsFilter struct {
 	Pagination     *Pagination
 	ID             *string
 	UserID         *uuid.UUID
+	NameContains   *string
+	Sort           string
 	IncludeDeleted bool
 }
 
@@ -117,21 +119,6 @@ type UsersFilter struct {
 	Email           *string
 	UsernameOrEmail *string
 	IncludeDeleted  bool
-}
-
-type APIClient struct {
-	ID              string
-	CreatedAt       time.Time
-	CreatedByUserID uuid.UUID
-	UpdatedAt       time.Time
-	UpdatedByUserID uuid.UUID
-	DeletedAt       *time.Time
-	DeletedByUserID *uuid.UUID
-	UserID          uuid.UUID
-	AppName         string
-	Description     string
-	AllowedOrigins  *string
-	RateLimitRPM    *uint
 }
 
 type FullUser struct {

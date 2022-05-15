@@ -113,4 +113,15 @@ type Query {
     showName: String
     season: String
   ): Template!
+
+  "List or search through the authenticated user's API clients"
+  myApiClients(
+    search: String
+    offset: Int = 0
+    limit: Int = 10
+    sort: String = "ASC"
+  ): [ApiClient!]! @authenticated
+
+  "Find an API Client that you created based on it's ID. This will not return other users' clients"
+  findApiClient(id: String!): ApiClient! @authenticated
 }

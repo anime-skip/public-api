@@ -17,7 +17,7 @@ type BaseModel interface {
 	IsBaseModel()
 }
 
-// Account info that should only be accessible by the authorised user
+// Account info that should only be accessible by the authorized user
 type Account struct {
 	ID        *uuid.UUID `json:"id"`
 	CreatedAt time.Time  `json:"createdAt"`
@@ -29,7 +29,7 @@ type Account struct {
 	ProfileURL string `json:"profileUrl"`
 	// The linking object that associates a user to the shows they are admins of.
 	//
-	// > This data is also accessible on the `User` model. It has been added here for convienience
+	// > This data is also accessible on the `User` model. It has been added here for convenience
 	AdminOfShows []*ShowAdmin `json:"adminOfShows"`
 	// If the user's email is verified. Emails must be verified before the user can call a mutation
 	EmailVerified bool `json:"emailVerified"`
@@ -37,6 +37,41 @@ type Account struct {
 	Role Role `json:"role"`
 	// The user's preferences
 	Preferences *Preferences `json:"preferences"`
+}
+
+type APIClient struct {
+	ID              string     `json:"id"`
+	CreatedAt       time.Time  `json:"createdAt"`
+	CreatedByUserID *uuid.UUID `json:"createdByUserId"`
+	CreatedBy       *User      `json:"createdBy"`
+	UpdatedAt       time.Time  `json:"updatedAt"`
+	UpdatedByUserID *uuid.UUID `json:"updatedByUserId"`
+	UpdatedBy       *User      `json:"updatedBy"`
+	DeletedAt       *time.Time `json:"deletedAt"`
+	DeletedByUserID *uuid.UUID `json:"deletedByUserId"`
+	DeletedBy       *User      `json:"deletedBy"`
+	// The ID of the user this client belongs to
+	UserID *uuid.UUID `json:"userId"`
+	// The user this client belongs to
+	User           *User    `json:"user"`
+	AppName        string   `json:"AppName"`
+	Description    string   `json:"Description"`
+	AllowedOrigins []string `json:"AllowedOrigins"`
+	RateLimitRpm   *uint    `json:"RateLimitRPM"`
+}
+
+type APIClientChanges struct {
+	AppName        *string  `json:"AppName"`
+	Description    *string  `json:"Description"`
+	AllowedOrigins []string `json:"AllowedOrigins"`
+	RateLimitRpm   *uint    `json:"RateLimitRPM"`
+}
+
+type CreateAPIClient struct {
+	AppName        string   `json:"AppName"`
+	Description    string   `json:"Description"`
+	AllowedOrigins []string `json:"AllowedOrigins"`
+	RateLimitRpm   *uint    `json:"RateLimitRPM"`
 }
 
 // Basic information about an episode, including season, numbers, a list of timestamps, and urls that
@@ -83,7 +118,7 @@ type Episode struct {
 	Name *string `json:"name"`
 	// The show that the episode belongs to
 	Show *Show `json:"show"`
-	// The id of the show that the episode blongs to
+	// The id of the show that the episode belongs to
 	ShowID *uuid.UUID `json:"showId"`
 	// The list of current timestamps.
 	//
@@ -249,7 +284,7 @@ type Preferences struct {
 	SkipFiller bool `json:"skipFiller"`
 	// Whether or not the user whats to skip canon content. Default: `false`
 	SkipCanon bool `json:"skipCanon"`
-	// Whether or not the user whats to skip commertial transitions. Default: `true`
+	// Whether or not the user whats to skip commercial transitions. Default: `true`
 	SkipTransitions bool `json:"skipTransitions"`
 	// Whether or not the user whats to skip credits/outros. Default: `true`
 	SkipCredits bool `json:"skipCredits"`
@@ -388,8 +423,8 @@ type TemplateTimestamp struct {
 // When creating data based on this type, fill out and post an episode, then timestamps based on the
 // data here. All fields will map 1 to 1 with the exception of `source`. Since a source belongs to a
 // episode for third party data, but belongs to timestamps in Anime Skip, the source should be
-// propogated down to each of the timestamps. This way when more timestamps are added, a episode can
-// have muliple timestamp sources.
+// propagated down to each of the timestamps. This way when more timestamps are added, a episode can
+// have multiple timestamp sources.
 //
 // > Make sure to fill out the `source` field so that original owner of the timestamp is maintained
 type ThirdPartyEpisode struct {
@@ -439,7 +474,7 @@ type Timestamp struct {
 	Source TimestampSource `json:"source"`
 	// The id specifying the type the timestamp is
 	TypeID *uuid.UUID `json:"typeId"`
-	// The type the timestamp is. Thid field is a constant string so including it has no effect on
+	// The type the timestamp is. This field is a constant string so including it has no effect on
 	// performance or query complexity.
 	Type *TimestampType `json:"type"`
 	// The `Episode.id` that the timestamp belongs to
