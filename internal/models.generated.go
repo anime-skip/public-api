@@ -78,7 +78,7 @@ type Episode struct {
 	// be computed using: `EpisodeUrl.duration - Episode.baseDuration`
 	// Generally, this works because each service has it's own branding at the beginning of the show, not
 	// at the end of it
-	BaseDuration *float64 `json:"baseDuration"`
+	BaseDuration float64 `json:"baseDuration"`
 	// The episode's name
 	Name *string `json:"name"`
 	// The show that the episode belongs to
@@ -138,7 +138,7 @@ type InputEpisode struct {
 	// See `Episode.name`
 	Name *string `json:"name"`
 	// See `Episode.baseDuration`
-	BaseDuration *float64 `json:"baseDuration"`
+	BaseDuration float64 `json:"baseDuration"`
 }
 
 // Data required to create a new `EpisodeUrl`. See `EpisodeUrl` for a description of each field
@@ -398,7 +398,7 @@ type ThirdPartyEpisode struct {
 	Season         *string                `json:"season"`
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
-	BaseDuration   *float64               `json:"baseDuration"`
+	BaseDuration   float64                `json:"baseDuration"`
 	Name           *string                `json:"name"`
 	Source         *TimestampSource       `json:"source"`
 	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`
@@ -590,7 +590,7 @@ func (e EpisodeSource) MarshalGQL(w io.Writer) {
 }
 
 // A user's role in the system. Higher roles allow a user write access to certain data that a normal
-// user would not. Some queries and mutations are only alloed by certain roles
+// user would not. Some queries and mutations are only allowed by certain roles
 type Role string
 
 const (

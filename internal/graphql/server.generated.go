@@ -2518,7 +2518,7 @@ directive @isShowAdmin on ARGUMENT_DEFINITION
 `, BuiltIn: false},
 	{Name: "api/enums.graphqls", Input: `"""
 A user's role in the system. Higher roles allow a user write access to certain data that a normal
-user would not. Some queries and mutations are only alloed by certain roles
+user would not. Some queries and mutations are only allowed by certain roles
 """
 enum Role {
   "Highest role. Has super user access to all queries and mutations"
@@ -2645,7 +2645,7 @@ type Episode implements BaseModel {
   Generally, this works because each service has it's own branding at the beginning of the show, not
   at the end of it
   """
-  baseDuration: Float
+  baseDuration: Float!
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -2682,7 +2682,7 @@ type ThirdPartyEpisode {
   season: String
   number: String
   absoluteNumber: String
-  baseDuration: Float
+  baseDuration: Float!
   name: String
   source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
@@ -2702,7 +2702,7 @@ input InputEpisode {
   "See ` + "`" + `Episode.name` + "`" + `"
   name: String
   "See ` + "`" + `Episode.baseDuration` + "`" + `"
-  baseDuration: Float
+  baseDuration: Float!
 }
 
 "Stores information about what where an episode can be watched from"
@@ -5502,11 +5502,14 @@ func (ec *executionContext) _Episode_baseDuration(ctx context.Context, field gra
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*float64)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Episode_name(ctx context.Context, field graphql.CollectedField, obj *internal.Episode) (ret graphql.Marshaler) {
@@ -12050,11 +12053,14 @@ func (ec *executionContext) _ThirdPartyEpisode_baseDuration(ctx context.Context,
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*float64)
+	res := resTmp.(float64)
 	fc.Result = res
-	return ec.marshalOFloat2ᚖfloat64(ctx, field.Selections, res)
+	return ec.marshalNFloat2float64(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _ThirdPartyEpisode_name(ctx context.Context, field graphql.CollectedField, obj *internal.ThirdPartyEpisode) (ret graphql.Marshaler) {
@@ -14903,7 +14909,7 @@ func (ec *executionContext) unmarshalInputInputEpisode(ctx context.Context, obj 
 			var err error
 
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("baseDuration"))
-			it.BaseDuration, err = ec.unmarshalOFloat2ᚖfloat64(ctx, v)
+			it.BaseDuration, err = ec.unmarshalNFloat2float64(ctx, v)
 			if err != nil {
 				return it, err
 			}
@@ -15596,6 +15602,9 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 
 			out.Values[i] = innerFunc(ctx)
 
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._Episode_name(ctx, field, obj)
@@ -17988,6 +17997,9 @@ func (ec *executionContext) _ThirdPartyEpisode(ctx context.Context, sel ast.Sele
 
 			out.Values[i] = innerFunc(ctx)
 
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "name":
 			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
 				return ec._ThirdPartyEpisode_name(ctx, field, obj)

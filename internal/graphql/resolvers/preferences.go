@@ -1,8 +1,6 @@
 package resolvers
 
 import (
-	go_context "context"
-
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/utils"
@@ -11,7 +9,7 @@ import (
 
 // Helpers
 
-func (r *Resolver) getPreferences(ctx go_context.Context, userID uuid.UUID) (*internal.Preferences, error) {
+func (r *Resolver) getPreferences(ctx context.Context, userID uuid.UUID) (*internal.Preferences, error) {
 	prefs, err := r.PreferencesService.Get(ctx, internal.PreferencesFilter{
 		UserID: &userID,
 	})
@@ -23,7 +21,7 @@ func (r *Resolver) getPreferences(ctx go_context.Context, userID uuid.UUID) (*in
 
 // Mutations
 
-func (r *mutationResolver) SavePreferences(ctx go_context.Context, changes map[string]any) (*internal.Preferences, error) {
+func (r *mutationResolver) SavePreferences(ctx context.Context, changes map[string]any) (*internal.Preferences, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
@@ -52,6 +50,6 @@ func (r *mutationResolver) SavePreferences(ctx go_context.Context, changes map[s
 
 // Fields
 
-func (r *preferencesResolver) User(ctx go_context.Context, obj *internal.Preferences) (*internal.User, error) {
+func (r *preferencesResolver) User(ctx context.Context, obj *internal.Preferences) (*internal.User, error) {
 	return r.getUserById(ctx, obj.UserID)
 }

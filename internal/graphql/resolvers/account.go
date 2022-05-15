@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	go_context "context"
 	"fmt"
 	"strings"
 
@@ -16,7 +15,7 @@ import (
 
 // Helpers
 
-func (r *Resolver) getLoginData(ctx go_context.Context, user internal.FullUser) (*internal.LoginData, error) {
+func (r *Resolver) getLoginData(ctx context.Context, user internal.FullUser) (*internal.LoginData, error) {
 	accessToken, err := r.AuthService.CreateAccessToken(user)
 	if err != nil {
 		log.E("Failed to generate an auth token: %v", err)
@@ -39,7 +38,7 @@ func (r *Resolver) getLoginData(ctx go_context.Context, user internal.FullUser) 
 
 // Mutations
 
-func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*internal.LoginData, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*internal.LoginData, error) {
 	log.V("Additional input validation")
 	username = strings.TrimSpace(username)
 	email = strings.TrimSpace(email)
@@ -140,7 +139,7 @@ func (r *mutationResolver) CreateAccount(ctx go_context.Context, username string
 	}, nil
 }
 
-func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
+func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
 		return nil, errors.New("New passwords do not match")
 	}
@@ -181,7 +180,7 @@ func (r *mutationResolver) ChangePassword(ctx go_context.Context, oldPassword st
 	return r.getLoginData(ctx, newUser)
 }
 
-func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recaptchaResponse string) (*bool, error) {
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error) {
 	err := r.RecaptchaService.Verify(ctx, recaptchaResponse)
 	if err != nil {
 		return nil, err
@@ -207,7 +206,7 @@ func (r *mutationResolver) ResendVerificationEmail(ctx go_context.Context, recap
 	return &isSent, err
 }
 
-func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validationToken string) (*internal.Account, error) {
+func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*internal.Account, error) {
 	claims, err := r.AuthService.ValidateVerifyEmailToken(validationToken)
 	if err != nil {
 		return nil, err
@@ -230,7 +229,7 @@ func (r *mutationResolver) VerifyEmailAddress(ctx go_context.Context, validation
 	return &account, nil
 }
 
-func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptchaResponse string, email string) (bool, error) {
+func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaResponse string, email string) (bool, error) {
 	email = strings.TrimSpace(email)
 	err := validation.AccountEmail(email)
 	if err != nil {
@@ -263,7 +262,7 @@ func (r *mutationResolver) RequestPasswordReset(ctx go_context.Context, recaptch
 	return true, nil
 }
 
-func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
+func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
 		return nil, errors.New("New passwords don't match")
 	}
@@ -295,17 +294,17 @@ func (r *mutationResolver) ResetPassword(ctx go_context.Context, passwordResetTo
 	return r.getLoginData(ctx, newUser)
 }
 
-func (r *mutationResolver) DeleteAccountRequest(ctx go_context.Context, passwordHash string) (*internal.Account, error) {
+func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*internal.Account, error) {
 	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
 }
 
-func (r *mutationResolver) DeleteAccount(ctx go_context.Context, deleteToken string) (*internal.Account, error) {
+func (r *mutationResolver) DeleteAccount(ctx context.Context, deleteToken string) (*internal.Account, error) {
 	return nil, fmt.Errorf("TODO - currently the api doesn't support deleting accounts")
 }
 
 // Queries
 
-func (r *queryResolver) Login(ctx go_context.Context, usernameOrEmail string, passwordHash string) (*internal.LoginData, error) {
+func (r *queryResolver) Login(ctx context.Context, usernameOrEmail string, passwordHash string) (*internal.LoginData, error) {
 	usernameOrEmail = strings.TrimSpace(usernameOrEmail)
 	passwordHash = strings.TrimSpace(passwordHash)
 
@@ -328,7 +327,7 @@ func (r *queryResolver) Login(ctx go_context.Context, usernameOrEmail string, pa
 	return r.getLoginData(ctx, user)
 }
 
-func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string) (*internal.LoginData, error) {
+func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*internal.LoginData, error) {
 	claims, err := r.AuthService.ValidateRefreshToken(refreshToken)
 	if err != nil {
 		return nil, fmt.Errorf("Invalid refresh token")
@@ -347,7 +346,7 @@ func (r *queryResolver) LoginRefresh(ctx go_context.Context, refreshToken string
 
 // Fields
 
-func (r *queryResolver) Account(ctx go_context.Context) (*internal.Account, error) {
+func (r *queryResolver) Account(ctx context.Context) (*internal.Account, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
@@ -362,11 +361,11 @@ func (r *queryResolver) Account(ctx go_context.Context) (*internal.Account, erro
 	return &account, nil
 }
 
-func (r *accountResolver) Preferences(ctx go_context.Context, obj *internal.Account) (*internal.Preferences, error) {
+func (r *accountResolver) Preferences(ctx context.Context, obj *internal.Account) (*internal.Preferences, error) {
 	return r.getPreferences(ctx, *obj.ID)
 }
 
-func (r *accountResolver) AdminOfShows(ctx go_context.Context, obj *internal.Account) ([]*internal.ShowAdmin, error) {
+func (r *accountResolver) AdminOfShows(ctx context.Context, obj *internal.Account) ([]*internal.ShowAdmin, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err

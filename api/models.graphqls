@@ -132,7 +132,7 @@ input InputEpisode {
   "See `Episode.name`"
   name: String
   "See `Episode.baseDuration`"
-  baseDuration: Float
+  baseDuration: Float!
 }
 
 "Stores information about what where an episode can be watched from"

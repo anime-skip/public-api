@@ -32,9 +32,10 @@ There are minor changes to the GraphQL schema, none of which should introduce br
   > The new injectable authorizor needs to match the existing logic so no-one gets logged out
 - [x] Re-implement resolvers (delete as completed)
 - [x] `ctrl+shift+f` "not implemented"
-- [ ] `ctrl+shift+f` "TODO"
+- [x] `ctrl+shift+f` "TODO"
 - [ ] Track Client IDs
 - [ ] Implement repo layer
+- [ ] GitHub actions
 
 ### Todo Before Publishing
 

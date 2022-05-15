@@ -50,7 +50,7 @@ models:
       preferences:
         resolver: true
   InputPreferences:
-    model: "map[string]any"
+    model: "map[string]interface{}"
   Preferences:
     fields:
       createdBy:
