@@ -19,13 +19,14 @@ RUN go mod download
 RUN go mod verify
 # Build the binary
 ADD . .
+ARG GO_OPTIONS
 ARG VERSION
 ARG STAGE
 RUN : "${VERSION:?Build argument needs to be passed and non-empty}"
 RUN : "${STAGE:?Build argument needs to be passed as 'development' or 'production'}"
 RUN : "${VERSION:?Argument needs to be passed and non-empty.}"
 RUN OOS=linux GOARCH=amd64 go build \
-    -trimpath \
+    $GO_OPTIONS \
     -ldflags "-X main.VERSION=$VERSION -X main.STAGE=$STAGE" \
     -o bin/server \
     cmd/server/main.go

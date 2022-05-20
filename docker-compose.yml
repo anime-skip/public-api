@@ -4,7 +4,7 @@ services:
     build:
       context: .
       args:
-        VERSION: local
+        VERSION: $VERSION-local
         STAGE: development
     depends_on:
       postgres:

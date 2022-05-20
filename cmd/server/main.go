@@ -85,6 +85,7 @@ func main() {
 		graphqlHandler,
 		services,
 		VERSION,
+		STAGE,
 	)
 
 	err := server.Start()

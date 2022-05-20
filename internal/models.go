@@ -13,6 +13,7 @@ type Tx = *sql.Tx
 
 type ApiStatus struct {
 	Version       string `json:"version"`
+	Stage         string `json:"stage"`
 	Status        string `json:"status"`
 	Introspection bool   `json:"introspection"`
 	Playground    bool   `json:"playground"`

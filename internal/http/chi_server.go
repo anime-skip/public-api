@@ -23,7 +23,7 @@ type chiServer struct {
 	graphqlHandler   internal.GraphQLHandler
 	services         internal.Services
 	version          string
-	mode             string
+	stage            string
 }
 
 func NewChiServer(
@@ -33,6 +33,7 @@ func NewChiServer(
 	graphqlHandler internal.GraphQLHandler,
 	services internal.Services,
 	version string,
+	stage string,
 ) internal.Server {
 	log.D("Using Chi for routing...")
 	return &chiServer{
@@ -41,6 +42,8 @@ func NewChiServer(
 		graphqlPath:      graphqlPath,
 		graphqlHandler:   graphqlHandler,
 		services:         services,
+		version:          version,
+		stage:            stage,
 	}
 }
 
@@ -68,6 +71,7 @@ func (s *chiServer) Start() error {
 func (s *chiServer) statusHandler(rw http.ResponseWriter, r *http.Request) {
 	status := internal.ApiStatus{
 		Version:       s.version,
+		Stage:         s.stage,
 		Status:        "RUNNING",
 		Playground:    s.enablePlayground,
 		Introspection: s.graphqlHandler.EnableIntrospection,
