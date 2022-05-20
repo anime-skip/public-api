@@ -13,6 +13,12 @@ import (
 	"anime-skip.com/public-api/internal/utils"
 )
 
+// Compile time constants
+var (
+	VERSION string
+	STAGE   string
+)
+
 func main() {
 	log.I("Starting anime-skip/public-api")
 
@@ -78,6 +84,7 @@ func main() {
 		"/graphql",
 		graphqlHandler,
 		services,
+		VERSION,
 	)
 
 	err := server.Start()

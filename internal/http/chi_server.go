@@ -11,7 +11,6 @@ import (
 	"github.com/go-chi/chi"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/config"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/utils"
@@ -23,6 +22,8 @@ type chiServer struct {
 	graphqlPath      string
 	graphqlHandler   internal.GraphQLHandler
 	services         internal.Services
+	version          string
+	mode             string
 }
 
 func NewChiServer(
@@ -31,6 +32,7 @@ func NewChiServer(
 	graphqlPath string,
 	graphqlHandler internal.GraphQLHandler,
 	services internal.Services,
+	version string,
 ) internal.Server {
 	log.D("Using Chi for routing...")
 	return &chiServer{
@@ -65,7 +67,7 @@ func (s *chiServer) Start() error {
 
 func (s *chiServer) statusHandler(rw http.ResponseWriter, r *http.Request) {
 	status := internal.ApiStatus{
-		Version:       config.VERSION,
+		Version:       s.version,
 		Status:        "RUNNING",
 		Playground:    s.enablePlayground,
 		Introspection: s.graphqlHandler.EnableIntrospection,

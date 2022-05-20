@@ -5,6 +5,7 @@ services:
       context: .
       args:
         VERSION: local
+        STAGE: development
     depends_on:
       postgres:
         condition: service_healthy
