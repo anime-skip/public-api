@@ -34,7 +34,7 @@ func findUsers(ctx context.Context, tx internal.Tx, filter internal.UsersFilter)
 		query.Where("email = ?", *filter.Email)
 	}
 	if filter.UsernameOrEmail != nil {
-		query.Where("(username = ? OR email = ?)", *filter.Username, *filter.Email)
+		query.Where("(username = ? OR email = ?)", *filter.UsernameOrEmail, *filter.UsernameOrEmail)
 	}
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)

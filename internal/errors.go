@@ -58,10 +58,12 @@ func IsNotFound(err error) bool {
 func ErrorMessage(err any) string {
 	if err == nil {
 		return ""
-	} else if e, ok := err.(*Error); ok && e.Message != "" {
-		return e.Message
-	} else if ok && e.Err != nil {
-		return ErrorMessage(e.Err)
+	} else if e1, ok := err.(*Error); ok && e1.Message != "" {
+		return e1.Message
+	} else if ok && e1.Err != nil {
+		return ErrorMessage(e1.Err)
+	} else if e2, ok := err.(error); ok {
+		return e2.Error()
 	}
 	return "An internal error has occurred. Contact support@anime-skip.com if the error persists"
 }

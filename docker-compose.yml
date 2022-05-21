@@ -16,7 +16,6 @@ services:
     environment:
       - PORT=8081
       - LOG_LEVEL=0
-      - STAGE=development
       - DATABASE_URL=postgres://postgres:password@postgres:5432/timestamps
       - DATABASE_DISABLE_SSL=true
       - DATABASE_VERSION=20
