@@ -30,10 +30,22 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 	if filter.ID != nil {
 		query.Where("id = ?", *filter.ID)
 	}
+	if filter.Season != nil {
+		query.Where("season = ?", *filter.Season)
+	}
+	if filter.ShowID != nil {
+		query.Where("show_id = ?", *filter.ShowID)
+	}
+	if filter.SourceEpisodeID != nil {
+		query.Where("source_episode_id = ?", *filter.SourceEpisodeID)
+	}
+	if filter.Type != nil {
+		query.Where("type = ?", *filter.Type)
+	}
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
 	}
-	query.OrderBy("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX", "ASC")
+	query.OrderBy("type", "ASC")
 
 	sql, args := query.ToSQL()
 	rows, err := tx.QueryContext(ctx, sql, args...)
