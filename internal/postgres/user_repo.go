@@ -112,7 +112,3 @@ func updateUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (in
 	}
 	return user, nil
 }
-
-func deleteUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (internal.FullUser, error) {
-	return user, internal.NewNotImplemented("deleteUser")
-}

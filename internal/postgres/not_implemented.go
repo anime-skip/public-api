@@ -7,34 +7,6 @@ import (
 	uuid "github.com/gofrs/uuid"
 )
 
-// Episode
-
-func findEpisodes(ctx context.Context, tx internal.Tx, filter internal.EpisodesFilter) ([]internal.Episode, error) {
-	return []internal.Episode{}, internal.NewNotImplemented("findEpisodes")
-}
-
-func findEpisode(ctx context.Context, tx internal.Tx, filter internal.EpisodesFilter) (internal.Episode, error) {
-	all, err := findEpisodes(ctx, tx, filter)
-	if err != nil {
-		return internal.ZeroEpisode, err
-	} else if len(all) == 0 {
-		return internal.ZeroEpisode, internal.NewNotFound("Episode", "findEpisode")
-	}
-	return all[0], nil
-}
-
-func createEpisode(ctx context.Context, tx internal.Tx, episode internal.Episode, createdBy uuid.UUID) (internal.Episode, error) {
-	return episode, internal.NewNotImplemented("createEpisode")
-}
-
-func updateEpisode(ctx context.Context, tx internal.Tx, episode internal.Episode, updatedBy uuid.UUID) (internal.Episode, error) {
-	return episode, internal.NewNotImplemented("updateEpisode")
-}
-
-func deleteEpisode(ctx context.Context, tx internal.Tx, episode internal.Episode, deletedBy uuid.UUID) (internal.Episode, error) {
-	return episode, internal.NewNotImplemented("deleteEpisode")
-}
-
 // EpisodeURL
 
 func findEpisodeURLs(ctx context.Context, tx internal.Tx, filter internal.EpisodeURLsFilter) ([]internal.EpisodeURL, error) {
@@ -61,48 +33,6 @@ func updateEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.E
 
 func deleteEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.EpisodeURL) (internal.EpisodeURL, error) {
 	return episodeURL, internal.NewNotImplemented("deleteEpisodeURL")
-}
-
-// Preferences
-
-func findPreferences(ctx context.Context, tx internal.Tx, filter internal.PreferencesFilter) (internal.Preferences, error) {
-	return internal.ZeroPreferences, internal.NewNotImplemented("findPreferences")
-}
-
-func updatePreferences(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
-	return preferences, internal.NewNotImplemented("updatePreferences")
-}
-
-func deletePreferences(ctx context.Context, tx internal.Tx, preferences internal.Preferences) (internal.Preferences, error) {
-	return preferences, internal.NewNotImplemented("deletePreferences")
-}
-
-// ShowAdmin
-
-func findShowAdmins(ctx context.Context, tx internal.Tx, filter internal.ShowAdminsFilter) ([]internal.ShowAdmin, error) {
-	return []internal.ShowAdmin{}, internal.NewNotImplemented("findShowAdmins")
-}
-
-func findShowAdmin(ctx context.Context, tx internal.Tx, filter internal.ShowAdminsFilter) (internal.ShowAdmin, error) {
-	all, err := findShowAdmins(ctx, tx, filter)
-	if err != nil {
-		return internal.ZeroShowAdmin, err
-	} else if len(all) == 0 {
-		return internal.ZeroShowAdmin, internal.NewNotFound("Show admin", "findShowAdmin")
-	}
-	return all[0], nil
-}
-
-func createShowAdmin(ctx context.Context, tx internal.Tx, showAdmin internal.ShowAdmin, createdBy uuid.UUID) (internal.ShowAdmin, error) {
-	return showAdmin, internal.NewNotImplemented("createShowAdmin")
-}
-
-func updateShowAdmin(ctx context.Context, tx internal.Tx, showAdmin internal.ShowAdmin, updatedBy uuid.UUID) (internal.ShowAdmin, error) {
-	return showAdmin, internal.NewNotImplemented("updateShowAdmin")
-}
-
-func deleteShowAdmin(ctx context.Context, tx internal.Tx, showAdmin internal.ShowAdmin, deletedBy uuid.UUID) (internal.ShowAdmin, error) {
-	return showAdmin, internal.NewNotImplemented("deleteShowAdmin")
 }
 
 // Template

@@ -62,8 +62,9 @@ type EpisodeURLsFilter struct {
 }
 
 type PreferencesFilter struct {
-	ID     *uuid.UUID
-	UserID *uuid.UUID
+	ID             *uuid.UUID
+	UserID         *uuid.UUID
+	IncludeDeleted bool
 }
 
 type ShowAdminsFilter struct {

@@ -23,7 +23,7 @@ func (s *showService) Get(ctx context.Context, filter internal.ShowsFilter) (int
 
 func (s *showService) GetSeasonCount(ctx context.Context, id uuid.UUID) (int, error) {
 	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
-		return countShowSeasons(ctx, tx, id)
+		return countEpisodeSeasonsByShowID(ctx, tx, id)
 	})
 }
 

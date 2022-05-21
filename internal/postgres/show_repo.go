@@ -69,10 +69,6 @@ func findShow(ctx context.Context, tx internal.Tx, filter internal.ShowsFilter) 
 	return all[0], nil
 }
 
-func countShowSeasons(ctx context.Context, tx internal.Tx, id uuid.UUID) (int, error) {
-	return 0, internal.NewNotImplemented("countShowSeasons")
-}
-
 func createShow(ctx context.Context, tx internal.Tx, show internal.Show, createdBy uuid.UUID) (internal.Show, error) {
 	id, err := utils.RandomID()
 	if err != nil {
@@ -108,7 +104,7 @@ func createShow(ctx context.Context, tx internal.Tx, show internal.Show, created
 		return show, &internal.Error{
 			Code:    internal.EINTERNAL,
 			Message: "Failed to create Show",
-			Op:      "sqlite.createApp",
+			Op:      "createShow",
 			Err:     err,
 		}
 	}
@@ -131,7 +127,7 @@ func updateShow(ctx context.Context, tx internal.Tx, show internal.Show, updated
 		return show, &internal.Error{
 			Code:    internal.EINTERNAL,
 			Message: "Failed to update Show",
-			Op:      "sqlite.createApp",
+			Op:      "updateShow",
 			Err:     err,
 		}
 	}

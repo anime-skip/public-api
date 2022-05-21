@@ -101,7 +101,7 @@ func createAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 		return apiClient, &internal.Error{
 			Code:    internal.EINTERNAL,
 			Message: "Failed to create API client",
-			Op:      "sqlite.createApp",
+			Op:      "createAPIClient",
 			Err:     err,
 		}
 	}
@@ -128,7 +128,7 @@ func updateAPIClient(ctx context.Context, tx internal.Tx, apiClient internal.API
 		return apiClient, &internal.Error{
 			Code:    internal.EINTERNAL,
 			Message: "Failed to update API client",
-			Op:      "sqlite.createApp",
+			Op:      "updateAPIClient",
 			Err:     err,
 		}
 	}
