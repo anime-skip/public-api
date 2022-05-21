@@ -51,7 +51,7 @@ func createPreferences(ctx context.Context, tx internal.Tx, preferences internal
 	if isConflict(err) {
 		return preferences, &internal.Error{
 			Code:    internal.ECONFLICT,
-			Message: "Preferences with the generated ID already exists, try again",
+			Message: "Preferences with the generated UUID already exists, try again",
 			Op:      "createAPIClient",
 			Err:     err,
 		}

@@ -105,61 +105,6 @@ func deleteShowAdmin(ctx context.Context, tx internal.Tx, showAdmin internal.Sho
 	return showAdmin, internal.NewNotImplemented("deleteShowAdmin")
 }
 
-// Show
-
-// func (s *showService) Search(ctx context.Context, filter internal.ShowsFilter) ([]internal.Show, error) {
-// 	return
-//
-// 	where := []WhereCondition{}
-// 	if filter.Search != "" {
-// 		where = append(where, WhereLike{
-// 			value:      "%" + filter.Search + "%",
-// 			column:     "name",
-// 			ignoreCase: true,
-// 		})
-// 	}
-//
-// 	limitOffset := &LimitOffset{
-// 		Limit:  filter.Limit,
-// 		Offset: filter.Offset,
-// 	}
-// 	orderBy := &OrderBy{
-// 		Column:    "name",
-// 		Direction: filter.Sort,
-// 	}
-//
-// 	return searchShows(ctx, s.db, where, orderBy, limitOffset)
-// }
-func findShows(ctx context.Context, tx internal.Tx, filter internal.ShowsFilter) ([]internal.Show, error) {
-	return []internal.Show{}, internal.NewNotImplemented("findShows")
-}
-
-func findShow(ctx context.Context, tx internal.Tx, filter internal.ShowsFilter) (internal.Show, error) {
-	all, err := findShows(ctx, tx, filter)
-	if err != nil {
-		return internal.ZeroShow, err
-	} else if len(all) == 0 {
-		return internal.ZeroShow, internal.NewNotFound("Show", "findShow")
-	}
-	return all[0], nil
-}
-
-func countShowSeasons(ctx context.Context, tx internal.Tx, id uuid.UUID) (int, error) {
-	return 0, internal.NewNotImplemented("countShowSeasons")
-}
-
-func createShow(ctx context.Context, tx internal.Tx, show internal.Show, createdBy uuid.UUID) (internal.Show, error) {
-	return show, internal.NewNotImplemented("createShow")
-}
-
-func updateShow(ctx context.Context, tx internal.Tx, show internal.Show, updatedBy uuid.UUID) (internal.Show, error) {
-	return show, internal.NewNotImplemented("updateShow")
-}
-
-func deleteShow(ctx context.Context, tx internal.Tx, show internal.Show, deletedBy uuid.UUID) (internal.Show, error) {
-	return show, internal.NewNotImplemented("deleteShow")
-}
-
 // Template
 
 func findTemplates(ctx context.Context, tx internal.Tx, filter internal.TemplatesFilter) ([]internal.Template, error) {
