@@ -171,5 +171,9 @@ func (r *episodeResolver) Urls(ctx context.Context, obj *internal.Episode) ([]*i
 }
 
 func (r *episodeResolver) Template(ctx context.Context, obj *internal.Episode) (*internal.Template, error) {
-	return r.getTemplateByEpisodeID(ctx, obj.ID)
+	template, err := r.getTemplateByEpisodeID(ctx, obj.ID)
+	if internal.ErrorCode(err) == internal.ENOTFOUND {
+		return nil, nil
+	}
+	return template, err
 }

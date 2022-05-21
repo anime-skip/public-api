@@ -17,8 +17,8 @@ func findEpisodeURLs(ctx context.Context, tx internal.Tx, filter internal.Episod
 		"created_by_user_id": &scanned.CreatedByUserID,
 		"updated_at":         &scanned.UpdatedAt,
 		"updated_by_user_id": &scanned.UpdatedByUserID,
-		"timestamp_offset":   &scanned.TimestampsOffset,
-		"episode_source":     &scanned.Source,
+		"timestamps_offset":  &scanned.TimestampsOffset,
+		"source":             &scanned.Source,
 		"episode_id":         &scanned.EpisodeID,
 		"duration":           &scanned.Duration,
 	})
@@ -69,8 +69,8 @@ func createEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.E
 		"created_by_user_id": episodeURL.CreatedByUserID,
 		"updated_at":         episodeURL.UpdatedAt,
 		"updated_by_user_id": episodeURL.UpdatedByUserID,
-		"timestamp_offset":   episodeURL.TimestampsOffset,
-		"episode_source":     episodeURL.Source,
+		"timestamps_offset":  episodeURL.TimestampsOffset,
+		"source":             episodeURL.Source,
 		"episode_id":         episodeURL.EpisodeID,
 		"duration":           episodeURL.Duration,
 	}).ToSQL()
@@ -101,8 +101,8 @@ func updateEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.E
 	sql, args := sqlbuilder.Update("episode_urls", episodeURL.URL, map[string]any{
 		"updated_at":         episodeURL.UpdatedAt,
 		"updated_by_user_id": episodeURL.UpdatedByUserID,
-		"timestamp_offset":   episodeURL.TimestampsOffset,
-		"episode_source":     episodeURL.Source,
+		"timestamps_offset":  episodeURL.TimestampsOffset,
+		"source":             episodeURL.Source,
 		"episode_id":         episodeURL.EpisodeID,
 		"duration":           episodeURL.Duration,
 	}).ToSQL()

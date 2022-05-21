@@ -22,7 +22,7 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 		"deleted_by_user_id": &scanned.DeletedByUserID,
 		"show_id":            &scanned.ShowID,
 		"source_episode_id":  &scanned.SourceEpisodeID,
-		"type":               &scanned.Type,
+		"\"type\"":           &scanned.Type,
 	})
 	if filter.IncludeDeleted {
 		query.IncludeSoftDeleted()

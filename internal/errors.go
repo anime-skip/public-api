@@ -68,6 +68,15 @@ func ErrorMessage(err any) string {
 	return "An internal error has occurred. Contact support@anime-skip.com if the error persists"
 }
 
+func ErrorCode(err any) string {
+	if err == nil {
+		return ""
+	} else if e1, ok := err.(*Error); ok {
+		return e1.Code
+	}
+	return ""
+}
+
 func (e *Error) Error() string {
 	var buf bytes.Buffer
 
