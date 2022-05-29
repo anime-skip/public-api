@@ -33,6 +33,18 @@ func findEpisodes(ctx context.Context, tx internal.Tx, filter internal.EpisodesF
 	if filter.ID != nil {
 		query.Where("id = ?", *filter.ID)
 	}
+	if filter.ShowID != nil {
+		query.Where("show_id = ?", *filter.ShowID)
+	}
+	if filter.AbsoluteNumber != nil {
+		query.Where("absolute_number = ?", *filter.AbsoluteNumber)
+	}
+	if filter.Number != nil {
+		query.Where("number = ?", *filter.Number)
+	}
+	if filter.Season != nil {
+		query.Where("season = ?", *filter.Season)
+	}
 	if filter.Name != nil {
 		query.Where("name = ?", *filter.Name)
 	}
