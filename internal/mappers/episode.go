@@ -29,5 +29,5 @@ func ApplyGraphqlInputEpisode(input internal.InputEpisode, output *internal.Epis
 	output.Season = Season
 	output.Number = Number
 	output.AbsoluteNumber = AbsoluteNumber
-	output.BaseDuration = input.BaseDuration
+	output.BaseDuration = &input.BaseDuration
 }

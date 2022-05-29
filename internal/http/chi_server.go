@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/99designs/gqlgen/graphql/playground"
+	"anime-skip.com/public-api/internal/graphql/playground"
 	"github.com/go-chi/chi"
 
 	"anime-skip.com/public-api/internal"
@@ -17,13 +17,14 @@ import (
 )
 
 type chiServer struct {
-	port             int
-	enablePlayground bool
-	graphqlPath      string
-	graphqlHandler   internal.GraphQLHandler
-	services         internal.Services
-	version          string
-	stage            string
+	port               int
+	enablePlayground   bool
+	graphqlPath        string
+	graphqlHandler     internal.GraphQLHandler
+	services           internal.Services
+	version            string
+	stage              string
+	playgroundClientID string
 }
 
 func NewChiServer(
@@ -34,16 +35,18 @@ func NewChiServer(
 	services internal.Services,
 	version string,
 	stage string,
+	playgroundClientID string,
 ) internal.Server {
 	log.D("Using Chi for routing...")
 	return &chiServer{
-		port:             port,
-		enablePlayground: enablePlayground,
-		graphqlPath:      graphqlPath,
-		graphqlHandler:   graphqlHandler,
-		services:         services,
-		version:          version,
-		stage:            stage,
+		port:               port,
+		enablePlayground:   enablePlayground,
+		graphqlPath:        graphqlPath,
+		graphqlHandler:     graphqlHandler,
+		services:           services,
+		version:            version,
+		stage:              stage,
+		playgroundClientID: playgroundClientID,
 	}
 }
 
@@ -55,7 +58,7 @@ func (s *chiServer) Start() error {
 	router.Get("/status", s.statusHandler)
 
 	if s.enablePlayground {
-		router.Handle("/", playground.Handler("Anime Skip", s.graphqlPath))
+		router.Handle("/", playground.Handler("Anime Skip Playground", s.graphqlPath, s.playgroundClientID))
 	}
 	router.Route(s.graphqlPath, func(r chi.Router) {
 		r.Use(s.ipMiddleware)

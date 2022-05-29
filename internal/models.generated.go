@@ -103,7 +103,7 @@ type Episode struct {
 	// be computed using: `EpisodeUrl.duration - Episode.baseDuration`
 	// Generally, this works because each service has it's own branding at the beginning of the show, not
 	// at the end of it
-	BaseDuration float64 `json:"baseDuration"`
+	BaseDuration *float64 `json:"baseDuration"`
 	// The episode's name
 	Name *string `json:"name"`
 	// The show that the episode belongs to
@@ -423,7 +423,7 @@ type ThirdPartyEpisode struct {
 	Season         *string                `json:"season"`
 	Number         *string                `json:"number"`
 	AbsoluteNumber *string                `json:"absoluteNumber"`
-	BaseDuration   float64                `json:"baseDuration"`
+	BaseDuration   *float64               `json:"baseDuration"`
 	Name           *string                `json:"name"`
 	Source         *TimestampSource       `json:"source"`
 	Timestamps     []*ThirdPartyTimestamp `json:"timestamps"`

@@ -43,6 +43,9 @@ func findPreferences(ctx context.Context, tx internal.Tx, filter internal.Prefer
 	if filter.ID != nil {
 		query.Where("id = ?", *filter.ID)
 	}
+	if filter.UserID != nil {
+		query.Where("user_id = ?", *filter.UserID)
+	}
 
 	sql, args := query.ToSQL()
 	row := tx.QueryRowContext(ctx, sql, args...)

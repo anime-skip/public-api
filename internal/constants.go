@@ -24,6 +24,10 @@ var (
 	TIMESTAMP_ID_UNKNOWN = uuid.FromStringOrNil("ae57fcf9-27b0-49a7-9a99-a91aa7518a29")
 )
 
+const (
+	SHARED_CLIENT_ID = "ZGfO0sMF3eCwLYf8yMSCJjlynwNGRXWE"
+)
+
 var (
 	ZeroApiStatus              = ApiStatus{}
 	ZeroAPIClient              = APIClient{}

@@ -86,6 +86,7 @@ func main() {
 		services,
 		VERSION,
 		STAGE,
+		internal.SHARED_CLIENT_ID,
 	)
 
 	err := server.Start()

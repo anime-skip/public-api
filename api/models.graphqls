@@ -75,7 +75,7 @@ type Episode implements BaseModel {
   Generally, this works because each service has it's own branding at the beginning of the show, not
   at the end of it
   """
-  baseDuration: Float!
+  baseDuration: Float
   "The episode's name"
   name: String
   "The show that the episode belongs to"
@@ -112,7 +112,7 @@ type ThirdPartyEpisode {
   season: String
   number: String
   absoluteNumber: String
-  baseDuration: Float!
+  baseDuration: Float
   name: String
   source: TimestampSource
   timestamps: [ThirdPartyTimestamp!]!
