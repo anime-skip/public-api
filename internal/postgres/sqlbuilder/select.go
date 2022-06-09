@@ -6,6 +6,7 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
+	"github.com/samber/lo"
 )
 
 type OrderBy struct {
@@ -52,7 +53,6 @@ func (b *selectBuilder) IncludeSoftDeleted() *selectBuilder {
 }
 
 func (b *selectBuilder) OrderBy(column string, direction string) *selectBuilder {
-
 	b.order = &OrderBy{
 		column:    column,
 		direction: direction,
@@ -61,7 +61,6 @@ func (b *selectBuilder) OrderBy(column string, direction string) *selectBuilder 
 }
 
 func (b *selectBuilder) Paginate(pagination internal.Pagination) *selectBuilder {
-
 	b.pagination = &pagination
 	return b
 }
@@ -72,7 +71,7 @@ func (b *selectBuilder) ToSQL() (sql string, args []any) {
 
 	var where string
 	wheres := b.where
-	if !b.includeSoftDelete {
+	if !b.includeSoftDelete && lo.Contains(b.columns, "deleted_at") {
 		wheres = append(wheres, "deleted_at IS NULL")
 	}
 	if len(b.where) > 0 {
