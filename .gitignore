@@ -1,12 +1,15 @@
 # Outputs
 #
 bin
-.env
 
 
 # Editor
 #
 .vscode
+
+# Secrets
+#
+.env
 
 # Misc
 #
