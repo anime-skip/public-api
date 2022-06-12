@@ -81,7 +81,7 @@ func createTemplateTimestamp(ctx context.Context, tx internal.Tx, templateTimest
 }
 
 func deleteTemplateTimestamp(ctx context.Context, tx internal.Tx, templateTimestamp internal.TemplateTimestamp) (internal.TemplateTimestamp, error) {
-	_, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id = $1 AND timestamp_id", templateTimestamp.TemplateID, templateTimestamp.TimestampID)
+	_, err := tx.ExecContext(ctx, "DELETE FROM template_timestamps WHERE template_id = $1 AND timestamp_id = $2", templateTimestamp.TemplateID, templateTimestamp.TimestampID)
 	return templateTimestamp, err
 }
 
