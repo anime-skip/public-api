@@ -10,7 +10,7 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/log"
-	"anime-skip.com/public-api/internal/utils"
+	"github.com/samber/lo"
 )
 
 type googleRecaptchaService struct {
@@ -45,7 +45,7 @@ func (s *googleRecaptchaService) Verify(ctx go_context.Context, response string)
 	// Skip http verification when response matches allowlist
 	// The allowlist is only setup for local development so you can create accounts without
 	// needing a UI with recaptcha
-	if utils.StringSliceIncludes(s.responseAllowList, response) {
+	if lo.Contains(s.responseAllowList, response) {
 		return nil
 	}
 
