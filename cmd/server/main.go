@@ -51,6 +51,8 @@ func main() {
 		config.EnvString("BETTER_VRV_API_KEY"),
 	)
 
+	rateLimiter := http.NewRequestRateLimiter()
+
 	services := internal.Services{
 		APIClientService:         postgres.NewAPIClientService(pg),
 		AuthService:              jwtAuthService,
@@ -75,6 +77,7 @@ func main() {
 	graphqlHandler := handler.NewGraphqlHandler(
 		pg,
 		services,
+		rateLimiter,
 		config.EnvBool("ENABLE_INTROSPECTION"),
 	)
 
@@ -84,6 +87,7 @@ func main() {
 		"/graphql",
 		graphqlHandler,
 		services,
+		rateLimiter,
 		VERSION,
 		STAGE,
 		internal.SHARED_CLIENT_ID,

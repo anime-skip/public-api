@@ -17,7 +17,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 )
 
-func NewGraphqlHandler(db internal.Database, services internal.Services, enableIntrospection bool) internal.GraphQLHandler {
+func NewGraphqlHandler(db internal.Database, services internal.Services, rateLimiter internal.RateLimiter, enableIntrospection bool) internal.GraphQLHandler {
 	log.D("Building GraphQL Server...")
 	config := graphql.Config{
 		Resolvers: &resolvers.Resolver{
@@ -55,6 +55,12 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, enableI
 		log.E("Error: %v", err)
 		return gqlerror.Errorf(internal.ErrorMessage(err))
 	})
+	if rateLimiter != nil {
+		extension := rateLimiter.GqlMiddleware()
+		if extension != nil {
+			srv.Use(extension)
+		}
+	}
 
 	if enableIntrospection {
 		srv.Use(extension.Introspection{})

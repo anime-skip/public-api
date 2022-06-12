@@ -2,7 +2,9 @@ package internal
 
 import (
 	"context"
+	"net/http"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/gofrs/uuid"
 )
 
@@ -127,6 +129,11 @@ type UserService interface {
 type ThirdPartyService interface {
 	Name() string
 	FindEpisodeByName(ctx context.Context, name string) ([]ThirdPartyEpisode, error)
+}
+
+type RateLimiter interface {
+	GqlMiddleware() graphql.HandlerExtension
+	HttpMiddleware(next http.Handler) http.Handler
 }
 
 type Services struct {

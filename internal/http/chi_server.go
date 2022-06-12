@@ -25,6 +25,7 @@ type chiServer struct {
 	version            string
 	stage              string
 	playgroundClientID string
+	rateLimiter        internal.RateLimiter
 }
 
 func NewChiServer(
@@ -33,6 +34,7 @@ func NewChiServer(
 	graphqlPath string,
 	graphqlHandler internal.GraphQLHandler,
 	services internal.Services,
+	rateLimiter internal.RateLimiter,
 	version string,
 	stage string,
 	playgroundClientID string,
@@ -47,28 +49,30 @@ func NewChiServer(
 		version:            version,
 		stage:              stage,
 		playgroundClientID: playgroundClientID,
+		rateLimiter:        rateLimiter,
 	}
 }
 
 type Middleware = func(next http.Handler) http.Handler
 
 func (s *chiServer) Start() error {
-	router := chi.NewRouter()
-	router.Use(s.corsMiddleware)
-	router.Get("/status", s.statusHandler)
-
-	if s.enablePlayground {
-		router.Handle("/", playground.Handler("Anime Skip Playground", s.graphqlPath, s.playgroundClientID))
+	r := chi.NewRouter()
+	r.Use(s.corsMiddleware)
+	r.Use(s.ipMiddleware)
+	r.Use(s.directivesMiddleware)
+	r.Use(s.apiClientMiddleware)
+	if s.rateLimiter != nil {
+		r.Use(s.rateLimiter.HttpMiddleware)
 	}
-	router.Route(s.graphqlPath, func(r chi.Router) {
-		r.Use(s.ipMiddleware)
-		r.Use(s.directivesMiddleware)
-		r.Use(s.apiClientMiddleware)
-		r.Handle("/", s.graphqlHandler.Handler)
-	})
+
+	r.Get("/status", s.statusHandler)
+	if s.enablePlayground {
+		r.Handle("/", playground.Handler("Anime Skip Playground", s.graphqlPath, s.playgroundClientID))
+	}
+	r.Handle(s.graphqlPath, s.graphqlHandler.Handler)
 
 	log.I("Started server @ :%d", s.port)
-	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), router)
+	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), r)
 }
 
 func (s *chiServer) statusHandler(rw http.ResponseWriter, r *http.Request) {
@@ -92,25 +96,23 @@ func (s *chiServer) directivesMiddleware(next http.Handler) http.Handler {
 }
 
 func (s *chiServer) apiClientMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		clientID := utils.Ptr(r.Header.Get("X-Client-ID"))
 		if clientID == nil || strings.TrimSpace(*clientID) == "" {
-			writeJson(rw, map[string]any{
-				"errors": []map[string]any{{"message": "The X-Client-ID header must be passed"}},
-			}, http.StatusOK)
+			writeGraphqlError(w, "The X-Client-ID header must be passed", http.StatusForbidden)
 			return
 		}
-		_, err := s.services.APIClientService.Get(r.Context(), internal.APIClientsFilter{
+
+		client, err := s.services.APIClientService.Get(r.Context(), internal.APIClientsFilter{
 			ID: utils.Ptr(strings.TrimSpace(*clientID)),
 		})
-
 		if err != nil {
-			writeJson(rw, map[string]any{
-				"errors": []map[string]any{{"message": "Invalid X-Client-ID header, API client not found"}},
-			}, http.StatusOK)
-		} else {
-			next.ServeHTTP(rw, r)
+			writeGraphqlError(w, "Invalid X-Client-ID header, API client not found", http.StatusForbidden)
+			return
 		}
+
+		ctx := context.WithAPIClient(r.Context(), client)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
@@ -138,13 +140,21 @@ func (s *chiServer) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func writeJson(rw http.ResponseWriter, data any, status int) {
-	rw.Header().Add("Content-Type", "application/json")
+func writeJson(w http.ResponseWriter, data any, status int) {
+	w.Header().Add("Content-Type", "application/json")
 	body, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
-	rw.Write(body)
+	w.Write(body)
+}
+
+func writeGraphqlError(w http.ResponseWriter, message string, status int) {
+	writeJson(w, map[string]any{
+		"errors": []map[string]any{{
+			"message": message,
+		}},
+	}, status)
 }
 
 func getAuthToken(r *http.Request) string {
