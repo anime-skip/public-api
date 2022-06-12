@@ -9,8 +9,7 @@ import (
 )
 
 func findShowAdmins(ctx context.Context, tx internal.Tx, filter internal.ShowAdminsFilter) ([]internal.ShowAdmin, error) {
-	// TODO: Implement
-	return []internal.ShowAdmin{}, nil
+	return []internal.ShowAdmin{}, internal.NewNotImplemented("findShowAdmins")
 }
 
 func findShowAdmin(ctx context.Context, tx internal.Tx, filter internal.ShowAdminsFilter) (internal.ShowAdmin, error) {

@@ -34,9 +34,11 @@ There are minor changes to the GraphQL schema, none of which should introduce br
 - [x] `ctrl+shift+f` "not implemented"
 - [ ] `ctrl+shift+f` "TODO"
 - [ ] Track Client IDs
-- [ ] Implement repo layer
+- [x] Implement repo layer
 - [ ] GitHub actions
 - [x] Require valid client ids
+
+- [ ] Bugsnag
 
 ### Todo Before Publishing
 
