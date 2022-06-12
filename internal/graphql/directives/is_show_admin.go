@@ -1,8 +1,8 @@
 package directives
 
 import (
-	context2 "context"
 	"fmt"
+	"os"
 	"strings"
 
 	"anime-skip.com/public-api/internal"
@@ -12,24 +12,26 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-type showIDGetter = func(ctx context2.Context, s internal.Services, arg any) (uuid.UUID, error)
+type showIDGetter = func(ctx context.Context, s internal.Services, arg any) (uuid.UUID, error)
+
+var isShowAdminDisabled = os.Getenv("IS_SHOW_ADMIN_DISABLED") == "true"
 
 var showIDGetters = map[string]showIDGetter{
 	"showId": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showId: (%T) %+v", arg, arg)
 		return uuid.FromString(arg.(string))
 	},
 	"showAdminInput": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showAdminInput: (%T) %+v", arg, arg)
 		showAdmin := arg.(*internal.InputShowAdmin)
 		return *showAdmin.ShowID, nil
 	},
 	"showAdminId": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.showAdminId: (%T) %+v", arg, arg)
 		showAdminId, err := uuid.FromString(arg.(string))
@@ -45,7 +47,7 @@ var showIDGetters = map[string]showIDGetter{
 		return *showAdmin.ID, nil
 	},
 	"episodeId": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.episodeId: (%T) %+v", arg, arg)
 		episodeID, err := uuid.FromString(arg.(string))
@@ -61,7 +63,7 @@ var showIDGetters = map[string]showIDGetter{
 		return *episode.ShowID, nil
 	},
 	"episodeUrl": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.episodeUrl: (%T) %+v", arg, arg)
 		url := arg.(string)
@@ -80,7 +82,7 @@ var showIDGetters = map[string]showIDGetter{
 		return *episode.ShowID, nil
 	},
 	"templateId": func(
-		ctx context2.Context, s internal.Services, arg any,
+		ctx context.Context, s internal.Services, arg any,
 	) (uuid.UUID, error) {
 		log.V("@isShowAdmin.templateId: (%T) %+v", arg, arg)
 		templateID, err := uuid.FromString(arg.(string))
@@ -97,7 +99,7 @@ var showIDGetters = map[string]showIDGetter{
 	},
 }
 
-func getShowIdFromParams(ctx context2.Context, params map[string]any, services internal.Services) (uuid.UUID, error) {
+func getShowIdFromParams(ctx context.Context, params map[string]any, services internal.Services) (uuid.UUID, error) {
 	names := []string{}
 	for name, value := range params {
 		if getter, ok := showIDGetters[name]; ok {
@@ -115,7 +117,11 @@ func getShowIdFromParams(ctx context2.Context, params map[string]any, services i
 	}
 }
 
-func IsShowAdmin(ctx context2.Context, params any, next graphql2.Resolver) (any, error) {
+func IsShowAdmin(ctx context.Context, params any, next graphql2.Resolver) (any, error) {
+	if isShowAdminDisabled {
+		return next(ctx)
+	}
+
 	log.V("@isShowAdmin(%+v)", params)
 
 	// Authenticate first, arg directives run before field directives (notably, `@authenticated``)

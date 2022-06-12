@@ -28,6 +28,7 @@ services:
       - EMAIL_SERVICE_ENABLED=true
       - RECAPTCHA_SECRET=some-secret
       - RECAPTCHA_RESPONSE_ALLOWLIST=password1,password2
+      - IS_SHOW_ADMIN_DISABLED=true
     env_file: .env
 
   # Dependencies
