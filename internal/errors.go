@@ -90,9 +90,9 @@ func (e *Error) Error() string {
 	if e.Err != nil {
 		buf.WriteString(e.Err.Error())
 	} else {
-		if e.Code != "" {
-			fmt.Fprintf(&buf, "<%s> ", e.Code)
-		}
+		// if e.Code != "" {
+		// 	fmt.Fprintf(&buf, "<%s> ", e.Code)
+		// }
 		buf.WriteString(e.Message)
 	}
 	return buf.String()
