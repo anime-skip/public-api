@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql/driver"
 
 	internal "anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
@@ -70,7 +71,7 @@ func createEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.E
 		"updated_at":         episodeURL.UpdatedAt,
 		"updated_by_user_id": episodeURL.UpdatedByUserID,
 		"timestamps_offset":  episodeURL.TimestampsOffset,
-		"source":             episodeURL.Source,
+		"source":             driver.Valuer(&episodeURL.Source),
 		"episode_id":         episodeURL.EpisodeID,
 		"duration":           episodeURL.Duration,
 	}).ToSQL()
@@ -102,7 +103,7 @@ func updateEpisodeURL(ctx context.Context, tx internal.Tx, episodeURL internal.E
 		"updated_at":         episodeURL.UpdatedAt,
 		"updated_by_user_id": episodeURL.UpdatedByUserID,
 		"timestamps_offset":  episodeURL.TimestampsOffset,
-		"source":             episodeURL.Source,
+		"source":             driver.Valuer(&episodeURL.Source),
 		"episode_id":         episodeURL.EpisodeID,
 		"duration":           episodeURL.Duration,
 	}).ToSQL()

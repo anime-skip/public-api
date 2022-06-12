@@ -48,14 +48,14 @@ func (s *timestampService) UpdateAll(ctx context.Context, create []internal.Time
 			}
 			created = append(created, t)
 		}
-		for _, toUpdate := range create {
+		for _, toUpdate := range update {
 			t, err := updateTimestamp(ctx, tx, toUpdate, updatedBy)
 			if err != nil {
 				return nil, err
 			}
 			updated = append(updated, t)
 		}
-		for _, toDelete := range create {
+		for _, toDelete := range delete {
 			t, err := deleteCascadeTimestamp(ctx, tx, toDelete, updatedBy)
 			if err != nil {
 				return nil, err

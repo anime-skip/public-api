@@ -13,7 +13,7 @@ func ToAccount(user internal.FullUser) internal.Account {
 		Email:         user.Email,
 		ProfileURL:    user.ProfileURL,
 		EmailVerified: user.EmailVerified,
-		Role:          ToRoleEnum(user.Role),
+		Role:          user.Role,
 	}
 }
 

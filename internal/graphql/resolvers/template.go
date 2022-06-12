@@ -7,6 +7,7 @@ import (
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
 	"github.com/gofrs/uuid"
+	"github.com/samber/lo"
 )
 
 // Helpers
@@ -135,12 +136,12 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 			return nil, err
 		}
 
-		// 2. Matching showname (case sensitive) and season (case sensitive)
+		// 2. Matching show name (case sensitive) and season (case sensitive)
 		if season != nil {
 			templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
 				ShowID: show.ID,
 				Season: season,
-				Type:   utils.Ptr(internal.TEMPLATE_TYPE_SEASONS),
+				Type:   lo.ToPtr(internal.TemplateTypeSeasons),
 			})
 			if err != nil {
 				return nil, err
@@ -149,10 +150,10 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 			}
 		}
 
-		// 3. Matching showname (case sensitive)
+		// 3. Matching show name (case sensitive)
 		templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
 			ShowID: show.ID,
-			Type:   utils.Ptr(internal.TEMPLATE_TYPE_SHOW),
+			Type:   lo.ToPtr(internal.TemplateTypeShow),
 		})
 		if err != nil {
 			return nil, err

@@ -18,7 +18,7 @@ var adminUser = &internal.FullUser{
 	PasswordHash:  "password", // Can't sign in when this is a not encrypted, so it's safe to have here
 	ProfileURL:    "https://ca.slack-edge.com/T02F01E85-UD1534SV6-df241d756573-512",
 	EmailVerified: true,
-	Role:          0,
+	Role:          internal.RoleUser,
 }
 
 // SeedAdminUser inserts the admin user

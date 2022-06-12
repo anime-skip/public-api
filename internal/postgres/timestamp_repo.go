@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql/driver"
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
@@ -86,7 +87,7 @@ func createTimestamp(ctx context.Context, tx internal.Tx, timestamp internal.Tim
 		"episode_id":         timestamp.EpisodeID,
 		"at":                 timestamp.At,
 		"type_id":            timestamp.TypeID,
-		"source":             timestamp.Source,
+		"source":             driver.Valuer(&timestamp.Source),
 	}).ToSQL()
 
 	_, err = tx.ExecContext(ctx, sql, args...)
@@ -120,7 +121,7 @@ func updateTimestamp(ctx context.Context, tx internal.Tx, timestamp internal.Tim
 		"episode_id":         timestamp.EpisodeID,
 		"at":                 timestamp.At,
 		"type_id":            timestamp.TypeID,
-		"source":             timestamp.Source,
+		"source":             driver.Valuer(&timestamp.Source),
 	}).ToSQL()
 
 	_, err := tx.ExecContext(ctx, sql, args...)

@@ -2,16 +2,15 @@ package postgres
 
 import (
 	"context"
+	"database/sql/driver"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/postgres/sqlbuilder"
 	"anime-skip.com/public-api/internal/utils"
 )
 
 func findPreferences(ctx context.Context, tx internal.Tx, filter internal.PreferencesFilter) (internal.Preferences, error) {
 	var scanned internal.Preferences
-	var scannedColorTheme int
 	query := sqlbuilder.Select("preferences", map[string]any{
 		"id":                            &scanned.ID,
 		"created_at":                    &scanned.CreatedAt,
@@ -22,7 +21,7 @@ func findPreferences(ctx context.Context, tx internal.Tx, filter internal.Prefer
 		"enable_auto_play":              &scanned.EnableAutoPlay,
 		"minimize_toolbar_when_editing": &scanned.MinimizeToolbarWhenEditing,
 		"hide_timeline_when_minimized":  &scanned.HideTimelineWhenMinimized,
-		"color_theme":                   &scannedColorTheme,
+		"color_theme":                   &scanned.ColorTheme,
 		"skip_branding":                 &scanned.SkipBranding,
 		"skip_intros":                   &scanned.SkipIntros,
 		"skip_new_intros":               &scanned.SkipNewIntros,
@@ -79,7 +78,7 @@ func createPreferences(ctx context.Context, tx internal.Tx, preferences internal
 		"enable_auto_play":              preferences.EnableAutoPlay,
 		"minimize_toolbar_when_editing": preferences.MinimizeToolbarWhenEditing,
 		"hide_timeline_when_minimized":  preferences.HideTimelineWhenMinimized,
-		"color_theme":                   mappers.ToColorThemeInt(preferences.ColorTheme),
+		"color_theme":                   driver.Valuer(&preferences.ColorTheme),
 		"skip_branding":                 preferences.SkipBranding,
 		"skip_intros":                   preferences.SkipIntros,
 		"skip_new_intros":               preferences.SkipNewIntros,
@@ -120,7 +119,7 @@ func updatePreferences(ctx context.Context, tx internal.Tx, preferences internal
 		"enable_auto_play":              preferences.EnableAutoPlay,
 		"minimize_toolbar_when_editing": preferences.MinimizeToolbarWhenEditing,
 		"hide_timeline_when_minimized":  preferences.HideTimelineWhenMinimized,
-		"color_theme":                   mappers.ToColorThemeInt(preferences.ColorTheme),
+		"color_theme":                   driver.Valuer(&preferences.ColorTheme),
 		"skip_branding":                 preferences.SkipBranding,
 		"skip_intros":                   preferences.SkipIntros,
 		"skip_new_intros":               preferences.SkipNewIntros,

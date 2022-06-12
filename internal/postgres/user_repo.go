@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"context"
+	"database/sql/driver"
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/postgres/sqlbuilder"
@@ -85,7 +86,7 @@ func createUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (in
 		"password_hash":  user.PasswordHash,
 		"profile_url":    user.ProfileURL,
 		"email_verified": user.EmailVerified,
-		"role":           user.Role,
+		"role":           driver.Valuer(&user.Role),
 	}).ToSQL()
 
 	_, err = tx.ExecContext(ctx, sql, args...)
@@ -103,7 +104,7 @@ func updateUser(ctx context.Context, tx internal.Tx, user internal.FullUser) (in
 		"password_hash":  user.PasswordHash,
 		"profile_url":    user.ProfileURL,
 		"email_verified": user.EmailVerified,
-		"role":           user.Role,
+		"role":           driver.Valuer(&user.Role),
 	}).ToSQL()
 
 	_, err := tx.ExecContext(ctx, sql, args...)

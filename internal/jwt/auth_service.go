@@ -128,7 +128,7 @@ func (s *jwtAuthService) validateToken(name string, token string, audience strin
 }
 
 func (s *jwtAuthService) mapAuthClaims(claims jwt.MapClaims) (internal.AuthClaims, error) {
-	role := claims["role"].(float64)
+	role := int64(claims["role"].(float64))
 	userID, err := uuid.FromString(claims["userId"].(string))
 	if err != nil {
 		return internal.AuthClaims{}, err
@@ -185,30 +185,46 @@ func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) 
 }
 
 func (s *jwtAuthService) CreateAccessToken(user internal.FullUser) (string, error) {
+	roleInt, err := user.Role.Value()
+	if err != nil {
+		return "", err
+	}
 	return s.createToken(AUD_ACCESS_TOKEN, TIMEOUT_ACCESS_TOKEN, jwt.MapClaims{
 		"userId": user.ID,
-		"role":   user.Role,
+		"role":   roleInt,
 	})
 }
 
 func (s *jwtAuthService) CreateRefreshToken(user internal.FullUser) (string, error) {
+	roleInt, err := user.Role.Value()
+	if err != nil {
+		return "", err
+	}
 	return s.createToken(AUD_REFRESH_TOKEN, TIMEOUT_REFRESH_TOKEN, jwt.MapClaims{
 		"userId": user.ID,
-		"role":   user.Role,
+		"role":   roleInt,
 	})
 }
 
 func (s *jwtAuthService) CreateVerifyEmailToken(user internal.FullUser) (string, error) {
+	roleInt, err := user.Role.Value()
+	if err != nil {
+		return "", err
+	}
 	return s.createToken(AUD_VERIFY_EMAIL_TOKEN, TIMEOUT_VERIFY_EMAIL_TOKEN, jwt.MapClaims{
 		"userId": user.ID,
-		"role":   user.Role,
+		"role":   roleInt,
 	})
 }
 
 func (s *jwtAuthService) CreateResetPasswordToken(user internal.FullUser) (string, error) {
+	roleInt, err := user.Role.Value()
+	if err != nil {
+		return "", err
+	}
 	return s.createToken(AUD_RESET_PASSWORD_TOKEN, TIMEOUT_RESET_PASSWORD_TOKEN, jwt.MapClaims{
 		"userId": user.ID,
-		"role":   user.Role,
+		"role":   roleInt,
 	})
 }
 

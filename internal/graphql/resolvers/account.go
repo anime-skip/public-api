@@ -106,7 +106,7 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		Email:         email,
 		PasswordHash:  encryptedPasswordHash,
 		EmailVerified: false,
-		Role:          internal.ROLE_USER,
+		Role:          internal.RoleUser,
 	})
 	if err != nil {
 		return nil, err
