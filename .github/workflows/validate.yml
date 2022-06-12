@@ -25,3 +25,11 @@ jobs:
 
       - name: Build Docker
         run: make build
+
+      - name: Generated Code
+        run: |
+          make gen
+          if [[ `git status --porcelain` ]]; then
+            git diff
+            exit 1
+          fi
