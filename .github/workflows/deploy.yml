@@ -1,0 +1,34 @@
+name: Deploy
+on: [workflow_dispatch]
+
+env:
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_REPO: anime-skip/public-api
+
+jobs:
+  validate:
+    uses: ./.github/workflows/validate.yml
+
+  versioning:
+    uses: anime-skip/github-actions/.github/workflows/bump-version.yml@v9
+    needs: validate
+    with:
+      versionFile: ./meta.json
+
+  deploy:
+    uses: anime-skip/github-actions/.github/workflows/deploy-go-docker-image.yml@v9
+    needs: versioning
+    if: needs.versioning.outputs.skipped != 'true'
+    with:
+      stage: production
+      githubImage: public-api/server
+      dockerTag: prod
+      releaseTag: ${{ needs.versioning.outputs.tag }}
+      herokuApp: prod-public-api
+      repository: ${{ github.repository }}
+      version: ${{ needs.versioning.outputs.version }}
+      grafanaAppName: public-api
+    secrets:
+      bugsnagApiKey: ${{ secrets.BUGSNAG_API_KEY }}
+      herokuApiKey: ${{ secrets.HEROKU_API_KEY }}
+      herokuEmail: ${{ secrets.HEROKU_EMAIL }}

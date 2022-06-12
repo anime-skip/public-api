@@ -1,0 +1,27 @@
+name: Validate
+on: [workflow_call, push]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Checkout Repo
+        uses: actions/checkout@v1
+
+      - name: Compile
+        run: make
+
+      - name: Run Tests
+        run: |
+          ./.github/create-env.sh
+          make test
+
+      - name: Build Docker
+        run: make build
