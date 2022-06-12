@@ -2,12 +2,14 @@ package postgres
 
 import (
 	"context"
+	"database/sql/driver"
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/postgres/sqlbuilder"
 	"anime-skip.com/public-api/internal/utils"
 	uuid "github.com/gofrs/uuid"
+	"github.com/lib/pq"
 )
 
 func findTemplates(ctx context.Context, tx internal.Tx, filter internal.TemplatesFilter) ([]internal.Template, error) {
@@ -23,6 +25,7 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 		"show_id":            &scanned.ShowID,
 		"source_episode_id":  &scanned.SourceEpisodeID,
 		"\"type\"":           &scanned.Type,
+		"seasons":            pq.Array(&scanned.Seasons),
 	})
 	if filter.IncludeDeleted {
 		query.IncludeSoftDeleted()
@@ -93,7 +96,8 @@ func createTemplate(ctx context.Context, tx internal.Tx, template internal.Templ
 		"updated_by_user_id": template.UpdatedByUserID,
 		"show_id":            template.ShowID,
 		"source_episode_id":  template.SourceEpisodeID,
-		"type":               template.Type,
+		"type":               driver.Valuer(&template.Type),
+		"seasons":            pq.Array(template.Seasons),
 	}).ToSQL()
 
 	_, err = tx.ExecContext(ctx, sql, args...)
@@ -126,7 +130,8 @@ func updateTemplate(ctx context.Context, tx internal.Tx, template internal.Templ
 		"deleted_by_user_id": template.DeletedByUserID,
 		"show_id":            template.ShowID,
 		"source_episode_id":  template.SourceEpisodeID,
-		"type":               template.Type,
+		"type":               driver.Valuer(&template.Type),
+		"seasons":            pq.Array(template.Seasons),
 	}).ToSQL()
 
 	_, err := tx.ExecContext(ctx, sql, args...)
