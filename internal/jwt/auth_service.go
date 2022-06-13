@@ -28,9 +28,7 @@ const (
 	AUD_RESET_PASSWORD_TOKEN = "anime-skip.com/forgot-password"      // TODO: Change to api.anime-skip.com
 )
 
-var TIMEOUT_ACCESS_TOKEN = 25 * time.Minute
-
-// var TIMEOUT_ACCESS_TOKEN = 7 * day
+var TIMEOUT_ACCESS_TOKEN = 7 * day
 var TIMEOUT_REFRESH_TOKEN = 30 * day
 var TIMEOUT_VERIFY_EMAIL_TOKEN = 2 * day
 var TIMEOUT_RESET_PASSWORD_TOKEN = 10 * time.Minute
