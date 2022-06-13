@@ -35,14 +35,14 @@ type betterVRVShow struct {
 }
 
 type betterVRVEpisode struct {
-	ID             string              `json:"objectId"`
-	CreatedAt      string              `json:"createdAt"`
-	UpdatedAt      string              `json:"updatedAt"`
-	VRVID          string              `json:"episodeId"`
-	EpisodeTitle   string              `json:"episodeTitle"`
-	Season         *int                `json:"seasonNumber"`
-	AmbiguosNumber *int                `json:"episodeNumber"`
-	Series         betterVRVSeriesLink `json:"series"`
+	ID              string              `json:"objectId"`
+	CreatedAt       string              `json:"createdAt"`
+	UpdatedAt       string              `json:"updatedAt"`
+	VRVID           string              `json:"episodeId"`
+	EpisodeTitle    string              `json:"episodeTitle"`
+	Season          *int                `json:"seasonNumber"`
+	AmbiguousNumber *int                `json:"episodeNumber"`
+	Series          betterVRVSeriesLink `json:"series"`
 	// When HasIntro=true, IntroStart and IntroEnd may exist, but they don't have to
 	HasIntro   *bool    `json:"hasIntro"`
 	IntroStart *float64 `json:"introStart"`
@@ -292,8 +292,8 @@ func BetterVRVStandardizeEpisodeName(title string) (standardized string) {
 
 func parseBetterVRVEpisode(input betterVRVEpisode) *internal.ThirdPartyEpisode {
 	var number *string
-	if input.AmbiguosNumber != nil {
-		str := fmt.Sprintf("%v", *input.AmbiguosNumber)
+	if input.AmbiguousNumber != nil {
+		str := fmt.Sprintf("%v", *input.AmbiguousNumber)
 		number = &str
 	}
 	var season *string
