@@ -59,17 +59,19 @@ func (s *chiServer) Start() error {
 	r := chi.NewRouter()
 	r.Use(s.corsMiddleware)
 	r.Use(s.ipMiddleware)
-	r.Use(s.directivesMiddleware)
-	r.Use(s.apiClientMiddleware)
-	if s.rateLimiter != nil {
-		r.Use(s.rateLimiter.HttpMiddleware)
-	}
 
 	r.Get("/status", s.statusHandler)
 	if s.enablePlayground {
 		r.Handle("/", playground.Handler("Anime Skip Playground", s.graphqlPath, s.playgroundClientID))
 	}
-	r.Handle(s.graphqlPath, s.graphqlHandler.Handler)
+	r.Route(s.graphqlPath, func(r chi.Router) {
+		r.Use(s.directivesMiddleware)
+		r.Use(s.clientIDMiddleware)
+		if s.rateLimiter != nil {
+			r.Use(s.rateLimiter.HttpMiddleware)
+		}
+		r.Handle("/", s.graphqlHandler.Handler)
+	})
 
 	log.I("Started server @ :%d", s.port)
 	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), r)
@@ -95,7 +97,7 @@ func (s *chiServer) directivesMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *chiServer) apiClientMiddleware(next http.Handler) http.Handler {
+func (s *chiServer) clientIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		clientID := utils.Ptr(r.Header.Get("X-Client-ID"))
 		if clientID == nil || strings.TrimSpace(*clientID) == "" {
@@ -129,14 +131,15 @@ func (s *chiServer) ipMiddleware(next http.Handler) http.Handler {
 }
 
 func (s *chiServer) corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		r.Header.Set("Access-Control-Allow-Origin", "*")
-		r.Header.Set("Access-Control-Allow-Methods", "POST, OPTIONS, DELETE")
-		r.Header.Set("Access-Control-Allow-Origin", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Client-ID")
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, X-Client-ID")
 		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusOK)
 			return
 		}
-		next.ServeHTTP(rw, r)
+		next.ServeHTTP(w, r)
 	})
 }
 
