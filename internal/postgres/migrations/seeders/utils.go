@@ -1,6 +1,7 @@
 package seeders
 
 import (
+	"database/sql/driver"
 	"time"
 
 	"anime-skip.com/public-api/internal"
@@ -23,7 +24,7 @@ func insertUser(tx internal.Tx, user internal.FullUser, createdAt string) error 
 		user.PasswordHash,
 		user.ProfileURL,
 		user.EmailVerified,
-		user.Role,
+		driver.Valuer(&user.Role),
 	)
 	return err
 }

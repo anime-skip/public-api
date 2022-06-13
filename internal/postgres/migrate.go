@@ -42,18 +42,16 @@ func migrate(db internal.Database, dbVersion int, enableSeeding bool) error {
 		return err
 	}
 
-	if !enableSeeding {
-		return nil
-	}
-
-	err = sqlx_migration.RunAllMigrations(tx, "seeders", []*sqlx_migration.Migration{
-		/* 0  */ seeders.SeedAdminUser,
-		/* 1  */ seeders.SeedTimestampTypes,
-		/* 2  */ seeders.SeedUnknownTimestampType,
-		/* 3  */ seeders.SeedKnownClientIDs,
-	})
-	if err != nil {
-		return err
+	if enableSeeding {
+		err = sqlx_migration.RunAllMigrations(tx, "seeders", []*sqlx_migration.Migration{
+			/* 0  */ seeders.SeedAdminUser,
+			/* 1  */ seeders.SeedTimestampTypes,
+			/* 2  */ seeders.SeedUnknownTimestampType,
+			/* 3  */ seeders.SeedKnownClientIDs,
+		})
+		if err != nil {
+			return err
+		}
 	}
 
 	tx.Commit()
