@@ -37,7 +37,7 @@ var _ = Describe("parseBetterVRVEpisode", func() {
 			VRVID:           "",
 			CreatedAt:       "",
 			UpdatedAt:       "",
-			AmbiguosNumber:  newIntPointer(123),
+			AmbiguousNumber: newIntPointer(123),
 			EpisodeTitle:    "title",
 			Season:          newIntPointer(21),
 			HasIntro:        nil,
