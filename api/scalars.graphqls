@@ -1,0 +1,15 @@
+"""
+Standard [ISO 8601](https://en.wikipedia.org/wiki/ISO_8601) timestamp in UTC
+
+### Example
+
+```
+2020-08-04T23:43:27Z
+```
+"""
+scalar Time
+
+"""
+A positive integer, specifically Golang's [uint](https://pkg.go.dev/builtin#uint)
+"""
+scalar UInt

@@ -1,154 +1,164 @@
 package directives
 
 import (
-	"context"
 	"fmt"
+	"os"
+	"strings"
 
-	"anime-skip.com/backend/internal/database"
-	"anime-skip.com/backend/internal/database/repos"
-	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
-	"anime-skip.com/backend/internal/utils/constants"
-	"anime-skip.com/backend/internal/utils/env"
-	"github.com/99designs/gqlgen/graphql"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/log"
+	graphql2 "github.com/99designs/gqlgen/graphql"
+	"github.com/gofrs/uuid"
 )
 
-func _findShowID(ctx context.Context, obj interface{}) (string, error) {
-	args, ok := obj.(map[string]interface{})
-	if !ok {
-		return "", fmt.Errorf("[%+v] must be a map, but was a %T", obj, obj)
-	}
+type showIDGetter = func(ctx context.Context, s internal.Services, arg any) (uuid.UUID, error)
 
-	// showId
-	if showID, ok := args["showId"]; ok {
-		showIDStr, isString := showID.(string)
-		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showId", showID, showID)
-		}
-		return showIDStr, nil
-	}
+var isShowAdminDisabled = os.Getenv("IS_SHOW_ADMIN_DISABLED") == "true"
 
-	// showAdminId
-	db := database.ORMInstance.DB
-	if showAdminID, ok := args["showAdminId"]; ok {
-		showAdminIDStr, isString := showAdminID.(string)
-		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "showAdminId", showAdminID, showAdminID)
-		}
-		showAdmin, err := repos.FindShowAdminByID(db, showAdminIDStr)
+var showIDGetters = map[string]showIDGetter{
+	"showId": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.showId: (%T) %+v", arg, arg)
+		return uuid.FromString(arg.(string))
+	},
+	"showAdminInput": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.showAdminInput: (%T) %+v", arg, arg)
+		showAdmin := arg.(*internal.InputShowAdmin)
+		return *showAdmin.ShowID, nil
+	},
+	"showAdminId": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.showAdminId: (%T) %+v", arg, arg)
+		showAdminId, err := uuid.FromString(arg.(string))
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		return showAdmin.ShowID.String(), nil
-	}
-
-	// showAdmin
-	if showAdmin, ok := args["showAdmin"]; ok {
-		inputShowAdmin, isInputShowAdmin := showAdmin.(*models.InputShowAdmin)
-		if isInputShowAdmin {
-			return inputShowAdmin.ShowID, nil
-		}
-		return "", fmt.Errorf("args['%+v'] must be a InputShowAdmin, but was %v (%T)", "showAdmin", showAdmin, showAdmin)
-	}
-
-	// timestampId
-	if timestampID, ok := args["timestampId"]; ok {
-		timestampIDStr, isString := timestampID.(string)
-		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "timestampId", timestampID, timestampID)
-		}
-		timestamp, err := repos.FindTimestampByID(db, timestampIDStr)
+		showAdmin, err := s.ShowAdminService.Get(ctx, internal.ShowAdminsFilter{
+			ID: &showAdminId,
+		})
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		episode, err := repos.FindEpisodeByID(db, timestamp.EpisodeID.String())
+		return *showAdmin.ID, nil
+	},
+	"episodeId": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.episodeId: (%T) %+v", arg, arg)
+		episodeID, err := uuid.FromString(arg.(string))
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		return episode.ShowID.String(), nil
-	}
-
-	// episodeUrl
-	if epiosdeURL, ok := args["episodeUrl"]; ok {
-		epiosdeURLStr, isString := epiosdeURL.(string)
-		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeUrl", epiosdeURL, epiosdeURL)
-		}
-		episodeURL, err := repos.FindEpisodeURLByURL(db, epiosdeURLStr)
+		episode, err := s.EpisodeService.Get(ctx, internal.EpisodesFilter{
+			ID: &episodeID,
+		})
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		episode, err := repos.FindEpisodeByID(db, episodeURL.EpisodeID.String())
+		return *episode.ShowID, nil
+	},
+	"episodeUrl": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.episodeUrl: (%T) %+v", arg, arg)
+		url := arg.(string)
+		episodeURL, err := s.EpisodeURLService.Get(ctx, internal.EpisodeURLsFilter{
+			URL: &url,
+		})
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		return episode.ShowID.String(), nil
-	}
-
-	// episodeId
-	if episodeID, ok := args["episodeId"]; ok {
-		episodeIDStr, isString := episodeID.(string)
-		if !isString {
-			return "", fmt.Errorf("args['%+v'] must be a string, but was %v (%T)", "episodeId", episodeID, episodeID)
-		}
-		episode, err := repos.FindEpisodeByID(db, episodeIDStr)
+		episode, err := s.EpisodeService.Get(ctx, internal.EpisodesFilter{
+			ID: episodeURL.EpisodeID,
+		})
 		if err != nil {
-			return "", err
+			return uuid.UUID{}, err
 		}
-		return episode.ShowID.String(), nil
-	}
-
-	return "", fmt.Errorf("isShowAdmin directive not implemented for the provided arguments: %+v", obj)
+		return *episode.ShowID, nil
+	},
+	"templateId": func(
+		ctx context.Context, s internal.Services, arg any,
+	) (uuid.UUID, error) {
+		log.V("@isShowAdmin.templateId: (%T) %+v", arg, arg)
+		templateID, err := uuid.FromString(arg.(string))
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		template, err := s.TemplateService.Get(ctx, internal.TemplatesFilter{
+			ID: &templateID,
+		})
+		if err != nil {
+			return uuid.UUID{}, err
+		}
+		return *template.ShowID, nil
+	},
 }
 
-func IsShowAdmin(ctx context.Context, obj interface{}, next graphql.Resolver) (interface{}, error) {
-	if err := isAuthorized(ctx); err != nil {
-		return nil, err
-	}
-
-	if env.DISABLE_SHOW_ADMIN_DIRECTIVE {
-		return next(ctx)
-	}
-
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("500 Internal Error [004]")
-	}
-	showID, err := _findShowID(ctx, obj)
-	if err != nil {
-		return nil, err
-	}
-
-	// Basic User that is an admin for the specified show
-	db := database.ORMInstance.DB
-	_, err = repos.FindShowAdminsByUserIDShowID(db, userID, showID)
-	if err == nil {
-		return next(ctx)
-	}
-
-	// Basic User that created the show and there are no admins present
-	showAdmins, err := repos.FindShowAdminsByShowID(db, showID)
-	if err != nil {
-		return nil, err
-	}
-	if len(showAdmins) == 0 {
-		show, err := repos.FindShowByID(db, showID)
-		if err != nil {
-			return nil, err
+func getShowIdFromParams(ctx context.Context, params map[string]any, services internal.Services) (uuid.UUID, error) {
+	names := []string{}
+	for name, value := range params {
+		if getter, ok := showIDGetters[name]; ok {
+			return getter(ctx, services, value)
 		}
-		if show.CreatedByUserID.String() == userID {
+		names = append(names, name)
+	}
+	return uuid.UUID{}, &internal.Error{
+		Code: internal.EINTERNAL,
+		Message: fmt.Sprintf(
+			"No show id getter implemented for any of the args (%s)",
+			strings.Join(names, ", "),
+		),
+		Op: "IsShowAdmin",
+	}
+}
+
+func IsShowAdmin(ctx context.Context, params any, next graphql2.Resolver) (any, error) {
+	if isShowAdminDisabled {
+		return next(ctx)
+	}
+
+	log.V("@isShowAdmin(%+v)", params)
+
+	// Authenticate first, arg directives run before field directives (notably, `@authenticated``)
+	ctx, err := authenticate(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if auth.IsAdmin || auth.IsDev {
+		log.V("@isShowAdmin - elevated role")
+		return next(ctx)
+	}
+
+	services := context.GetServices(ctx)
+	showID, err := getShowIdFromParams(ctx, params.(map[string]any), services)
+	if err != nil {
+		return nil, err
+	}
+	admins, err := services.ShowAdminService.List(ctx, internal.ShowAdminsFilter{
+		ShowID: &showID,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	for _, admin := range admins {
+		if *admin.UserID == auth.UserID {
 			return next(ctx)
 		}
 	}
-
-	// Admin User
-	user, err := repos.FindUserByID(db, userID)
-	if err != nil {
-		return nil, err
+	return nil, &internal.Error{
+		Code:    internal.EINVALID,
+		Message: fmt.Sprintf("You are is not an admin of this show (id=%s)", showID),
+		Op:      "IsShowAdmin",
 	}
-	if user.Role == constants.ROLE_ADMIN || user.Role == constants.ROLE_DEV {
-		return next(ctx)
-	}
-
-	return nil, fmt.Errorf("403 Forebidden - you are not a show admin")
 }
