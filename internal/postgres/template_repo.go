@@ -34,7 +34,7 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 		query.Where("id = ?", *filter.ID)
 	}
 	if filter.Season != nil {
-		query.Where("season = ?", *filter.Season)
+		query.Where("? = ANY(seasons)", *filter.Season)
 	}
 	if filter.ShowID != nil {
 		query.Where("show_id = ?", *filter.ShowID)
@@ -43,7 +43,11 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 		query.Where("source_episode_id = ?", *filter.SourceEpisodeID)
 	}
 	if filter.Type != nil {
-		query.Where("type = ?", *filter.Type)
+		v, err := filter.Type.Value()
+		if err != nil {
+			return nil, err
+		}
+		query.Where("type = ?", v)
 	}
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
