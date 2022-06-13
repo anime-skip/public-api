@@ -1,60 +1,21 @@
 VERSION = $(shell jq -r .version meta.json)-$(shell TZ=UTC git --no-pager show --quiet --abbrev=12 --date='format-local:%Y%m%d%H%M%S' --format='%cd-%h')
 
+compile:
+	@go build -o bin/server cmd/server/main.go
 build:
-	@docker build --build-arg VERSION=$(VERSION) . -t anime-skip/backend/api:dev
-run: build
-	@./scripts/run.sh
+	@docker build --build-arg GO_OPTIONS=-trimpath --build-arg VERSION=$(VERSION) --build-arg STAGE=production . -t anime-skip/public-api/server:dev
+	@echo
+	@docker image ls | grep "anime-skip/public-api/server"
+	@echo
+run: pre-run
+	VERSION=$(VERSION) docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service
+run-clean: pre-run
+	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service -V
+pre-run:
+	@touch .env
 watch:
-	@modd
-
-test:
-	@./scripts/test.sh
-
-services:
-	@docker-compose -f docker-compose.dev.yml up --remove-orphans
-reset-services:
-	@docker-compose -f docker-compose.dev.yml up --remove-orphans -V
-
+	modd
 gen:
-	@./scripts/gqlgen.sh
-clean:
-	@go clean --modcache
-	@go mod download
-init:
-	@./scripts/init.sh
-help:
-	@./scripts/help.sh
-
-# Deployments
-
-deploy-staged:
-	docker build . \
-		--build-arg VERSION=${VERSION} \
-		-t docker.pkg.github.com/anime-skip/backend/api:staged \
-		-t registry.heroku.com/staged-api-service/web
-	docker push registry.heroku.com/staged-api-service/web
-	heroku container:release -a staged-api-service web
-deploy-prod-only:
-	docker build . \
-		--build-arg VERSION=${VERSION} \
-		-t docker.pkg.github.com/anime-skip/backend/api:prod \
-		-t registry.heroku.com/prod-api-service/web
-	docker push registry.heroku.com/prod-api-service/web
-	heroku container:release -a prod-api-service web
-deploy-prod-test-only:
-	docker build . \
-		--build-arg VERSION=${VERSION} \
-		-t docker.pkg.github.com/anime-skip/backend/api:prod \
-		-t registry.heroku.com/prod-api-test-service/web
-	docker push registry.heroku.com/prod-api-test-service/web
-	heroku container:release -a prod-api-test-service web
-deploy-prod:
-	docker build . \
-		--build-arg VERSION=${VERSION} \
-		-t docker.pkg.github.com/anime-skip/backend/api:prod \
-		-t registry.heroku.com/prod-api-service/web \
-		-t registry.heroku.com/prod-api-test-service/web
-	docker push registry.heroku.com/prod-api-service/web
-	docker push registry.heroku.com/prod-api-test-service/web
-	heroku container:release -a prod-api-service web
-	heroku container:release -a prod-api-test-service web
+	go generate ./...
+test: compile
+	LOG_LEVEL=3 go test ./...

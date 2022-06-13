@@ -1,115 +1,52 @@
 package resolvers
 
 import (
-	"context"
-	"errors"
 	"fmt"
 	"strings"
 
-	"anime-skip.com/backend/internal/database/entities"
-	"anime-skip.com/backend/internal/database/mappers"
-	"anime-skip.com/backend/internal/database/repos"
-	"anime-skip.com/backend/internal/graphql/models"
-	emailService "anime-skip.com/backend/internal/services/email"
-	"anime-skip.com/backend/internal/services/recaptcha"
-	"anime-skip.com/backend/internal/utils"
-	"anime-skip.com/backend/internal/utils/auth"
-	"anime-skip.com/backend/internal/utils/log"
-	"anime-skip.com/backend/internal/utils/validation"
-	"github.com/jinzhu/gorm"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/log"
+	"anime-skip.com/public-api/internal/mappers"
+	"anime-skip.com/public-api/internal/utils"
+	"anime-skip.com/public-api/internal/validation"
 )
 
-// Utils
+// Helpers
 
-func loginDataForUser(db *gorm.DB, user *entities.User) (*models.LoginData, error) {
-	authToken, err := auth.GenerateAuthToken(user)
+func (r *Resolver) getLoginData(ctx context.Context, user internal.FullUser) (*internal.LoginData, error) {
+	accessToken, err := r.AuthService.CreateAccessToken(user)
 	if err != nil {
 		log.E("Failed to generate an auth token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
+		return nil, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Internal error logging in",
+			Err:     err,
+		}
 	}
 
-	refreshToken, err := auth.GenerateRefreshToken(user)
+	refreshToken, err := r.AuthService.CreateRefreshToken(user)
 	if err != nil {
 		log.E("Failed to generate a refresh token: %v", err)
-		return nil, fmt.Errorf("Failed to login")
+		return nil, &internal.Error{
+			Code:    internal.EINTERNAL,
+			Message: "Internal error logging in",
+			Err:     err,
+		}
 	}
 
-	return &models.LoginData{
-		AuthToken:    authToken,
+	account := mappers.ToAccount(user)
+	return &internal.LoginData{
+		AuthToken:    accessToken,
 		RefreshToken: refreshToken,
-		Account:      mappers.UserEntityToAccountModel(user),
+		Account:      &account,
 	}, nil
 }
 
-// Query Resolvers
+// Mutations
 
-type AccountResolver struct{ *Resolver }
-
-func (r *queryResolver) Account(ctx context.Context) (*models.Account, error) {
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	user, err := repos.FindUserByID(r.DB(ctx).Unscoped(), userID)
-	if err != nil {
-		return nil, err
-	}
-	return mappers.UserEntityToAccountModel(user), nil
-}
-
-func (r *queryResolver) Login(ctx context.Context, usernameEmail string, passwordHash string) (*models.LoginData, error) {
-	usernameEmail = strings.TrimSpace(usernameEmail)
-	passwordHash = strings.TrimSpace(passwordHash)
-
-	db := r.DB(ctx)
-	user, err := repos.FindUserByUsernameOrEmail(db, usernameEmail)
-	if err != nil {
-		log.V("Failed to get user for username or email = '%s': %v", usernameEmail, err)
-		auth.LoginRetryTimer.Failure(usernameEmail)
-		return nil, fmt.Errorf("Bad login credentials")
-	}
-
-	if err = auth.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
-		log.V("Failed validate password: %v", err)
-		auth.LoginRetryTimer.Failure(usernameEmail)
-		return nil, fmt.Errorf("Bad login credentials")
-	}
-
-	loginData, err := loginDataForUser(db, user)
-	if err != nil {
-		log.V("Failed to build login data for %v: %v", usernameEmail, err)
-		return nil, err
-	}
-	defer auth.LoginRetryTimer.Success(usernameEmail)
-	return loginData, nil
-}
-
-func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*models.LoginData, error) {
-	claims, err := auth.ValidateRefreshToken(refreshToken)
-	if err != nil {
-		return nil, fmt.Errorf("Invalid refresh token")
-	}
-
-	db := r.DB(ctx)
-	userID := claims["userId"].(string)
-	user, err := repos.FindUserByID(db, userID)
-	if err != nil {
-		log.V("Failed to get user with id='%s': %v", userID, err)
-		return nil, fmt.Errorf("Bad login credentials")
-	}
-
-	loginData, err := loginDataForUser(db, user)
-	if err != nil {
-		log.V("Failed to build login data for %v: %v", user.Username, err)
-		return nil, err
-	}
-	return loginData, nil
-}
-
-// Mutation Resolvers
-
-func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*models.LoginData, error) {
+func (r *mutationResolver) CreateAccount(ctx context.Context, username string, email string, passwordHash string, recaptchaResponse string) (*internal.LoginData, error) {
+	log.V("Additional input validation")
 	username = strings.TrimSpace(username)
 	email = strings.TrimSpace(email)
 	passwordHash = strings.TrimSpace(passwordHash)
@@ -121,117 +58,202 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 		return nil, err
 	}
 
-	err := recaptcha.Verify(ctx, recaptchaResponse)
+	log.V("Verify recaptcha")
+	err := r.RecaptchaService.Verify(ctx, recaptchaResponse)
 	if err != nil {
 		return nil, err
 	}
 
-	existingUser, _ := repos.FindUserByUsername(r.DB(ctx), username)
-	if existingUser != nil {
-		return nil, fmt.Errorf("username='%s' is already taken, use a different one", username)
+	log.V("Checking for existing username")
+	_, err = r.UserService.Get(ctx, internal.UsersFilter{
+		Username: &username,
+	})
+	if !internal.IsNotFound(err) {
+		return nil, err
+	}
+	if err == nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Username '%s' is already taken, use a different one", username),
+			Op:      "CreateAccount",
+		}
 	}
 
-	existingUser, _ = repos.FindUserByEmail(r.DB(ctx), email)
-	if existingUser != nil {
-		return nil, fmt.Errorf("email='%s' is already taken, use a different one", email)
+	log.V("Checking for existing email")
+	_, err = r.UserService.Get(ctx, internal.UsersFilter{
+		Email: &email,
+	})
+	if !internal.IsNotFound(err) {
+		return nil, err
+	}
+	if err == nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Email '%s' is already taken, use a different one", email),
+			Op:      "CreateAccount",
+		}
 	}
 
-	encryptedPasswordHash, err := auth.GenerateEncryptedPassword(passwordHash)
+	log.V("Generating passwordHash")
+	encryptedPasswordHash, err := r.AuthService.CreateEncryptedPassword(passwordHash)
 	if err != nil {
 		return nil, err
 	}
 
-	tx := r.DB(ctx).Begin()
-
-	user, err := repos.CreateUser(tx, username, email, encryptedPasswordHash)
+	log.V("Creating user and preferences")
+	createdUser, err := r.UserService.CreateAccount(ctx, internal.FullUser{
+		Username:      username,
+		Email:         email,
+		PasswordHash:  encryptedPasswordHash,
+		EmailVerified: false,
+		Role:          internal.RoleUser,
+	})
 	if err != nil {
-		tx.Rollback()
 		return nil, err
 	}
 
-	err = emailService.SendWelcome(user)
+	log.V("Sending welcome email")
+	err = r.EmailService.SendWelcome(ctx, createdUser)
 	if err != nil {
-		tx.Rollback()
 		log.E("Failed to send welcome email: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		return nil, err
 	}
 
-	account := mappers.UserEntityToAccountModel(user)
-
-	authToken, err := auth.GenerateAuthToken(user)
+	log.V("Creating access token")
+	accessToken, err := r.AuthService.CreateAccessToken(createdUser)
 	if err != nil {
-		tx.Rollback()
-		log.E("Failed to create auth token: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		log.E("Failed to create access token: %v", err)
+		return nil, err
 	}
 
-	refreshToken, err := auth.GenerateRefreshToken(user)
+	log.V("Creating refresh token")
+	refreshToken, err := r.AuthService.CreateRefreshToken(createdUser)
 	if err != nil {
-		tx.Rollback()
-		log.E("Failed to create auth token: %v", err)
-		return nil, fmt.Errorf("Failed to create user")
+		log.E("Failed to create refresh token: %v", err)
+		return nil, err
 	}
 
-	tx.Commit()
+	account := mappers.ToAccount(createdUser)
 
-	verifyEmailToken, err := auth.GenerateVerifyEmailToken(user)
+	log.V("Creating email token")
+	verifyEmailToken, err := r.AuthService.CreateVerifyEmailToken(createdUser)
 	if err != nil {
-		log.E("Failed to send token validation email: %v", err)
+		log.E("Failed to create verify email token: %v", err)
 	} else {
-		err = emailService.SendVerification(user, verifyEmailToken)
+		err = r.EmailService.SendVerification(ctx, createdUser, verifyEmailToken)
 		if err != nil {
 			log.E("Failed to send email address verification email (but still created user): %v", err)
 		}
 	}
 
-	return &models.LoginData{
-		AuthToken:    authToken,
+	log.V("Returning LoginData")
+	return &internal.LoginData{
+		AuthToken:    accessToken,
 		RefreshToken: refreshToken,
-		Account:      account,
+		Account:      &account,
 	}, nil
 }
 
-func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*models.LoginData, error) {
+func (r *mutationResolver) ChangePassword(ctx context.Context, oldPassword string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
-		return nil, errors.New("New passwords do not match")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Passwords did not match",
+			Op:      "ChangePassword",
+		}
 	}
 	if newPassword == "" {
-		return nil, errors.New("New password is not valid, it cannot be empty")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "New password is not valid, it cannot be empty",
+			Op:      "ChangePassword",
+		}
 	}
 
-	userID, err := utils.UserIDFromContext(ctx)
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	db := r.DB(ctx).Unscoped()
-	user, err := repos.FindUserByID(db, userID)
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
 
-	oldPasswordHash := auth.GetMD5Hash(oldPassword)
-	if err = auth.ValidatePassword(oldPasswordHash, user.PasswordHash); err != nil {
-		return nil, fmt.Errorf("Old password is not correct")
+	oldPasswordHash := utils.MD5(oldPassword)
+	if err = r.AuthService.ValidatePassword(oldPasswordHash, user.PasswordHash); err != nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Old password is not correct",
+			Op:      "ChangePassword",
+		}
 	}
 
-	newPasswordHash := auth.GetMD5Hash(newPassword)
-	newEncryptedPasswordHash, err := auth.GenerateEncryptedPassword(newPasswordHash)
+	newPasswordHash := utils.MD5(newPassword)
+	newEncryptedPasswordHash, err := r.AuthService.CreateEncryptedPassword(newPasswordHash)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser, err := repos.UpdatePasswordHash(db, userID, newEncryptedPasswordHash)
+	userWithNewPassword := user
+	userWithNewPassword.PasswordHash = newEncryptedPasswordHash
+	newUser, err := r.UserService.Update(ctx, userWithNewPassword)
 	if err != nil {
 		return nil, err
 	}
 
-	loginData, err := loginDataForUser(db, newUser)
+	return r.getLoginData(ctx, newUser)
+}
+
+func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error) {
+	err := r.RecaptchaService.Verify(ctx, recaptchaResponse)
 	if err != nil {
-		log.V("Failed to build login data for %v: %v", newUser.Username, err)
 		return nil, err
 	}
-	return loginData, nil
+
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	token, err := r.AuthService.CreateVerifyEmailToken(user)
+	if err != nil {
+		return nil, err
+	}
+
+	err = r.EmailService.SendVerification(ctx, user, token)
+	isSent := err == nil
+	return &isSent, err
+}
+
+func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*internal.Account, error) {
+	claims, err := r.AuthService.ValidateVerifyEmailToken(validationToken)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update the user to have their email verified
+	existingUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	existingUser.EmailVerified = true
+	updatedUser, err := r.UserService.Update(ctx, existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	account := mappers.ToAccount(updatedUser)
+	return &account, nil
 }
 
 func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaResponse string, email string) (bool, error) {
@@ -240,27 +262,26 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaRe
 	if err != nil {
 		return false, err
 	}
-	err = recaptcha.Verify(ctx, recaptchaResponse)
+	err = r.RecaptchaService.Verify(ctx, recaptchaResponse)
 	if err != nil {
 		return false, err
 	}
 
-	db := r.DB(ctx)
-	user, err := repos.FindUserByEmail(db, email)
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			// Don't provide hints to if a user has an account or not
-			return true, nil
-		} else {
-			return false, err
-		}
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		Email: &email,
+	})
+	if internal.IsNotFound(err) {
+		// Don't provide hints to if a user has an account or not
+		return true, nil
+	} else if err != nil {
+		return false, err
 	}
 
-	token, err := auth.GenerateResetPasswordToken(user)
+	token, err := r.AuthService.CreateResetPasswordToken(user)
 	if err != nil {
 		return false, err
 	}
-	err = emailService.SendResetPassword(user, token)
+	err = r.EmailService.SendResetPassword(ctx, user, token)
 	if err != nil {
 		return false, err
 	}
@@ -268,105 +289,135 @@ func (r *mutationResolver) RequestPasswordReset(ctx context.Context, recaptchaRe
 	return true, nil
 }
 
-func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*models.LoginData, error) {
+func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken string, newPassword string, confirmNewPassword string) (*internal.LoginData, error) {
 	if newPassword != confirmNewPassword {
-		return nil, errors.New("New passwords don't match")
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Passwords did not match",
+			Op:      "ChangePassword",
+		}
 	}
 
-	claims, err := auth.ValidateResetPasswordToken(passwordResetToken)
-	if err != nil {
-		return nil, err
-	}
-	userID, ok := claims["userId"].(string)
-	if !ok {
-		return nil, errors.New("Invalid token")
-	}
-
-	newPasswordHash := auth.GetMD5Hash(newPassword)
-	newEncryptedPasswordHash, err := auth.GenerateEncryptedPassword(newPasswordHash)
+	claims, err := r.AuthService.ValidateResetPasswordToken(passwordResetToken)
 	if err != nil {
 		return nil, err
 	}
 
-	db := r.DB(ctx).Unscoped()
-	newUser, err := repos.UpdatePasswordHash(db, userID, newEncryptedPasswordHash)
+	newPasswordHash := utils.MD5(newPassword)
+	newEncryptedPasswordHash, err := r.AuthService.CreateEncryptedPassword(newPasswordHash)
 	if err != nil {
 		return nil, err
 	}
 
-	loginData, err := loginDataForUser(db, newUser)
+	existingUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
 	if err != nil {
-		log.V("Failed to build login data for %v: %v", newUser.Username, err)
 		return nil, err
 	}
-	return loginData, nil
+	existingUser.PasswordHash = newEncryptedPasswordHash
+
+	newUser, err := r.UserService.Update(ctx, existingUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return r.getLoginData(ctx, newUser)
 }
 
-func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptchaResponse string) (*bool, error) {
-	err := recaptcha.Verify(ctx, recaptchaResponse)
-	if err != nil {
-		return nil, err
-	}
-
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-	user, err := repos.FindUserByID(r.DB(ctx), userID)
-	if err != nil {
-		return nil, err
-	}
-	token, err := auth.GenerateVerifyEmailToken(user)
-	if err != nil {
-		return nil, err
-	}
-
-	err = emailService.SendVerification(user, token)
-	isSent := err == nil
-	return &isSent, err
+func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*internal.Account, error) {
+	return nil, internal.NewNotImplemented("DeleteAccountRequest")
 }
 
-func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*models.Account, error) {
-	payload, err := auth.ValidateEmailVerificationToken(validationToken)
+func (r *mutationResolver) DeleteAccount(ctx context.Context, deleteToken string) (*internal.Account, error) {
+	return nil, internal.NewNotImplemented("DeleteAccount")
+}
+
+// Queries
+
+func (r *queryResolver) Login(ctx context.Context, usernameOrEmail string, passwordHash string) (*internal.LoginData, error) {
+	usernameOrEmail = strings.TrimSpace(usernameOrEmail)
+	passwordHash = strings.TrimSpace(passwordHash)
+
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		UsernameOrEmail: &usernameOrEmail,
+	})
+	if err != nil {
+		log.V("Failed to get user for username or email = '%s': %v", usernameOrEmail, err)
+		// auth.LoginRetryTimer.Failure(usernameOrEmail)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
+	}
+
+	if err = r.AuthService.ValidatePassword(passwordHash, user.PasswordHash); err != nil {
+		log.V("Failed validate password: %v", err)
+		// auth.LoginRetryTimer.Failure(usernameOrEmail)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
+	}
+
+	// defer auth.LoginRetryTimer.Success(usernameOrEmail)
+	return r.getLoginData(ctx, user)
+}
+
+func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*internal.LoginData, error) {
+	claims, err := r.AuthService.ValidateRefreshToken(refreshToken)
+	if err != nil {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Invalid refresh token",
+		}
+	}
+
+	user, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &claims.UserID,
+	})
+	if err != nil {
+		log.V("Failed to get user with id='%s': %v", claims.UserID, err)
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: "Bad login credentials",
+		}
+	}
+
+	return r.getLoginData(ctx, user)
+}
+
+// Fields
+
+func (r *queryResolver) Account(ctx context.Context) (*internal.Account, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	// Update the user to have their email verified
-	userID := payload["userId"].(string)
-	existingUser, err := repos.FindUserByID(r.DB(ctx), userID)
+	internalUser, err := r.UserService.Get(ctx, internal.UsersFilter{
+		ID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	updatedUser, err := repos.VerifyUserEmail(r.DB(ctx), existingUser)
+	account := mappers.ToAccount(internalUser)
+	return &account, nil
+}
+
+func (r *accountResolver) Preferences(ctx context.Context, obj *internal.Account) (*internal.Preferences, error) {
+	return r.getPreferences(ctx, *obj.ID)
+}
+
+func (r *accountResolver) AdminOfShows(ctx context.Context, obj *internal.Account) ([]*internal.ShowAdmin, error) {
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-
-	return mappers.UserEntityToAccountModel(updatedUser), nil
-}
-
-func (r *mutationResolver) DeleteAccountRequest(ctx context.Context, passwordHash string) (*models.Account, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+	showAdmins, err := r.ShowAdminService.List(ctx, internal.ShowAdminsFilter{
+		UserID: &auth.UserID,
+	})
 	if err != nil {
 		return nil, err
 	}
-	log.I(userID)
-
-	return nil, fmt.Errorf("not implemented")
-}
-
-func (r *mutationResolver) DeleteAccount(ctx context.Context, deleteToken string) (*models.Account, error) {
-	return nil, fmt.Errorf("not implemented")
-}
-
-// Field Resolvers
-
-func (r *AccountResolver) AdminOfShows(ctx context.Context, obj *models.Account) ([]*models.ShowAdmin, error) {
-	return showAdminsByUserID(r.DB(ctx), obj.ID)
-}
-
-func (r *AccountResolver) Preferences(ctx context.Context, obj *models.Account) (*models.Preferences, error) {
-	preferences, err := repos.FindPreferencesByUserID(r.DB(ctx), obj.ID)
-	return mappers.PreferencesEntityToModel(preferences), err
+	return utils.PtrSlice(showAdmins), nil
 }

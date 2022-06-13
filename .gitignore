@@ -1,5 +1,18 @@
-.temp/
-bin/
+# Outputs
+#
+bin
+
+
+# Editor
+#
+.vscode
+
+# Secrets
+#
 .env
 .env.*
-internal/graphql/resolvers/update_then_delete_me.go
+
+# Misc
+#
+# TODO remove once ready to publish over V1
+publish.sh

@@ -1,39 +1,55 @@
 package resolvers
 
 import (
-	"context"
-
-	"anime-skip.com/backend/internal/database/mappers"
-	"anime-skip.com/backend/internal/database/repos"
-	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
+	"anime-skip.com/public-api/internal/utils"
+	"github.com/gofrs/uuid"
 )
 
 // Helpers
 
-// Query Resolvers
-
-type preferencesResolver struct{ *Resolver }
-
-// Mutation Resolvers
-
-func (r *mutationResolver) SavePreferences(ctx context.Context, newPreferences models.InputPreferences) (*models.Preferences, error) {
-	userID, err := utils.UserIDFromContext(ctx)
+func (r *Resolver) getPreferences(ctx context.Context, userID uuid.UUID) (*internal.Preferences, error) {
+	prefs, err := r.PreferencesService.Get(ctx, internal.PreferencesFilter{
+		UserID: &userID,
+	})
 	if err != nil {
 		return nil, err
 	}
-
-	existingPreferences, err := repos.FindPreferencesByUserID(r.DB(ctx), userID)
-	if err != nil {
-		return nil, err
-	}
-	updatedPreferences, err := repos.SavePreferences(r.DB(ctx), newPreferences, existingPreferences)
-
-	return mappers.PreferencesEntityToModel(updatedPreferences), nil
+	return &prefs, nil
 }
 
-// Field Resolvers
+// Mutations
 
-func (r *preferencesResolver) User(ctx context.Context, obj *models.Preferences) (*models.User, error) {
-	return userByID(r.DB(ctx), obj.UserID)
+func (r *mutationResolver) SavePreferences(ctx context.Context, changes map[string]any) (*internal.Preferences, error) {
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply updates to struct
+	newPrefs, err := r.getPreferences(ctx, auth.UserID)
+	if err != nil {
+		return nil, err
+	}
+	err = utils.ApplyChanges(changes, &newPrefs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Update data
+	updated, err := r.PreferencesService.Update(ctx, *newPrefs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &updated, nil
+}
+
+// Queries
+
+// Fields
+
+func (r *preferencesResolver) User(ctx context.Context, obj *internal.Preferences) (*internal.User, error) {
+	return r.getUserById(ctx, obj.UserID)
 }

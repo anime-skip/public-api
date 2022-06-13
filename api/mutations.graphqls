@@ -1,0 +1,207 @@
+type Mutation {
+  # Account
+  """
+  Create a user account. 3rd party applications will not have access to this function because of
+  `recaptchaResponse`. Redirect new users to create an account on <anime-skip.com>
+  """
+  createAccount(
+    username: String!
+    email: String!
+    passwordHash: String!
+    recaptchaResponse: String!
+  ): LoginData!
+  """
+  Change a user's password by first confirming the old one. This is not a forgot password flow
+
+  > Note the passwords aren't md5 hashes. The regular login will be moving to this as well eventually
+  """
+  changePassword(
+    oldPassword: String!
+    newPassword: String!
+    confirmNewPassword: String!
+  ): LoginData! @authenticated
+  "Resend the verification email for the account of the authenticated user"
+  resendVerificationEmail(recaptchaResponse: String!): Boolean @authenticated
+  """
+  Callback to handle the verification token included in the email sent using
+  `resendVerificationEmail`
+  """
+  verifyEmailAddress(validationToken: String!): Account!
+  """
+  The first step in the password reset process
+
+  It sends an email containing a link to reset your password with. That link includes a token, the
+  `passwordResetToken`, that can be passed into the `resetPassword` mutation.
+
+  > Because the `recaptchaResponse` is required, this can not be performed by 3rd parties
+  """
+  requestPasswordReset(recaptchaResponse: String!, email: String!): Boolean!
+  """
+  The second step in the password reset process, coming after `requestPasswordReset`
+
+  This step is pretty self explanatory, this is when the password is actually reset for a user
+  """
+  resetPassword(
+    passwordResetToken: String!
+    newPassword: String!
+    confirmNewPassword: String!
+  ): LoginData!
+  """
+  Request your account be deleted. The user will receive an email with a link to confirm deleting
+  their account
+  """
+  deleteAccountRequest(passwordHash: String!): Account! @authenticated
+  "Handle a deleteToken from `deleteAccountRequest` and actually delete the user's account"
+  deleteAccount(deleteToken: String!): Account!
+
+  # Preferences
+  "Update user preferences"
+  savePreferences(preferences: InputPreferences!): Preferences! @authenticated
+
+  # Shows
+  "Create a show and optionally become an admin"
+  createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authenticated
+  """
+  Update show data
+  """
+  updateShow(showId: ID!, newShow: InputShow!): Show! @authenticated
+  """
+  Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
+  deleteShow(showId: ID!): Show! @hasRole(role: ADMIN)
+
+  # Show Admins
+  """
+  Give admin privilege to a user for a show.
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  createShowAdmin(showAdminInput: InputShowAdmin! @isShowAdmin): ShowAdmin!
+  """
+  Remove admin privileges from a user for a show.
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  deleteShowAdmin(showAdminId: ID! @isShowAdmin): ShowAdmin!
+
+  # Episodes
+  """
+  Create an episode under a `Show`
+  """
+  createEpisode(showId: ID!, episodeInput: InputEpisode!): Episode!
+    @authenticated
+  """
+  Update episode info
+  """
+  updateEpisode(episodeId: ID!, newEpisode: InputEpisode!): Episode!
+    @authenticated
+  """
+  Delete an episode and all it's child data
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  deleteEpisode(episodeId: ID! @isShowAdmin): Episode! @authenticated
+
+  # Episode Urls
+  """
+  Link an `Episode` to a service URL
+  """
+  createEpisodeUrl(
+    episodeId: ID!
+    episodeUrlInput: InputEpisodeUrl!
+  ): EpisodeUrl! @authenticated
+  """
+  Unlink an `Episode` to from service URL
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  deleteEpisodeUrl(episodeUrl: String! @isShowAdmin): EpisodeUrl! @authenticated
+  """
+  Update episode url info
+  """
+  updateEpisodeUrl(
+    episodeUrl: String!
+    newEpisodeUrl: InputEpisodeUrl!
+  ): EpisodeUrl! @authenticated
+
+  # Timestamps
+  """
+  Add a timestamp to an `Episode`
+  """
+  createTimestamp(episodeId: ID!, timestampInput: InputTimestamp!): Timestamp!
+    @authenticated
+  """
+  Update timestamp data
+  """
+  updateTimestamp(timestampId: ID!, newTimestamp: InputTimestamp!): Timestamp!
+    @authenticated
+  """
+  Delete a timestamp
+  """
+  deleteTimestamp(timestampId: ID!): Timestamp! @authenticated
+  """
+  Will create, update, and delete timestamps as passed. Partial failures are completely rolled back
+  """
+  updateTimestamps(
+    create: [InputTimestampOn!]!
+    update: [InputExistingTimestamp!]!
+    delete: [ID!]!
+  ): UpdatedTimestamps! @authenticated
+
+  # Timestamp Types
+  """
+  Create a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
+  createTimestampType(timestampTypeInput: InputTimestampType!): TimestampType!
+    @hasRole(role: ADMIN)
+  """
+  Update a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
+  updateTimestampType(
+    timestampTypeId: ID!
+    newTimestampType: InputTimestampType!
+  ): TimestampType! @hasRole(role: ADMIN)
+  """
+  Delete a timestamp type
+
+  > `@hasRole(role: ADMIN)` - The user must have the `ADMIN` role to perform this action
+  """
+  deleteTimestampType(timestampTypeId: ID!): TimestampType!
+    @hasRole(role: ADMIN)
+
+  # Templates
+
+  "Make changes to an existing template"
+  createTemplate(newTemplate: InputTemplate!): Template! @authenticated
+  "Make changes to an existing template"
+  updateTemplate(templateId: ID!, newTemplate: InputTemplate!): Template!
+    @authenticated
+  """
+  Delete an existing template
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
+  """
+  deleteTemplate(templateId: ID! @isShowAdmin): Template! @authenticated
+  "Add a timestamp to an existing template"
+  addTimestampToTemplate(
+    templateTimestamp: InputTemplateTimestamp!
+  ): TemplateTimestamp! @authenticated
+  "Remove a timestamp from an existing template"
+  removeTimestampFromTemplate(
+    templateTimestamp: InputTemplateTimestamp!
+  ): TemplateTimestamp! @authenticated
+
+  "Create a new API client for the authenticated user to use"
+  createApiClient(client: CreateApiClient!): ApiClient! @authenticated
+  "Update one of the authenticated user's API clients"
+  updateApiClient(id: String!, changes: ApiClientChanges!): ApiClient!
+    @authenticated
+  "Delete one of the authenticated user's API clients"
+  deleteApiClient(id: String!): ApiClient! @authenticated
+}

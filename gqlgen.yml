@@ -1,24 +1,24 @@
-# Refer to https://gqlgen.com/config/ for more config
-
 schema:
-  - internal/graphql/schemas/*.graphql
+  - api/*.graphqls
 
 exec:
-  filename: internal/graphql/main.go
-  package: gql
+  layout: single-file
+  package: graphql
+  filename: internal/graphql/server.generated.go
 
 model:
-  filename: internal/graphql/models/generated.go
-  package: models
+  filename: internal/models.generated.go
+  package: internal
 
 resolver:
-  filename: internal/graphql/resolvers/update_then_delete_me.go
-  type: Resolver
   package: resolvers
-
-autobind: []
+  filename: internal/graphql/resolvers/interfaces.go
 
 models:
+  ID:
+    model: anime-skip.com/public-api/internal/graphql/scalars.UUID
+  UInt:
+    model: anime-skip.com/public-api/internal/graphql/scalars.UInt
   Episode:
     fields:
       createdBy:
@@ -34,12 +34,6 @@ models:
       urls:
         resolver: true
       template:
-        resolver: true
-  ThirdPartyEpisode:
-    fields:
-      timestamps:
-        resolver: true
-      show:
         resolver: true
   EpisodeUrl:
     fields:
@@ -57,6 +51,8 @@ models:
         resolver: true
       preferences:
         resolver: true
+  InputPreferences:
+    model: "map[string]interface{}"
   Preferences:
     fields:
       createdBy:
@@ -147,3 +143,15 @@ models:
         resolver: true
       timestamp:
         resolver: true
+  ApiClient:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      user:
+        resolver: true
+  ApiClientChanges:
+    model: "map[string]interface{}"

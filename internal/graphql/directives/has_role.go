@@ -1,34 +1,38 @@
 package directives
 
 import (
-	"context"
+	context1 "context"
 	"fmt"
 
-	"anime-skip.com/backend/internal/database"
-	"anime-skip.com/backend/internal/database/mappers"
-	"anime-skip.com/backend/internal/database/repos"
-	"anime-skip.com/backend/internal/graphql/models"
-	"anime-skip.com/backend/internal/utils"
-	"anime-skip.com/backend/internal/utils/constants"
+	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/context"
 	"github.com/99designs/gqlgen/graphql"
 )
 
-func HasRole(ctx context.Context, obj interface{}, next graphql.Resolver, role models.Role) (interface{}, error) {
-	if err := isAuthorized(ctx); err != nil {
+func HasRole(ctx context1.Context, obj any, next graphql.Resolver, role internal.Role) (res any, err error) {
+	ctx, err = authenticate(ctx)
+	if err != nil {
 		return nil, err
 	}
 
-	roleInt := mappers.RoleEnumToInt(role)
-	userID, err := utils.UserIDFromContext(ctx)
-	if err != nil {
-		return nil, fmt.Errorf("500 Internal Error [005]")
-	}
-	user, err := repos.FindUserByID(database.ORMInstance.DB, userID)
+	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if user.Role == roleInt || user.Role == constants.ROLE_DEV {
-		return next(ctx)
+
+	hasRole := false
+	if role == internal.RoleAdmin {
+		hasRole = auth.IsAdmin || auth.IsDev
+	} else if role == internal.RoleDev {
+		hasRole = auth.IsDev
 	}
-	return nil, fmt.Errorf("403 Forebidden")
+
+	if !hasRole {
+		return nil, &internal.Error{
+			Code:    internal.EINVALID,
+			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (%s)", role),
+			Op:      "hasRole",
+		}
+	}
+	return next(ctx)
 }
