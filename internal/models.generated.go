@@ -624,6 +624,46 @@ func (e EpisodeSource) MarshalGQL(w io.Writer) {
 	fmt.Fprint(w, strconv.Quote(e.String()))
 }
 
+// Allowed services for show's external links
+type ExternalService string
+
+const (
+	ExternalServiceAnilist ExternalService = "ANILIST"
+)
+
+var AllExternalService = []ExternalService{
+	ExternalServiceAnilist,
+}
+
+func (e ExternalService) IsValid() bool {
+	switch e {
+	case ExternalServiceAnilist:
+		return true
+	}
+	return false
+}
+
+func (e ExternalService) String() string {
+	return string(e)
+}
+
+func (e *ExternalService) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = ExternalService(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid ExternalService", str)
+	}
+	return nil
+}
+
+func (e ExternalService) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
+}
+
 // A user's role in the system. Higher roles allow a user write access to certain data that a normal
 // user would not. Some queries and mutations are only allowed by certain roles
 type Role string

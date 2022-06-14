@@ -19,6 +19,7 @@ type Query {
   # Shows
   "Find show with a matching `Show.id`"
   findShow(showId: ID!): Show!
+  findShowsByExternalId(service: ExternalService!, serviceId: String!): [Show!]!
   """
   Search for shows that include the `search` in the `Show.name`. Results are sorted by `Show.name`
   as `ASC` or `DESC`

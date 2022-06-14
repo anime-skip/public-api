@@ -148,6 +148,7 @@ type ComplexityRoot struct {
 	}
 
 	Mutation struct {
+		AddExternalLink             func(childComplexity int, showID *uuid.UUID, url string) int
 		AddTimestampToTemplate      func(childComplexity int, templateTimestamp internal.InputTemplateTimestamp) int
 		ChangePassword              func(childComplexity int, oldPassword string, newPassword string, confirmNewPassword string) int
 		CreateAPIClient             func(childComplexity int, client internal.CreateAPIClient) int
@@ -169,6 +170,7 @@ type ComplexityRoot struct {
 		DeleteTemplate              func(childComplexity int, templateID *uuid.UUID) int
 		DeleteTimestamp             func(childComplexity int, timestampID *uuid.UUID) int
 		DeleteTimestampType         func(childComplexity int, timestampTypeID *uuid.UUID) int
+		RemoveExternalLink          func(childComplexity int, showID *uuid.UUID, url string) int
 		RemoveTimestampFromTemplate func(childComplexity int, templateTimestamp internal.InputTemplateTimestamp) int
 		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
@@ -225,6 +227,7 @@ type ComplexityRoot struct {
 		FindShowAdmin              func(childComplexity int, showAdminID *uuid.UUID) int
 		FindShowAdminsByShowID     func(childComplexity int, showID *uuid.UUID) int
 		FindShowAdminsByUserID     func(childComplexity int, userID *uuid.UUID) int
+		FindShowsByExternalID      func(childComplexity int, service internal.ExternalService, serviceID string) int
 		FindTemplate               func(childComplexity int, templateID *uuid.UUID) int
 		FindTemplateByDetails      func(childComplexity int, episodeID *uuid.UUID, showName *string, season *string) int
 		FindTemplatesByShowID      func(childComplexity int, showID *uuid.UUID) int
@@ -462,6 +465,8 @@ type MutationResolver interface {
 	CreateAPIClient(ctx context.Context, client internal.CreateAPIClient) (*internal.APIClient, error)
 	UpdateAPIClient(ctx context.Context, id string, changes map[string]interface{}) (*internal.APIClient, error)
 	DeleteAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
+	AddExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
+	RemoveExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
 }
 type PreferencesResolver interface {
 	User(ctx context.Context, obj *internal.Preferences) (*internal.User, error)
@@ -473,6 +478,7 @@ type QueryResolver interface {
 	FindUser(ctx context.Context, userID *uuid.UUID) (*internal.User, error)
 	FindUserByUsername(ctx context.Context, username string) (*internal.User, error)
 	FindShow(ctx context.Context, showID *uuid.UUID) (*internal.Show, error)
+	FindShowsByExternalID(ctx context.Context, service internal.ExternalService, serviceID string) ([]*internal.Show, error)
 	SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*internal.Show, error)
 	FindShowAdmin(ctx context.Context, showAdminID *uuid.UUID) (*internal.ShowAdmin, error)
 	FindShowAdminsByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.ShowAdmin, error)
@@ -1032,6 +1038,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.LoginData.RefreshToken(childComplexity), true
 
+	case "Mutation.addExternalLink":
+		if e.complexity.Mutation.AddExternalLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_addExternalLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.AddExternalLink(childComplexity, args["showId"].(*uuid.UUID), args["url"].(string)), true
+
 	case "Mutation.addTimestampToTemplate":
 		if e.complexity.Mutation.AddTimestampToTemplate == nil {
 			break
@@ -1283,6 +1301,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.DeleteTimestampType(childComplexity, args["timestampTypeId"].(*uuid.UUID)), true
+
+	case "Mutation.removeExternalLink":
+		if e.complexity.Mutation.RemoveExternalLink == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_removeExternalLink_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.RemoveExternalLink(childComplexity, args["showId"].(*uuid.UUID), args["url"].(string)), true
 
 	case "Mutation.removeTimestampFromTemplate":
 		if e.complexity.Mutation.RemoveTimestampFromTemplate == nil {
@@ -1753,6 +1783,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindShowAdminsByUserID(childComplexity, args["userId"].(*uuid.UUID)), true
+
+	case "Query.findShowsByExternalId":
+		if e.complexity.Query.FindShowsByExternalID == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findShowsByExternalId_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindShowsByExternalID(childComplexity, args["service"].(internal.ExternalService), args["serviceId"].(string)), true
 
 	case "Query.findTemplate":
 		if e.complexity.Query.FindTemplate == nil {
@@ -2845,6 +2887,11 @@ enum ColorTheme {
   FUNIMATION_PURPLE
   CRUNCHYROLL_ORANGE
 }
+
+"Allowed services for show's external links"
+enum ExternalService {
+  ANILIST
+}
 `, BuiltIn: false},
 	{Name: "../../api/models.graphqls", Input: `"""
 The base model has all the fields you would expect a fully fleshed out item in the database would
@@ -3633,6 +3680,9 @@ type ExternalLink {
     @authenticated
   "Delete one of the authenticated user's API clients"
   deleteApiClient(id: String!): ApiClient! @authenticated
+
+  addExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
+  removeExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
 }
 `, BuiltIn: false},
 	{Name: "../../api/queries.graphqls", Input: `type Query {
@@ -3656,6 +3706,7 @@ type ExternalLink {
   # Shows
   "Find show with a matching ` + "`" + `Show.id` + "`" + `"
   findShow(showId: ID!): Show!
+  findShowsByExternalId(service: ExternalService!, serviceId: String!): [Show!]!
   """
   Search for shows that include the ` + "`" + `search` + "`" + ` in the ` + "`" + `Show.name` + "`" + `. Results are sorted by ` + "`" + `Show.name` + "`" + `
   as ` + "`" + `ASC` + "`" + ` or ` + "`" + `DESC` + "`" + `
@@ -3816,6 +3867,30 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_addExternalLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["showId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["url"] = arg1
 	return args, nil
 }
 
@@ -4291,6 +4366,30 @@ func (ec *executionContext) field_Mutation_deleteTimestamp_args(ctx context.Cont
 		}
 	}
 	args["timestampId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_removeExternalLink_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["showId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["showId"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["url"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("url"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["url"] = arg1
 	return args, nil
 }
 
@@ -4774,6 +4873,30 @@ func (ec *executionContext) field_Query_findShow_args(ctx context.Context, rawAr
 		}
 	}
 	args["showId"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findShowsByExternalId_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 internal.ExternalService
+	if tmp, ok := rawArgs["service"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("service"))
+		arg0, err = ec.unmarshalNExternalService2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalService(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["service"] = arg0
+	var arg1 string
+	if tmp, ok := rawArgs["serviceId"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("serviceId"))
+		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["serviceId"] = arg1
 	return args, nil
 }
 
@@ -11858,6 +11981,180 @@ func (ec *executionContext) fieldContext_Mutation_deleteApiClient(ctx context.Co
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_addExternalLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_addExternalLink(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().AddExternalLink(rctx, fc.Args["showId"].(*uuid.UUID), fc.Args["url"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.ExternalLink); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.ExternalLink`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.ExternalLink)
+	fc.Result = res
+	return ec.marshalNExternalLink2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_addExternalLink(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ExternalLink_url(ctx, field)
+			case "showId":
+				return ec.fieldContext_ExternalLink_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_ExternalLink_show(ctx, field)
+			case "service":
+				return ec.fieldContext_ExternalLink_service(ctx, field)
+			case "serviceId":
+				return ec.fieldContext_ExternalLink_serviceId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExternalLink", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_addExternalLink_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_removeExternalLink(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_removeExternalLink(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().RemoveExternalLink(rctx, fc.Args["showId"].(*uuid.UUID), fc.Args["url"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.ExternalLink); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.ExternalLink`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.ExternalLink)
+	fc.Result = res
+	return ec.marshalNExternalLink2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalLink(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_removeExternalLink(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_ExternalLink_url(ctx, field)
+			case "showId":
+				return ec.fieldContext_ExternalLink_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_ExternalLink_show(ctx, field)
+			case "service":
+				return ec.fieldContext_ExternalLink_service(ctx, field)
+			case "serviceId":
+				return ec.fieldContext_ExternalLink_serviceId(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ExternalLink", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_removeExternalLink_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.CollectedField, obj *internal.Preferences) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Preferences_id(ctx, field)
 	if err != nil {
@@ -13366,6 +13663,103 @@ func (ec *executionContext) fieldContext_Query_findShow(ctx context.Context, fie
 	}()
 	ctx = graphql.WithFieldContext(ctx, fc)
 	if fc.Args, err = ec.field_Query_findShow_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_findShowsByExternalId(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_findShowsByExternalId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindShowsByExternalID(rctx, fc.Args["service"].(internal.ExternalService), fc.Args["serviceId"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*internal.Show)
+	fc.Result = res
+	return ec.marshalNShow2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐShowᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_findShowsByExternalId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Show_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Show_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_Show_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Show_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Show_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_Show_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Show_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Show_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_Show_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_Show_deletedBy(ctx, field)
+			case "name":
+				return ec.fieldContext_Show_name(ctx, field)
+			case "originalName":
+				return ec.fieldContext_Show_originalName(ctx, field)
+			case "website":
+				return ec.fieldContext_Show_website(ctx, field)
+			case "image":
+				return ec.fieldContext_Show_image(ctx, field)
+			case "admins":
+				return ec.fieldContext_Show_admins(ctx, field)
+			case "episodes":
+				return ec.fieldContext_Show_episodes(ctx, field)
+			case "templates":
+				return ec.fieldContext_Show_templates(ctx, field)
+			case "externalLinks":
+				return ec.fieldContext_Show_externalLinks(ctx, field)
+			case "seasonCount":
+				return ec.fieldContext_Show_seasonCount(ctx, field)
+			case "episodeCount":
+				return ec.fieldContext_Show_episodeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Show", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_findShowsByExternalId_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
 		ec.Error(ctx, err)
 		return
 	}
@@ -24240,6 +24634,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "addExternalLink":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_addExternalLink(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "removeExternalLink":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_removeExternalLink(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -24594,6 +25006,29 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_findShow(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "findShowsByExternalId":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findShowsByExternalId(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -26980,6 +27415,10 @@ func (ec *executionContext) marshalNEpisodeUrl2ᚖanimeᚑskipᚗcomᚋpublicᚑ
 	return ec._EpisodeUrl(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNExternalLink2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalLink(ctx context.Context, sel ast.SelectionSet, v internal.ExternalLink) graphql.Marshaler {
+	return ec._ExternalLink(ctx, sel, &v)
+}
+
 func (ec *executionContext) marshalNExternalLink2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalLinkᚄ(ctx context.Context, sel ast.SelectionSet, v []*internal.ExternalLink) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -27032,6 +27471,16 @@ func (ec *executionContext) marshalNExternalLink2ᚖanimeᚑskipᚗcomᚋpublic�
 		return graphql.Null
 	}
 	return ec._ExternalLink(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNExternalService2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalService(ctx context.Context, v interface{}) (internal.ExternalService, error) {
+	var res internal.ExternalService
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNExternalService2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐExternalService(ctx context.Context, sel ast.SelectionSet, v internal.ExternalService) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNFloat2float64(ctx context.Context, v interface{}) (float64, error) {

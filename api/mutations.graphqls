@@ -204,4 +204,7 @@ type Mutation {
     @authenticated
   "Delete one of the authenticated user's API clients"
   deleteApiClient(id: String!): ApiClient! @authenticated
+
+  addExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
+  removeExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
 }
