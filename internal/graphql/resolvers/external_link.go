@@ -1,7 +1,6 @@
 package resolvers
 
 import (
-	"fmt"
 	"net/url"
 	"regexp"
 
@@ -52,9 +51,8 @@ func (r *externalLinkResolver) ServiceID(ctx context.Context, obj *internal.Exte
 		return nil, err
 	}
 	switch u.Hostname() {
-	case "anilist.co":
+	case internal.ExternalServiceAnilist.Hostname():
 		re := regexp.MustCompile(`^\/anime\/([0-9]+)\/?.*?$`)
-		fmt.Println()
 		return lo.ToPtr(re.FindStringSubmatch(u.Path)[1]), nil
 	default:
 		return nil, nil

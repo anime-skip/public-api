@@ -49,3 +49,8 @@ enum ColorTheme {
   FUNIMATION_PURPLE
   CRUNCHYROLL_ORANGE
 }
+
+"Allowed services for show's external links"
+enum ExternalService {
+  ANILIST
+}
