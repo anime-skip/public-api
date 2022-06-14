@@ -190,6 +190,20 @@ func deleteCascadeShow(ctx context.Context, tx internal.Tx, show internal.Show, 
 		}
 	}
 
+	log.V("Deleting show external links")
+	links, err := findExternalLinks(ctx, tx, internal.ExternalLinksFilter{
+		ShowID: show.ID,
+	})
+	if err != nil {
+		return internal.Show{}, err
+	}
+	for _, link := range links {
+		_, err := deleteCascadeExternalLink(ctx, tx, link)
+		if err != nil {
+			return internal.Show{}, err
+		}
+	}
+
 	log.V("Done deleting show: %v", show.ID)
 	return deletedShow, nil
 }

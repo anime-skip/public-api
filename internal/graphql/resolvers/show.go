@@ -146,6 +146,10 @@ func (r *showResolver) Templates(ctx context.Context, obj *internal.Show) ([]*in
 	return r.getTemplatesByShowID(ctx, obj.ID)
 }
 
+func (r *showResolver) ExternalLinks(ctx context.Context, obj *internal.Show) ([]*internal.ExternalLink, error) {
+	return r.getExternalLinksByShowID(ctx, obj.ID)
+}
+
 func (r *showResolver) SeasonCount(ctx context.Context, obj *internal.Show) (int, error) {
 	return r.ShowService.GetSeasonCount(ctx, *obj.ID)
 }

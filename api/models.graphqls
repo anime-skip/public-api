@@ -329,6 +329,8 @@ type Show implements BaseModel {
   episodes: [Episode!]!
   "All the templates that belong to this show"
   templates: [Template!]!
+  "Any links to external sites (just Anilist right now) for the show"
+  externalLinks: [ExternalLink!]!
 
   "How many seasons are associated with this show"
   seasonCount: Int!
@@ -567,4 +569,12 @@ input ApiClientChanges {
   # allowedOrigins: [String!]
   "Rate limits can only be changed by admins"
   rateLimitRpm: UInt
+}
+
+type ExternalLink {
+  url: String!
+  showId: ID!
+  show: Show!
+  service: String!
+  serviceId: String
 }
