@@ -19,3 +19,7 @@ gen:
 	go generate ./...
 test: compile
 	LOG_LEVEL=3 go test ./...
+backfill-anilist-shows:
+	go run ./cmd/backfill-anilist-shows
+get-prod-env:
+	heroku config -a prod-public-api --shell | cat > .env.prod

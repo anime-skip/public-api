@@ -152,6 +152,14 @@ type EpisodeURL struct {
 	Source EpisodeSource `json:"source"`
 }
 
+type ExternalLink struct {
+	URL       string     `json:"url"`
+	ShowID    *uuid.UUID `json:"showId"`
+	Show      *Show      `json:"show"`
+	Service   string     `json:"service"`
+	ServiceID *string    `json:"serviceId"`
+}
+
 // Data required to create a new `Episode`. See `Episode` for a description of each field
 type InputEpisode struct {
 	// See `Episode.season`
@@ -324,6 +332,8 @@ type Show struct {
 	Episodes []*Episode `json:"episodes"`
 	// All the templates that belong to this show
 	Templates []*Template `json:"templates"`
+	// Any links to external sites (just Anilist right now) for the show
+	ExternalLinks []*ExternalLink `json:"externalLinks"`
 	// How many seasons are associated with this show
 	SeasonCount int `json:"seasonCount"`
 	// How many episodes are apart of this show

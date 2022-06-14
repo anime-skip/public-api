@@ -11,6 +11,7 @@ import (
 	"anime-skip.com/public-api/internal/log"
 	"anime-skip.com/public-api/internal/postgres"
 	"anime-skip.com/public-api/internal/utils"
+	"github.com/samber/lo"
 )
 
 // Compile time constants
@@ -25,9 +26,11 @@ func main() {
 	pg := postgres.Open(
 		config.RequireEnvString("DATABASE_URL"),
 		config.EnvBool("DATABASE_DISABLE_SSL"),
-		config.EnvInt("DATABASE_VERSION"),
+		lo.ToPtr(config.EnvInt("DATABASE_VERSION")),
 		config.EnvBool("DATABASE_ENABLE_SEEDING"),
 	)
+
+	anilist := http.NewAnilistService()
 
 	pgEpisodeService := postgres.NewEpisodeService(pg)
 	pgEpisodeURLService := postgres.NewEpisodeURLService(pg)
@@ -59,10 +62,11 @@ func main() {
 		EmailService:             httpEmailService,
 		EpisodeService:           pgEpisodeService,
 		EpisodeURLService:        pgEpisodeURLService,
+		ExternalLinkService:      postgres.NewExternalLinkService(pg),
 		PreferencesService:       postgres.NewPreferencesService(pg),
 		RecaptchaService:         httpRecaptchaService,
 		ShowAdminService:         pgShowAdminService,
-		ShowService:              postgres.NewShowService(pg),
+		ShowService:              postgres.NewShowService(pg, anilist),
 		TemplateService:          pgTemplateService,
 		TemplateTimestampService: postgres.NewTemplateTimestampService(pg),
 		TimestampService:         postgres.NewTimestampService(pg),

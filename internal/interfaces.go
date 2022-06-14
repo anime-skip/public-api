@@ -65,6 +65,13 @@ type EpisodeURLService interface {
 	Delete(ctx context.Context, url string) (EpisodeURL, error)
 }
 
+type ExternalLinkService interface {
+	Get(ctx context.Context, filter ExternalLinksFilter) (ExternalLink, error)
+	List(ctx context.Context, filter ExternalLinksFilter) ([]ExternalLink, error)
+	Create(ctx context.Context, newExternalLink ExternalLink) (ExternalLink, error)
+	Delete(ctx context.Context, url string, showId uuid.UUID) (ExternalLink, error)
+}
+
 type PreferencesService interface {
 	Get(ctx context.Context, filter PreferencesFilter) (Preferences, error)
 	Update(ctx context.Context, newPreferences Preferences) (Preferences, error)
@@ -136,12 +143,17 @@ type RateLimiter interface {
 	HttpMiddleware(next http.Handler) http.Handler
 }
 
+type RemoteExternalLinkService interface {
+	FindLink(showName string) (*string, error)
+}
+
 type Services struct {
 	APIClientService         APIClientService
 	AuthService              AuthService
 	EmailService             EmailService
 	EpisodeService           EpisodeService
 	EpisodeURLService        EpisodeURLService
+	ExternalLinkService      ExternalLinkService
 	PreferencesService       PreferencesService
 	RecaptchaService         RecaptchaService
 	ShowAdminService         ShowAdminService

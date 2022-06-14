@@ -37,6 +37,7 @@ func migrate(db internal.Database, dbVersion int, enableSeeding bool) error {
 		/* 18 */ tables.CreateAPIClientsTable,
 		/* 19 */ tables.AddColorThemePreference,
 		/* 20 */ tables.AddMissingPreferenceDefaults(),
+		/* 21 */ tables.CreateExternalLinksTable,
 	}, dbVersion)
 	if err != nil {
 		return err

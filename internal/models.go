@@ -67,6 +67,11 @@ type EpisodeURLsFilter struct {
 	EpisodeID  *uuid.UUID
 }
 
+type ExternalLinksFilter struct {
+	URL    *string
+	ShowID *uuid.UUID
+}
+
 type PreferencesFilter struct {
 	ID             *uuid.UUID
 	UserID         *uuid.UUID

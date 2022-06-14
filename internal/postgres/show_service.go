@@ -8,11 +8,15 @@ import (
 )
 
 type showService struct {
-	db internal.Database
+	db    internal.Database
+	links internal.RemoteExternalLinkService
 }
 
-func NewShowService(db internal.Database) internal.ShowService {
-	return &showService{db}
+func NewShowService(db internal.Database, links internal.RemoteExternalLinkService) internal.ShowService {
+	return &showService{
+		db:    db,
+		links: links,
+	}
 }
 
 func (s *showService) Get(ctx context.Context, filter internal.ShowsFilter) (internal.Show, error) {
@@ -35,7 +39,21 @@ func (s *showService) List(ctx context.Context, filter internal.ShowsFilter) ([]
 
 func (s *showService) Create(ctx context.Context, newShow internal.Show, createdBy uuid.UUID) (internal.Show, error) {
 	return inTx(ctx, s.db, true, internal.ZeroShow, func(tx internal.Tx) (internal.Show, error) {
-		return createShow(ctx, tx, newShow, createdBy)
+		link, err := s.links.FindLink(newShow.Name)
+		if err != nil {
+			return internal.ZeroShow, err
+		}
+		created, err := createShow(ctx, tx, newShow, createdBy)
+		if err != nil {
+			return internal.ZeroShow, err
+		}
+		if link != nil {
+			_, err = createExternalLink(ctx, tx, internal.ExternalLink{
+				URL:    *link,
+				ShowID: created.ID,
+			})
+		}
+		return created, err
 	})
 }
 

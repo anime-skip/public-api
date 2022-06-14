@@ -45,3 +45,11 @@ func EnvInt(key string) int {
 	}
 	return value
 }
+
+func EnvIntOr(key string, defaultValue int) int {
+	value := os.Getenv(key)
+	if value == "" {
+		return defaultValue
+	}
+	return EnvInt(key)
+}
