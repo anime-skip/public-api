@@ -74,7 +74,6 @@ type mutationResolver struct{ *Resolver }
 type preferencesResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type showResolver struct{ *Resolver }
-
 type showAdminResolver struct{ *Resolver }
 type templateResolver struct{ *Resolver }
 type templateTimestampResolver struct{ *Resolver }

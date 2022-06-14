@@ -1,3 +1,9 @@
+// This script was created apart of https://github.com/anime-skip/player/issues/246 and it:
+//
+// 1. Goes through all the shows in the database
+// 2. Looks them up by name in anilist
+// 3. Adds the Anilist site URL as an external link for the show IF a match is found
+
 package main
 
 import (
