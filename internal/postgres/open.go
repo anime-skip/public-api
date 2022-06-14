@@ -9,7 +9,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func Open(url string, disableSsl bool, targetVersion int, enableSeeding bool) internal.Database {
+func Open(url string, disableSsl bool, targetVersion *int, enableSeeding bool) internal.Database {
 	log.D("Connecting to postgres...")
 	sslmode := "require"
 	if disableSsl {
@@ -23,9 +23,11 @@ func Open(url string, disableSsl bool, targetVersion int, enableSeeding bool) in
 	db.SetMaxIdleConns(5)
 	db.SetMaxOpenConns(10)
 
-	err = migrate(db, targetVersion, enableSeeding)
-	if err != nil {
-		panic(err)
+	if targetVersion != nil {
+		err = migrate(db, *targetVersion, enableSeeding)
+		if err != nil {
+			panic(err)
+		}
 	}
 
 	return db

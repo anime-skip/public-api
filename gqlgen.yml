@@ -77,6 +77,8 @@ models:
         resolver: true
       templates:
         resolver: true
+      externalLinks:
+        resolver: true
       seasonCount:
         resolver: true
       episodeCount:
@@ -155,3 +157,13 @@ models:
         resolver: true
   ApiClientChanges:
     model: "map[string]interface{}"
+  ExternalLink:
+    fields:
+      url:
+        resolver: true
+      show:
+        resolver: true
+      service:
+        resolver: true
+      serviceId:
+        resolver: true

@@ -20,11 +20,13 @@ const (
 )
 
 var (
-	ZeroApiStatus              = ApiStatus{}
-	ZeroAPIClient              = APIClient{}
 	ZeroAccount                = Account{}
+	ZeroAPIClient              = APIClient{}
+	ZeroApiStatus              = ApiStatus{}
 	ZeroEpisode                = Episode{}
 	ZeroEpisodeURL             = EpisodeURL{}
+	ZeroExternalLink           = ExternalLink{}
+	ZeroFullUser               = FullUser{}
 	ZeroInputEpisode           = InputEpisode{}
 	ZeroInputEpisodeURL        = InputEpisodeURL{}
 	ZeroInputExistingTimestamp = InputExistingTimestamp{}
@@ -48,7 +50,6 @@ var (
 	ZeroTimestampType          = TimestampType{}
 	ZeroUpdatedTimestamps      = UpdatedTimestamps{}
 	ZeroUser                   = User{}
-	ZeroFullUser               = FullUser{}
 )
 
 func NewPreferences(ctx context.Context, userID uuid.UUID) Preferences {

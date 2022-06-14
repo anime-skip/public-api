@@ -7,7 +7,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var logLevel = config.EnvInt("LOG_LEVEL")
+var logLevel = config.EnvIntOr("LOG_LEVEL", 0)
 
 const (
 	LOG_LEVEL_VERBOSE = 0

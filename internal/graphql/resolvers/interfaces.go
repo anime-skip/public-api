@@ -25,6 +25,9 @@ func (r *Resolver) Episode() graphql.EpisodeResolver { return &episodeResolver{r
 // EpisodeUrl returns graphql.EpisodeUrlResolver implementation.
 func (r *Resolver) EpisodeUrl() graphql.EpisodeUrlResolver { return &episodeUrlResolver{r} }
 
+// ExternalLink returns graphql.ExternalLinkResolver implementation.
+func (r *Resolver) ExternalLink() graphql.ExternalLinkResolver { return &externalLinkResolver{r} }
+
 // Mutation returns graphql.MutationResolver implementation.
 func (r *Resolver) Mutation() graphql.MutationResolver { return &mutationResolver{r} }
 
@@ -66,10 +69,12 @@ type apiClientResolver struct{ *Resolver }
 type accountResolver struct{ *Resolver }
 type episodeResolver struct{ *Resolver }
 type episodeUrlResolver struct{ *Resolver }
+type externalLinkResolver struct{ *Resolver }
 type mutationResolver struct{ *Resolver }
 type preferencesResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
 type showResolver struct{ *Resolver }
+
 type showAdminResolver struct{ *Resolver }
 type templateResolver struct{ *Resolver }
 type templateTimestampResolver struct{ *Resolver }
