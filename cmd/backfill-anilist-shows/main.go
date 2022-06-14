@@ -19,8 +19,6 @@ import (
 	"github.com/joho/godotenv"
 )
 
-var RATE_LIMIT = 90.0 /* req */ / time.Minute
-
 func init() {
 	godotenv.Load(".env.local")
 	// godotenv.Load(".env.prod")
