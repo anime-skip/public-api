@@ -68,8 +68,14 @@ type EpisodeURLsFilter struct {
 }
 
 type ExternalLinksFilter struct {
-	URL    *string
-	ShowID *uuid.UUID
+	URL       *string
+	ShowID    *uuid.UUID
+	ServiceID *ExternalLinksServiceIDFilter
+}
+
+type ExternalLinksServiceIDFilter struct {
+	Service   ExternalService
+	ServiceID string
 }
 
 type PreferencesFilter struct {
@@ -382,4 +388,24 @@ func (templateType *TemplateType) Scan(src interface{}) error {
 		}
 	}
 	return nil
+}
+
+func (s ExternalService) Hostname() string {
+	switch s {
+	case ExternalServiceAnilist:
+		return "anilist.co"
+	}
+	return ""
+}
+
+func (s ExternalService) URLMatcher(id string) (string, error) {
+	switch s {
+	case ExternalServiceAnilist:
+		return fmt.Sprintf("https://anilist.co/%%/%s", id), nil
+	}
+	return "", &Error{
+		Code:    EINVALID,
+		Message: fmt.Sprintf("Unknown external service: %s", s),
+		Op:      "ExternalService.URLMatcher",
+	}
 }

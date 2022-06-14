@@ -20,6 +20,13 @@ func findExternalLinks(ctx context.Context, tx internal.Tx, filter internal.Exte
 	if filter.ShowID != nil {
 		query.Where("show_id = ?", *filter.ShowID)
 	}
+	if filter.ServiceID != nil {
+		match, err := filter.ServiceID.Service.URLMatcher(filter.ServiceID.ServiceID)
+		if err != nil {
+			return nil, err
+		}
+		query.Where("url ILIKE ?", match)
+	}
 
 	sql, args := query.ToSQL()
 	rows, err := tx.QueryContext(ctx, sql, args...)

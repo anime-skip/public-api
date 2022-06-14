@@ -98,6 +98,29 @@ var defaultSearchShowFilter = internal.ShowsFilter{
 	Sort: "ASC",
 }
 
+func (r *queryResolver) FindShowsByExternalID(ctx context.Context, service internal.ExternalService, serviceID string) ([]*internal.Show, error) {
+	links, err := r.ExternalLinkService.List(ctx, internal.ExternalLinksFilter{
+		ServiceID: &internal.ExternalLinksServiceIDFilter{
+			Service:   service,
+			ServiceID: serviceID,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+	shows := []*internal.Show{}
+	for _, link := range links {
+		show, err := r.ShowService.Get(ctx, internal.ShowsFilter{
+			ID: link.ShowID,
+		})
+		if err != nil {
+			return nil, err
+		}
+		shows = append(shows, &show)
+	}
+	return shows, nil
+}
+
 func (r *queryResolver) SearchShows(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*internal.Show, error) {
 	filter := defaultSearchShowFilter
 	if search != nil {
