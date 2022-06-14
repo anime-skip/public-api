@@ -47,6 +47,7 @@ func main() {
 	for i, show := range shows {
 		time.Sleep(time.Minute / 90.0 /* req */) // Prevent rate limiting
 		link, err := anilist.FindLink(show.Name)
+		checkErr(err)
 		if link == nil {
 			fmt.Printf("(%d/%d) %s - NO URL\n", i+1, showCount, show.Name)
 		} else {
