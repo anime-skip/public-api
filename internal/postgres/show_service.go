@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/validation"
 	uuid "github.com/gofrs/uuid"
 )
 
@@ -48,10 +49,17 @@ func (s *showService) Create(ctx context.Context, newShow internal.Show, created
 			return internal.ZeroShow, err
 		}
 		if link != nil {
+			cleanURL, err := validation.SanitizeExternalLinkURL(*link)
+			if err != nil {
+				return internal.ZeroShow, err
+			}
 			_, err = createExternalLink(ctx, tx, internal.ExternalLink{
-				URL:    *link,
+				URL:    cleanURL,
 				ShowID: created.ID,
 			})
+			if err != nil {
+				return internal.ZeroShow, err
+			}
 		}
 		return created, err
 	})
