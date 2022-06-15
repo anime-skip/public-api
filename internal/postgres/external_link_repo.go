@@ -65,7 +65,7 @@ func createExternalLink(ctx context.Context, tx internal.Tx, externalLink intern
 	if isConflict(err) {
 		return externalLink, &internal.Error{
 			Code:    internal.ECONFLICT,
-			Message: "ExternalLink with the generated UUID already exists, try again",
+			Message: "ExternalLink with the show ID and URL already exists",
 			Op:      "createExternalLink",
 			Err:     err,
 		}
