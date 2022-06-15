@@ -43,6 +43,14 @@ func (r *mutationResolver) AddExternalLink(ctx context.Context, showID *uuid.UUI
 	return &created, nil
 }
 
+func (r *mutationResolver) RemoveExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error) {
+	removed, err := r.ExternalLinkService.Delete(ctx, url, *showID)
+	if err != nil {
+		return nil, err
+	}
+	return &removed, nil
+}
+
 // Queries
 
 // Fields
