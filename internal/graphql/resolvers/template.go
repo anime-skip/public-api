@@ -1,6 +1,8 @@
 package resolvers
 
 import (
+	"sort"
+
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/log"
@@ -205,6 +207,12 @@ func (r *templateResolver) Timestamps(ctx context.Context, obj *internal.Templat
 		}
 		timestamps = append(timestamps, timestamp)
 	}
+
+	// Sort by AT asc (0 to end of episode)
+	compareTimestamps := func(i, j int) bool {
+		return timestamps[i].At < timestamps[j].At
+	}
+	sort.SliceStable(timestamps, compareTimestamps)
 	return utils.PtrSlice(timestamps), nil
 }
 
