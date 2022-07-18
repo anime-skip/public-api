@@ -33,7 +33,7 @@ make run       # Run API, postgres database, and other services locally
 make run-clean # Same as run, but start with an empty postgres database
 make watch     # Run everything, but restart when saving a file
 make gen       # Generate GraphQL server code after changing api/*.graphqls
-make compile   # Compile the application outside of dockerto bin/server
+make compile   # Compile the application outside of docker to bin/server
 make build     # Build the latest development docker image
 make test      # Run unit tests
 ```
