@@ -4,9 +4,15 @@ The primary backend for Anime Skip, containing user preferences, episodes, shows
 
 Check out the [API Playground](http://api.anime-skip.com) for example usage and read the docs.
 
-## Development
+## Contributing
 
 The project is written in Go. However, all builds are done in a docker container, so you only need Go installed for editor support.
+
+### Contributors
+
+<a href="https://github.com/anime-skip/public-api/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=anime-skip/public-api" />
+</a>
 
 ### Install Tooling
 
