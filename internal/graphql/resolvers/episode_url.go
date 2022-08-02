@@ -1,6 +1,8 @@
 package resolvers
 
 import (
+	"regexp"
+
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/log"
@@ -11,7 +13,15 @@ import (
 
 // Helpers
 
+// cleanEpisodeURL takes in a URL, strips any unnecessary query params, transforms the domain, and returns a cleaned version of the URL
+func cleanEpisodeURL(url string) string {
+	nineAnimeRegexp := regexp.MustCompile("9anime\\.\\w+")
+	url = nineAnimeRegexp.ReplaceAllString(url, "9anime.to")
+	return url
+}
+
 func (r *Resolver) getEpisodeURLByURL(ctx context.Context, url string) (*internal.EpisodeURL, error) {
+	url = cleanEpisodeURL(url)
 	episodeURL, err := r.EpisodeURLService.Get(ctx, internal.EpisodeURLsFilter{
 		URL: &url,
 	})
@@ -42,6 +52,7 @@ func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid
 	newEpisodeURL := internal.EpisodeURL{
 		EpisodeID: episodeID,
 	}
+	episodeURLInput.URL = cleanEpisodeURL(episodeURLInput.URL)
 	mappers.ApplyGraphqlInputEpisodeURL(episodeURLInput, &newEpisodeURL)
 
 	created, err := r.EpisodeURLService.Create(ctx, newEpisodeURL, auth.UserID)
@@ -52,6 +63,7 @@ func (r *mutationResolver) CreateEpisodeURL(ctx context.Context, episodeID *uuid
 }
 
 func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL string) (*internal.EpisodeURL, error) {
+	episodeURL = cleanEpisodeURL(episodeURL)
 	deleted, err := r.EpisodeURLService.Delete(ctx, episodeURL)
 	if err != nil {
 		return nil, err
@@ -61,6 +73,7 @@ func (r *mutationResolver) DeleteEpisodeURL(ctx context.Context, episodeURL stri
 }
 
 func (r *mutationResolver) UpdateEpisodeURL(ctx context.Context, url string, newEpisodeURL internal.InputEpisodeURL) (*internal.EpisodeURL, error) {
+	url = cleanEpisodeURL(url)
 	log.V("Updating: %v", url)
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
@@ -106,4 +119,8 @@ func (r *episodeUrlResolver) UpdatedBy(ctx context.Context, obj *internal.Episod
 
 func (r *episodeUrlResolver) Episode(ctx context.Context, obj *internal.EpisodeURL) (*internal.Episode, error) {
 	return r.getEpisodeByID(ctx, obj.EpisodeID)
+}
+
+func (r *episodeUrlResolver) URL(ctx context.Context, obj *internal.EpisodeURL) (string, error) {
+	return cleanEpisodeURL(obj.URL), nil
 }
