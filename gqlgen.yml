@@ -45,6 +45,8 @@ models:
         resolver: true
       episode:
         resolver: true
+      url:
+        resolver: true
   Account:
     fields:
       adminOfShows:

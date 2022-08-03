@@ -416,6 +416,8 @@ type EpisodeResolver interface {
 	Template(ctx context.Context, obj *internal.Episode) (*internal.Template, error)
 }
 type EpisodeUrlResolver interface {
+	URL(ctx context.Context, obj *internal.EpisodeURL) (string, error)
+
 	CreatedBy(ctx context.Context, obj *internal.EpisodeURL) (*internal.User, error)
 
 	UpdatedBy(ctx context.Context, obj *internal.EpisodeURL) (*internal.User, error)
@@ -7544,7 +7546,7 @@ func (ec *executionContext) _EpisodeUrl_url(ctx context.Context, field graphql.C
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.URL, nil
+		return ec.resolvers.EpisodeUrl().URL(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7565,8 +7567,8 @@ func (ec *executionContext) fieldContext_EpisodeUrl_url(ctx context.Context, fie
 	fc = &graphql.FieldContext{
 		Object:     "EpisodeUrl",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type String does not have child fields")
 		},
@@ -24029,12 +24031,25 @@ func (ec *executionContext) _EpisodeUrl(ctx context.Context, sel ast.SelectionSe
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("EpisodeUrl")
 		case "url":
+			field := field
 
-			out.Values[i] = ec._EpisodeUrl_url(ctx, field, obj)
-
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&invalids, 1)
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._EpisodeUrl_url(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
 			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		case "createdAt":
 
 			out.Values[i] = ec._EpisodeUrl_createdAt(ctx, field, obj)
