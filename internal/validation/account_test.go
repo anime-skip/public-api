@@ -1,57 +1,47 @@
 package validation
 
 import (
-	"fmt"
 	"testing"
 
 	"anime-skip.com/public-api/internal/utils"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-func TestUtils(t *testing.T) {
+func Test(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Account Validation")
+	RunSpecs(t, "Validation")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 var _ = Describe("AccountUsername", func() {
-	Describe("when the username is less than 3 characters long", func() {
-		testCases := []string{
-			utils.RandomString(1),
-			utils.RandomString(1) + " ",
-			" " + utils.RandomString(1),
-			" " + utils.RandomString(1) + " ",
-			utils.RandomString(2),
-			utils.RandomString(2) + " ",
-			" " + utils.RandomString(2),
-			" " + utils.RandomString(2) + " ",
-			utils.RandomString(2) + "\n",
-		}
-		for _, testCase := range testCases {
-			It(fmt.Sprintf("'%s' should return an error", testCase), func() {
-				actual := AccountUsername(testCase)
-				Expect(actual).To(MatchError("Username must be at least 3 characters long"))
-			})
-		}
-	})
+	DescribeTable("when the username is less than 3 characters long",
+		func(inputUsername string) {
+			actual := AccountUsername(inputUsername)
+			Expect(actual).To(MatchError("Username must be at least 3 characters long"))
+		},
+		Entry("should return an error for 'x'", utils.RandomString(1)),
+		Entry("should return an error for 'x '", utils.RandomString(1)+" "),
+		Entry("should return an error for ' x'", " "+utils.RandomString(1)),
+		Entry("should return an error for ' x '", " "+utils.RandomString(1)+" "),
+		Entry("should return an error for 'xx'", utils.RandomString(2)),
+		Entry("should return an error for 'xx '", utils.RandomString(2)+" "),
+		Entry("should return an error for ' xx'", " "+utils.RandomString(2)),
+		Entry("should return an error for ' xx '", " "+utils.RandomString(2)+" "),
+		Entry("should return an error for 'xx\\n'", utils.RandomString(2)+"\n"),
+	)
 
-	Describe("any username with more than 3 characters", func() {
-		testCases := []string{
-			utils.RandomString(3),
-			utils.RandomString(4),
-			utils.RandomString(5),
-			utils.RandomString(6),
-		}
-		for _, testCase := range testCases {
-			It(fmt.Sprintf("should be valid for '%s'", testCase), func() {
-				actual := AccountUsername(testCase)
-				Expect(actual).To(BeNil())
-			})
-		}
-	})
+	DescribeTable("any username with more than 3 characters",
+		func(inputUsername string) {
+			actual := AccountUsername(inputUsername)
+			Expect(actual).To(BeNil())
+		},
+		Entry("should be valid for 'xxx'", utils.RandomString(3)),
+		Entry("should be valid for 'xxxx'", utils.RandomString(4)),
+		Entry("should be valid for 'xxxxx'", utils.RandomString(5)),
+		Entry("should be valid for 'xxxxxx'", utils.RandomString(6)),
+	)
 })
 
 var _ = Describe("AccountEmail", func() {
