@@ -30,7 +30,7 @@ var timestampTypes = []PartialTimestamp{
 	{
 		Name:        "Mixed Intro",
 		Description: "The intro at the beginning of an episode that is overlaid with plot. Sometimes the last episode of a show does this",
-		ID:          config.TIMESTAMP_ID_INTRO_INTRO,
+		ID:          config.TIMESTAMP_ID_MIXED_INTRO,
 	},
 	{
 		Name:        "New Intro",
