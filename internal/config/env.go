@@ -6,11 +6,11 @@ import (
 	"strings"
 )
 
-func EnvString(key string) string {
+func envString(key string) string {
 	return os.Getenv(key)
 }
 
-func EnvStringOr(key, defaultValue string) string {
+func envStringOr(key, defaultValue string) string {
 	value := os.Getenv(key)
 	if value == "" {
 		return defaultValue
@@ -18,38 +18,38 @@ func EnvStringOr(key, defaultValue string) string {
 	return strings.TrimSpace(value)
 }
 
-func RequireEnvString(key string) string {
-	value := EnvString(key)
+func requireEnvString(key string) string {
+	value := envString(key)
 	if strings.TrimSpace(value) == "" {
 		panic(key + " is not an environment variable")
 	}
 	return value
 }
 
-func EnvStringArray(key string) []string {
-	str := EnvStringOr(key, "")
+func envStringArray(key string) []string {
+	str := envStringOr(key, "")
 	if str == "" {
 		return []string{}
 	}
 	return strings.Split(str, ",")
 }
 
-func EnvBool(key string) bool {
-	return EnvString(key) == "true"
+func envBool(key string) bool {
+	return envString(key) == "true"
 }
 
-func EnvInt(key string) int {
-	value, err := strconv.Atoi(RequireEnvString(key))
+func envInt(key string) int {
+	value, err := strconv.Atoi(requireEnvString(key))
 	if err != nil {
 		panic(err)
 	}
 	return value
 }
 
-func EnvIntOr(key string, defaultValue int) int {
+func envIntOr(key string, defaultValue int) int {
 	value := os.Getenv(key)
 	if value == "" {
 		return defaultValue
 	}
-	return EnvInt(key)
+	return envInt(key)
 }

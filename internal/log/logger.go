@@ -7,7 +7,7 @@ import (
 	"github.com/davecgh/go-spew/spew"
 )
 
-var logLevel = config.EnvIntOr("LOG_LEVEL", 0)
+var logLevel = config.LogLevel()
 
 const (
 	LOG_LEVEL_VERBOSE = 0
@@ -16,7 +16,7 @@ const (
 	LOG_LEVEL_ERROR   = 3
 )
 
-var disableColors = config.EnvBool("DISABLE_LOG_COLORS")
+var disableColors = config.DisableLogColors()
 
 var escape = "\x1b"
 var red = escape + "[91m"
