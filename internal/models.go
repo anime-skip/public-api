@@ -51,6 +51,7 @@ type RecentlyAddedEpisodesFilter struct {
 type EpisodesFilter struct {
 	Pagination     *Pagination
 	ID             *uuid.UUID
+	IDs            []*uuid.UUID
 	Name           *string
 	NameContains   *string
 	Number         *string

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -22,10 +23,10 @@ import (
 	"github.com/samber/lo"
 )
 
-var (
-	VALID   = true
-	INVALID = false
-)
+type EpisodeResult struct {
+	episode        internal.Episode
+	validationErrs []error
+}
 
 func main() {
 	start := time.Now()
@@ -41,15 +42,19 @@ func main() {
 		false,
 	)
 
-	alerter := alerts.NewDiscordWebhookClient(
-		config.DiscordAlertsURL(),
+	alerter, err := alerts.NewDiscordAPIClient(
+		config.DiscordBotToken(),
+		config.DiscordAlertChannelID(),
 	)
+	utils.CheckErr(err)
 
 	anilist := http.NewAnilistService()
 	episodeService := postgres.NewEpisodeService(db)
+	userService := postgres.NewUserService(db)
 	timestampService := postgres.NewTimestampService(db)
 	timestampTypeService := postgres.NewTimestampTypeService(db)
 	showService := postgres.NewShowService(db, anilist)
+	episodeURLService := postgres.NewEpisodeURLService(db)
 
 	episodes, err := episodeService.List(ctx, internal.EpisodesFilter{})
 	episodeCount := len(episodes)
@@ -60,10 +65,10 @@ func main() {
 	report := bufio.NewWriter(f)
 	defer report.Flush()
 
-	invalidCount := 0
+	invalidEpisodes := []EpisodeResult{}
 	for i, episode := range episodes {
 		log.I("%d/%d (%.2f%%)", i, episodeCount, 100*float64(i)/float64(episodeCount))
-		isValid, err := validateEpisode(
+		isValid, err, validationErrs := validateEpisode(
 			ctx,
 			report,
 			timestampService,
@@ -74,23 +79,33 @@ func main() {
 		if err != nil {
 			continue
 		} else if !isValid {
-			invalidCount++
+			invalidEpisodes = append(invalidEpisodes, EpisodeResult{
+				episode:        episode,
+				validationErrs: validationErrs,
+			})
 		}
-		// if i >= 10 {
-		// 	break
-		// }
 	}
 
-	summary := fmt.Sprintf("Processed %d episodes, %d invalid", len(episodes), invalidCount)
+	summary := fmt.Sprintf("Processed %d episodes, %d invalid", len(episodes), len(invalidEpisodes))
 	fmt.Fprintf(report, "---\n%s\n", summary)
-	if invalidCount > 0 {
-		alerter.Notify(summary)
-	}
 	end := time.Now()
 	duration := end.Sub(start)
 	fmt.Fprintf(report, "Started: %v\nFinished: %v\nDuration: %v\n", start, end, duration)
 
-	os.Exit(invalidCount)
+	if len(invalidEpisodes) > 0 {
+		sendNotification(
+			ctx,
+			alerter,
+			userService,
+			showService,
+			timestampService,
+			episodeURLService,
+			summary,
+			invalidEpisodes,
+		)
+	}
+	report.Flush()
+	os.Exit(len(invalidEpisodes))
 }
 
 func validateEpisode(
@@ -100,7 +115,7 @@ func validateEpisode(
 	timestampTypeService internal.TimestampTypeService,
 	showService internal.ShowService,
 	episode internal.Episode,
-) (isValid bool, err error) {
+) (isValid bool, err error, validationErrs []error) {
 	fmt.Fprintf(report, "---\n")
 	fmt.Fprintf(report, "Episode ID: %s\n", episode.ID.String())
 	fmt.Fprintf(report, "Name: %v\n", lo.If(episode.Name == nil, "<nil>").ElseF(func() string {
@@ -119,9 +134,9 @@ func validateEpisode(
 	fmt.Fprintf(report, "Timestamp count: %d\n", len(originalTimestamps))
 	printTimestamps(ctx, report, timestampTypeService, "Original Timestamps", originalTimestamps)
 
-	timestamps, isValid = validateEpisodeTimestamps(report, episode, timestamps)
-	if isValid == INVALID {
-		return INVALID, nil
+	timestamps, isValid, validationErrs = validateEpisodeTimestamps(report, episode, timestamps)
+	if !isValid {
+		return false, nil, validationErrs
 	}
 
 	_, toCreate, toUpdate, toDelete := utils.ComputeSliceDiffs(
@@ -151,21 +166,21 @@ func validateEpisode(
 		printTimestamps(ctx, report, timestampTypeService, "Deleting", toDelete)
 	}
 
-	return VALID, nil
+	return true, nil, nil
 }
 
 func validateEpisodeTimestamps(
 	report io.Writer,
 	episode internal.Episode,
 	timestamps []internal.Timestamp,
-) ([]internal.Timestamp, bool) {
+) ([]internal.Timestamp, bool, []error) {
 	timestamps, isValid, errs := validation.EpisodeTimestamps(episode, timestamps)
 	if !isValid {
 		for _, err := range errs {
 			fmt.Fprintf(report, "[VALIDATION ERROR]: %v\n", err)
 		}
 	}
-	return timestamps, isValid
+	return timestamps, isValid, errs
 }
 
 func printTimestamps(
@@ -187,21 +202,97 @@ func printTimestamps(
 	}
 }
 
+func sendNotification(
+	ctx context.Context,
+	alerter internal.Alerter,
+	userService internal.UserService,
+	showService internal.ShowService,
+	timestampService internal.TimestampService,
+	episodeURLService internal.EpisodeURLService,
+	summary string,
+	invalidEpisodes []EpisodeResult,
+) {
+	log.I("Sending notification")
+	threadID, err := alerter.CreateThread(
+		summary,
+		fmt.Sprintf("Timestamp Validation Results %s", time.Now().Format(time.RFC822)),
+	)
+	utils.CheckErr(err)
+	fmt.Println(len(invalidEpisodes))
+	for i, res := range invalidEpisodes {
+		message := []string{
+			"▁▁▁▁▁▁▁▁▁▁",
+			fmt.Sprintf("_%d/%d_", i+1, len(invalidEpisodes)),
+			fmt.Sprintf("**Episode**: %s (id=`%s`)", utils.ValueOr(res.episode.Name, "<nil>"), res.episode.ID.String()),
+			fmt.Sprintf("**Number**: %s", utils.ValueOr(res.episode.Number, "<nil>")),
+			fmt.Sprintf("**Absolute Number**: %s", utils.ValueOr(res.episode.AbsoluteNumber, "<nil>")),
+			fmt.Sprintf("**Season**: %s", utils.ValueOr(res.episode.Season, "<nil>")),
+		}
+		user, err := getUser(ctx, userService, *res.episode.CreatedByUserID)
+		if err != nil {
+			message = append(message, fmt.Sprintf("**Created By**: ERR=%v (id=`%s`)", err, res.episode.CreatedByUserID.String()))
+		} else {
+			message = append(message, fmt.Sprintf("**Created By**: %s (id=`%s`)", user.Username, res.episode.CreatedByUserID.String()))
+		}
+		show, err := getShow(ctx, showService, *res.episode.ShowID)
+		if err != nil {
+			message = append(message, fmt.Sprintf("**Show**: ERR=%v (id=`%s`)", err, res.episode.ShowID.String()))
+		} else {
+			message = append(message, fmt.Sprintf("**Show**: %s (id=`%s`)", show.Name, res.episode.ShowID.String()))
+		}
+
+		timestamps, err := timestampService.List(ctx, internal.TimestampsFilter{EpisodeID: res.episode.ID})
+		if err == nil {
+			message = append(message, "**Contributors**")
+			tsUserIDs := lo.Values(
+				lo.Reduce(timestamps, func(m map[string]uuid.UUID, ts internal.Timestamp, i int) map[string]uuid.UUID {
+					m[ts.UpdatedByUserID.String()] = *ts.UpdatedByUserID
+					return m
+				}, map[string]uuid.UUID{}),
+			)
+			for _, id := range tsUserIDs {
+				u, err := getUser(ctx, userService, id)
+				if err == nil {
+					message = append(message, fmt.Sprintf(" • %s (id=`%s`)", u.Username, id.String()))
+				}
+			}
+		}
+
+		message = append(message, "**Validation Errors**")
+		for _, err := range res.validationErrs {
+			message = append(message, fmt.Sprintf(" • %v", err))
+		}
+		urls, err := episodeURLService.List(ctx, internal.EpisodeURLsFilter{EpisodeID: res.episode.ID})
+		if err != nil {
+			message = append(message, "**URLs**: <nil>")
+		} else {
+			message = append(message, "**URLs**")
+			for _, url := range urls {
+				message = append(message, fmt.Sprintf(" • %s", url.URL))
+			}
+		}
+
+		message = append(message, "_Delete this message once fixed_", "▔▔▔▔▔▔▔▔▔▔")
+		alerter.SendToThread(threadID, strings.Join(message, "\n"))
+		time.Sleep(time.Second)
+	}
+}
+
 // Caches
 
-var episodeCache = sync.Map{}
+var showCache = sync.Map{}
 
-func getEpisode(ctx context.Context, episodeService internal.EpisodeService, id uuid.UUID) (internal.Episode, error) {
+func getShow(ctx context.Context, showService internal.ShowService, id uuid.UUID) (internal.Show, error) {
 	key := id.String()
-	cached, ok := episodeCache.Load(key)
+	cached, ok := showCache.Load(key)
 	if ok {
-		return cached.(internal.Episode), nil
+		return cached.(internal.Show), nil
 	}
-	v, err := episodeService.Get(ctx, internal.EpisodesFilter{ID: &id})
+	v, err := showService.Get(ctx, internal.ShowsFilter{ID: &id})
 	if err != nil {
-		return internal.Episode{}, err
+		return internal.Show{}, err
 	}
-	episodeCache.Store(key, v)
+	showCache.Store(key, v)
 	return v, nil
 }
 
@@ -218,5 +309,21 @@ func getTimestampType(ctx context.Context, timestampTypeService internal.Timesta
 		return internal.TimestampType{}, err
 	}
 	timestampTypeCache.Store(key, v)
+	return v, nil
+}
+
+var userCache = sync.Map{}
+
+func getUser(ctx context.Context, userService internal.UserService, id uuid.UUID) (internal.FullUser, error) {
+	key := id.String()
+	cached, ok := userCache.Load(key)
+	if ok {
+		return cached.(internal.FullUser), nil
+	}
+	v, err := userService.Get(ctx, internal.UsersFilter{ID: &id})
+	if err != nil {
+		return internal.FullUser{}, err
+	}
+	userCache.Store(key, v)
 	return v, nil
 }

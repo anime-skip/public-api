@@ -8,6 +8,7 @@ import (
 	"anime-skip.com/public-api/internal/postgres/sqlbuilder"
 	"anime-skip.com/public-api/internal/utils"
 	uuid "github.com/gofrs/uuid"
+	pq "github.com/lib/pq"
 )
 
 func findEpisodes(ctx context.Context, tx internal.Tx, filter internal.EpisodesFilter) ([]internal.Episode, error) {
@@ -32,6 +33,9 @@ func findEpisodes(ctx context.Context, tx internal.Tx, filter internal.EpisodesF
 	}
 	if filter.ID != nil {
 		query.Where("id = ?", *filter.ID)
+	}
+	if filter.IDs != nil {
+		query.Where("id IN ?", pq.Array(filter.IDs))
 	}
 	if filter.ShowID != nil {
 		query.Where("show_id = ?", *filter.ShowID)
