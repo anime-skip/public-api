@@ -14,22 +14,21 @@ import (
 	"time"
 
 	"anime-skip.com/public-api/internal"
+	"anime-skip.com/public-api/internal/config"
 	"anime-skip.com/public-api/internal/http"
 	"anime-skip.com/public-api/internal/postgres"
 	"github.com/joho/godotenv"
 )
 
-func init() {
+func main() {
 	godotenv.Load(".env.local")
 	// godotenv.Load(".env.prod")
-}
 
-func main() {
 	ctx := context.Background()
 	anilist := http.NewAnilistService()
 	db := postgres.Open(
-		os.Getenv("DATABASE_URL"),
-		os.Getenv("DATABASE_DISABLE_SSL") == "true",
+		config.DatabaseURL(),
+		config.DatabaseDisableSSL(),
 		nil,
 		false,
 	)

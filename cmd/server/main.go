@@ -24,10 +24,10 @@ func main() {
 	log.I("Starting anime-skip/public-api")
 
 	pg := postgres.Open(
-		config.RequireEnvString("DATABASE_URL"),
-		config.EnvBool("DATABASE_DISABLE_SSL"),
-		lo.ToPtr(config.EnvInt("DATABASE_VERSION")),
-		config.EnvBool("DATABASE_ENABLE_SEEDING"),
+		config.DatabaseURL(),
+		config.DatabaseDisableSSL(),
+		lo.ToPtr(config.DatabaseVersion()),
+		config.DatabaseEnableSeeding(),
 	)
 
 	anilist := http.NewAnilistService()
@@ -38,20 +38,20 @@ func main() {
 	pgTemplateService := postgres.NewTemplateService(pg)
 
 	jwtAuthService := jwt.NewJWTAuthService(
-		config.RequireEnvString("JWT_SECRET"),
+		config.JWTSecret(),
 	)
 	httpEmailService := http.NewAnimeSkipEmailService(
-		config.RequireEnvString("EMAIL_SERVICE_HOST"),
-		config.RequireEnvString("EMAIL_SERVICE_SECRET"),
-		config.EnvBool("EMAIL_SERVICE_ENABLED"),
+		config.EmailServiceHost(),
+		config.EmailServiceSecret(),
+		config.EmailServiceEnabled(),
 	)
 	httpRecaptchaService := http.NewGoogleRecaptchaService(
-		config.RequireEnvString("RECAPTCHA_SECRET"),
-		config.EnvStringArray("RECAPTCHA_RESPONSE_ALLOWLIST"),
+		config.RecaptchaSecret(),
+		config.RecaptchaResponseAllowList(),
 	)
 	betterVRV := http.NewBetterVRVThirdPartyService(
-		config.EnvString("BETTER_VRV_APP_ID"),
-		config.EnvString("BETTER_VRV_API_KEY"),
+		config.BetterVRVAppID(),
+		config.BetterVRVAPIKey(),
 	)
 
 	rateLimiter := http.NewRequestRateLimiter()
@@ -82,12 +82,12 @@ func main() {
 		pg,
 		services,
 		rateLimiter,
-		config.EnvBool("ENABLE_INTROSPECTION"),
+		config.EnableIntrospection(),
 	)
 
 	server := http.NewChiServer(
-		config.EnvInt("PORT"),
-		config.EnvBool("ENABLE_PLAYGROUND"),
+		config.Port(),
+		config.EnablePlayground(),
 		"/graphql",
 		graphqlHandler,
 		services,
