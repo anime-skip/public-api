@@ -21,6 +21,7 @@ jobs:
       - name: Run Tests
         run: |
           ./.github/create-env.sh
+          go install -mod=mod github.com/onsi/ginkgo/v2/ginkgo@latest
           make test
 
       - name: Build Docker

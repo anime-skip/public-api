@@ -18,8 +18,10 @@ watch:
 gen:
 	go generate ./...
 test: compile
-	LOG_LEVEL=3 go test ./...
+	LOG_LEVEL=3 ginkgo ./...
 backfill-anilist-shows:
 	go run ./cmd/backfill-anilist-shows
+validate-timestamps:
+	go run ./cmd/validate-timestamps
 get-prod-env:
 	heroku config -a prod-public-api --shell | cat > .env.prod

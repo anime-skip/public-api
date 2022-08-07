@@ -4,14 +4,13 @@ import (
 	"testing"
 
 	"anime-skip.com/public-api/internal/utils"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
-func TestUtils(t *testing.T) {
+func TestStringUtils(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "String Utils")
+	RunSpecs(t, "Utils")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

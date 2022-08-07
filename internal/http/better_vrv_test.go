@@ -5,7 +5,7 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/utils"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
 
@@ -24,7 +24,7 @@ func newStringPointer(value string) *string {
 
 func TestBetterVRVService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Better VRV Service")
+	RunSpecs(t, "HTTP")
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
