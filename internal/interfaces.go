@@ -165,3 +165,9 @@ type Services struct {
 	UserService              UserService
 	ThirdPartyService        ThirdPartyService
 }
+
+type Alerter interface {
+	Send(message string) error
+	CreateThread(threadName string, message string) (threadID string, err error)
+	SendToThread(threadID string, message string) error
+}
