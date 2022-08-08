@@ -29,6 +29,9 @@ func findEpisodeURLs(ctx context.Context, tx internal.Tx, filter internal.Episod
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
 	}
+	if filter.EpisodeID != nil {
+		query.Where("episode_id = ?", *filter.EpisodeID)
+	}
 	query.OrderBy("created_at", "ASC")
 
 	sql, args := query.ToSQL()
