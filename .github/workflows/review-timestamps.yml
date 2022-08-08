@@ -1,0 +1,27 @@
+name: Validate
+on:
+  workflow_call:
+  schedule:
+    - cron: "0 0 * * 3" # Midnight on Wednesdays
+
+jobs:
+  review-timestamps:
+    name: Review Timestamps
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v1
+
+      - name: Install Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Validate Timestamps
+        run: make validate-timestamps
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          LOG_LEVEL: "0"
+          DISCORD_BOT_TOKEN: ${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_ALERTS_CHANNEL_ID: ${{ secrets.DISCORD_ALERTS_CHANNEL_ID }}
