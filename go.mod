@@ -5,12 +5,12 @@ go 1.18
 require (
 	github.com/99designs/gqlgen v0.17.9
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
+	github.com/bwmarrin/discordgo v0.25.0
 	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v1.5.4
 	github.com/gofrs/uuid v4.2.0+incompatible
-	github.com/gtuk/discordwebhook v1.0.2
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.3.1
@@ -26,7 +26,6 @@ require (
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
 	github.com/alecthomas/units v0.0.0-20210208195552-ff826a37aa15 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
-	github.com/bwmarrin/discordgo v0.25.0 // indirect
 	github.com/cortesi/moddwatch v0.0.0-20210222043437-a6aaad86a36e // indirect
 	github.com/cortesi/termlog v0.0.0-20210222042314-a1eec763abec // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.1 // indirect
