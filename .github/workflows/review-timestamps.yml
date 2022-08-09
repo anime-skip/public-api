@@ -1,6 +1,6 @@
 name: Review Timestamps
 on:
-  workflow_call:
+  workflow_dispatch:
   schedule:
     - cron: "0 0 * * 3" # Midnight on Wednesdays
 
