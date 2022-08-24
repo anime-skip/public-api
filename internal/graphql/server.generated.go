@@ -3789,15 +3789,15 @@ type ExternalLink {
   """
   Get template info based on a ` + "`" + `Template.id` + "`" + `
 
-  Only templates you've created are returned. If you don't pass auth to this method, it will an
-  error saying not found.
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will get a not found error, same as if the template was not found.
   """
   findTemplate(templateId: ID!): Template!
   """
   Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `
 
-  Only templates you've created are returned. If you don't pass auth to this method, it will an
-  error saying not found.
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will receive an empty list
   """
   findTemplatesByShowId(showId: ID!): [Template!]!
   """
@@ -3808,8 +3808,8 @@ type ExternalLink {
   2. Matching show name (case sensitive) and season (case sensitive)
   3. Matching show name (case sensitive)
 
-  Only templates you've created are returned. If you don't pass auth to this method, it will an
-  error saying not found.
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will get a not found error, same as if the template was not found.
   """
   findTemplateByDetails(
     episodeId: ID
