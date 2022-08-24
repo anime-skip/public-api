@@ -3797,7 +3797,7 @@ type ExternalLink {
   Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `
 
   Only templates you've created are returned. If you don't include a token in the authorization
-  header, you will receive an empty list
+  header, you will receive an empty list.
   """
   findTemplatesByShowId(showId: ID!): [Template!]!
   """
