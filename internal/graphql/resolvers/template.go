@@ -16,7 +16,7 @@ import (
 
 func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*internal.Template, error) {
 	if id == nil {
-		return nil, internal.NewNotFound("Template", "GetTemplateByID")
+		return nil, nil
 	}
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
 		ID:             id,
