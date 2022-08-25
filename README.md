@@ -17,6 +17,7 @@ The project is written in Go. However, all builds are done in a docker container
 ### Install Tooling
 
 - [`go v18+`](https://golang.org/doc/install#download)
+- [`jq`](https://golang.org/doc/install#download) to parse JSON for some run scripts
 - [GNU `make`](https://www.gnu.org/software/make/) to execute the `Makefile`
 - [`docker`](https://docs.docker.com/get-docker/) for building and running locally
 - [`docker-compose`](https://docs.docker.com/compose/install/) for running a database when starting the app
