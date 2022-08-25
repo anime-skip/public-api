@@ -8,3 +8,5 @@ api
 meta.json
 modd.conf
 gqlgen.yml
+.env
+.env.*
