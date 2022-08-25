@@ -103,6 +103,7 @@ type ShowsFilter struct {
 }
 
 type TemplatesFilter struct {
+	CreatedByUserID *uuid.UUID
 	Pagination      *Pagination
 	ID              *uuid.UUID
 	SourceEpisodeID *uuid.UUID

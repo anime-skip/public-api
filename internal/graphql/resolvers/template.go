@@ -29,8 +29,14 @@ func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*interna
 }
 
 func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*internal.Template, error) {
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, internal.NewNotFound("Template", "GetTemplateByEpisodeID")
+	}
+
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
 		SourceEpisodeID: episodeID,
+		CreatedByUserID: &auth.UserID,
 	})
 	if err != nil {
 		return nil, err
@@ -39,8 +45,14 @@ func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.U
 }
 
 func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Template, error) {
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return []*internal.Template{}, nil
+	}
+
 	templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
-		ShowID: showID,
+		ShowID:          showID,
+		CreatedByUserID: &auth.UserID,
 	})
 	if err != nil {
 		return nil, err
@@ -116,12 +128,17 @@ func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.
 }
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error) {
-	templates := []internal.Template{}
+	auth, err := context.GetAuthClaims(ctx)
+	if err != nil {
+		return nil, internal.NewNotFound("Template", "FindTemplateByDetails")
+	}
 
 	// 1. Matching source episodeId
 	if episodeID != nil {
-		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
+		templates := []internal.Template{}
+		templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
 			SourceEpisodeID: episodeID,
+			CreatedByUserID: &auth.UserID,
 		})
 		if err != nil {
 			return nil, err
@@ -140,10 +157,11 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 
 		// 2. Matching show name (case sensitive) and season (case sensitive)
 		if season != nil {
-			templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
-				ShowID: show.ID,
-				Season: season,
-				Type:   lo.ToPtr(internal.TemplateTypeSeasons),
+			templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
+				ShowID:          show.ID,
+				Season:          season,
+				Type:            lo.ToPtr(internal.TemplateTypeSeasons),
+				CreatedByUserID: &auth.UserID,
 			})
 			if err != nil {
 				return nil, err
@@ -153,9 +171,10 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 		}
 
 		// 3. Matching show name (case sensitive)
-		templates, err = r.TemplateService.List(ctx, internal.TemplatesFilter{
-			ShowID: show.ID,
-			Type:   lo.ToPtr(internal.TemplateTypeShow),
+		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
+			ShowID:          show.ID,
+			Type:            lo.ToPtr(internal.TemplateTypeShow),
+			CreatedByUserID: &auth.UserID,
 		})
 		if err != nil {
 			return nil, err

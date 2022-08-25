@@ -33,6 +33,9 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 	if filter.ID != nil {
 		query.Where("id = ?", *filter.ID)
 	}
+	if filter.CreatedByUserID != nil {
+		query.Where("created_by_user_id = ?", *filter.CreatedByUserID)
+	}
 	if filter.Season != nil {
 		query.Where("? = ANY(seasons)", *filter.Season)
 	}

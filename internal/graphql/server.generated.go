@@ -3786,9 +3786,19 @@ type ExternalLink {
   allTimestampTypes: [TimestampType!]!
 
   # Templates
-  "Get template info based on a ` + "`" + `Template.id` + "`" + `"
+  """
+  Get template info based on a ` + "`" + `Template.id` + "`" + `
+
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will get a not found error, same as if the template was not found.
+  """
   findTemplate(templateId: ID!): Template!
-  "Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `"
+  """
+  Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `
+
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will receive an empty list.
+  """
   findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
@@ -3797,6 +3807,9 @@ type ExternalLink {
   1. Matching ` + "`" + `sourceEpisodeID` + "`" + `
   2. Matching show name (case sensitive) and season (case sensitive)
   3. Matching show name (case sensitive)
+
+  Only templates you've created are returned. If you don't include a token in the authorization
+  header, you will get a not found error, same as if the template was not found.
   """
   findTemplateByDetails(
     episodeId: ID
