@@ -3792,14 +3792,14 @@ type ExternalLink {
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will get a not found error, same as if the template was not found.
   """
-  findTemplate(templateId: ID!): Template! @authenticated
+  findTemplate(templateId: ID!): Template!
   """
   Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `
 
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will receive an empty list.
   """
-  findTemplatesByShowId(showId: ID!): [Template!]! @authenticated
+  findTemplatesByShowId(showId: ID!): [Template!]!
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -3815,7 +3815,7 @@ type ExternalLink {
     episodeId: ID
     showName: String
     season: String
-  ): Template! @authenticated
+  ): Template!
 
   "List or search through the authenticated user's API clients"
   myApiClients(
@@ -15102,28 +15102,8 @@ func (ec *executionContext) _Query_findTemplate(ctx context.Context, field graph
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().FindTemplate(rctx, fc.Args["templateId"].(*uuid.UUID))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
-			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*internal.Template); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.Template`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTemplate(rctx, fc.Args["templateId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15215,28 +15195,8 @@ func (ec *executionContext) _Query_findTemplatesByShowId(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().FindTemplatesByShowID(rctx, fc.Args["showId"].(*uuid.UUID))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
-			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.([]*internal.Template); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*anime-skip.com/public-api/internal.Template`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTemplatesByShowID(rctx, fc.Args["showId"].(*uuid.UUID))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -15328,28 +15288,8 @@ func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, fi
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Query().FindTemplateByDetails(rctx, fc.Args["episodeId"].(*uuid.UUID), fc.Args["showName"].(*string), fc.Args["season"].(*string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
-			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, graphql.ErrorOnPath(ctx, err)
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*internal.Template); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.Template`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().FindTemplateByDetails(rctx, fc.Args["episodeId"].(*uuid.UUID), fc.Args["showName"].(*string), fc.Args["season"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
