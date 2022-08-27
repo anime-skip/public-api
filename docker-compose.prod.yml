@@ -1,0 +1,15 @@
+services:
+  # Server
+  public_api:
+    build:
+      context: .
+      args:
+        VERSION: $VERSION-local
+        STAGE: development
+    ports:
+      - 8081:8081
+    environment:
+      - PORT=8081
+      - LOG_LEVEL=0
+      - DISABLE_LOG_COLORS=false
+    env_file: .env.prod

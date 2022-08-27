@@ -8,9 +8,9 @@ build:
 	@docker image ls | grep "anime-skip/public-api/server"
 	@echo
 run: pre-run
-	VERSION=$(VERSION) docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service
+	VERSION=$(VERSION) docker-compose up --build --abort-on-container-exit --exit-code-from public_api
 run-clean: pre-run
-	docker-compose up --build --abort-on-container-exit --exit-code-from timestamps_service -V
+	docker-compose up --build --abort-on-container-exit --exit-code-from public_api -V
 pre-run:
 	@touch .env
 watch:
@@ -23,5 +23,8 @@ backfill-anilist-shows:
 	go run ./cmd/backfill-anilist-shows
 validate-timestamps:
 	go run ./cmd/validate-timestamps
+
 get-prod-env:
 	heroku config -a prod-public-api --shell | cat > .env.prod
+run-prod:
+	VERSION=$(VERSION) docker-compose -f docker-compose.prod.yml up --build --abort-on-container-exit --exit-code-from public_api

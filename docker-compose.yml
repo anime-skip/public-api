@@ -1,6 +1,6 @@
 services:
-  # Timestamps Service
-  timestamps_service:
+  # Server
+  public_api:
     build:
       context: .
       args:
