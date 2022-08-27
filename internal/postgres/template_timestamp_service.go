@@ -36,7 +36,7 @@ func (s *templateTimestampService) Delete(ctx context.Context, templateTimestamp
 	return inTx(ctx, s.db, true, internal.ZeroTemplateTimestamp, func(tx internal.Tx) (internal.TemplateTimestamp, error) {
 		existing, err := findTemplateTimestamp(ctx, tx, internal.TemplateTimestampsFilter{
 			TemplateID:  templateTimestamp.TemplateID,
-			TimestampID: templateTimestamp.TemplateID,
+			TimestampID: templateTimestamp.TimestampID,
 		})
 		if err != nil {
 			return internal.ZeroTemplateTimestamp, err
