@@ -2989,7 +2989,7 @@ type Episode implements BaseModel {
   "The list of urls and services that the episode can be accessed from"
   urls: [EpisodeUrl!]!
   "If the episode is the source episode for a ` + "`" + `Template` + "`" + `, this will resolve to that template"
-  template: Template
+  template: Template @authenticated
 }
 
 """
@@ -3225,7 +3225,7 @@ type Show implements BaseModel {
   "All the episodes that belong to the show"
   episodes: [Episode!]!
   "All the templates that belong to this show"
-  templates: [Template!]!
+  templates: [Template!]! @authenticated
   "Any links to external sites (just Anilist right now) for the show"
   externalLinks: [ExternalLink!]!
 
@@ -3423,7 +3423,7 @@ input InputTemplate {
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
   templateId: ID!
-  template: Template!
+  template: Template! @authenticated
   timestampId: ID!
   timestamp: Timestamp!
 }
@@ -7479,8 +7479,28 @@ func (ec *executionContext) _Episode_template(ctx context.Context, field graphql
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Episode().Template(rctx, obj)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Episode().Template(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.Template); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.Template`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -16584,8 +16604,28 @@ func (ec *executionContext) _Show_templates(ctx context.Context, field graphql.C
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Show().Templates(rctx, obj)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Show().Templates(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*internal.Template); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*anime-skip.com/public-api/internal.Template`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -18499,8 +18539,28 @@ func (ec *executionContext) _TemplateTimestamp_template(ctx context.Context, fie
 		}
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.TemplateTimestamp().Template(rctx, obj)
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.TemplateTimestamp().Template(rctx, obj)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, obj, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.Template); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.Template`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
