@@ -103,14 +103,14 @@ type Query {
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will get a not found error, same as if the template was not found.
   """
-  findTemplate(templateId: ID!): Template!
+  findTemplate(templateId: ID!): Template! @authenticated
   """
   Get a list of templates based on the `Template.showId`
 
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will receive an empty list.
   """
-  findTemplatesByShowId(showId: ID!): [Template!]!
+  findTemplatesByShowId(showId: ID!): [Template!]! @authenticated
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -126,7 +126,7 @@ type Query {
     episodeId: ID
     showName: String
     season: String
-  ): Template!
+  ): Template! @authenticated
 
   "List or search through the authenticated user's API clients"
   myApiClients(
