@@ -92,7 +92,7 @@ type Episode implements BaseModel {
   "The list of urls and services that the episode can be accessed from"
   urls: [EpisodeUrl!]!
   "If the episode is the source episode for a `Template`, this will resolve to that template"
-  template: Template @authenticated
+  template: Template @optionalAuthenticated
 }
 
 """
@@ -328,7 +328,7 @@ type Show implements BaseModel {
   "All the episodes that belong to the show"
   episodes: [Episode!]!
   "All the templates that belong to this show"
-  templates: [Template!]! @authenticated
+  templates: [Template!]! @optionalAuthenticated
   "Any links to external sites (just Anilist right now) for the show"
   externalLinks: [ExternalLink!]!
 
@@ -526,7 +526,7 @@ input InputTemplate {
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
   templateId: ID!
-  template: Template! @authenticated
+  template: Template! @optionalAuthenticated
   timestampId: ID!
   timestamp: Timestamp!
 }

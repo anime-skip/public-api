@@ -14,6 +14,14 @@ import (
 
 // Helpers
 
+func getOptionalAuthUserID(ctx context.Context) *uuid.UUID {
+	if authClaims, err := context.GetAuthClaims(ctx); err == nil {
+		return &authClaims.UserID
+	} else {
+		return nil
+	}
+}
+
 func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*internal.Template, error) {
 	if id == nil {
 		return nil, nil
@@ -29,14 +37,14 @@ func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*interna
 }
 
 func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.UUID) (*internal.Template, error) {
-	auth, err := context.GetAuthClaims(ctx)
-	if err != nil {
-		return nil, err
+	authUserID := getOptionalAuthUserID(ctx)
+	if authUserID == nil {
+		return nil, internal.NewNotFound("Template", "GetTemplateByEpisodeID")
 	}
 
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
 		SourceEpisodeID: episodeID,
-		CreatedByUserID: &auth.UserID,
+		CreatedByUserID: authUserID,
 	})
 	if err != nil {
 		return nil, err
@@ -45,14 +53,14 @@ func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.U
 }
 
 func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) ([]*internal.Template, error) {
-	auth, err := context.GetAuthClaims(ctx)
-	if err != nil {
-		return nil, err
+	authUserID := getOptionalAuthUserID(ctx)
+	if authUserID == nil {
+		return []*internal.Template{}, nil
 	}
 
 	templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
 		ShowID:          showID,
-		CreatedByUserID: &auth.UserID,
+		CreatedByUserID: authUserID,
 	})
 	if err != nil {
 		return nil, err
@@ -128,16 +136,16 @@ func (r *queryResolver) FindTemplatesByShowID(ctx context.Context, showID *uuid.
 }
 
 func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error) {
-	auth, err := context.GetAuthClaims(ctx)
-	if err != nil {
-		return nil, err
+	authUserID := getOptionalAuthUserID(ctx)
+	if authUserID == nil {
+		return nil, internal.NewNotFound("Template", "GetTemplateByEpisodeID")
 	}
 
 	// 1. Matching source episodeId
 	if episodeID != nil {
 		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
 			SourceEpisodeID: episodeID,
-			CreatedByUserID: &auth.UserID,
+			CreatedByUserID: authUserID,
 		})
 		if err != nil {
 			return nil, err
@@ -160,7 +168,7 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 				ShowID:          show.ID,
 				Season:          season,
 				Type:            lo.ToPtr(internal.TemplateTypeSeasons),
-				CreatedByUserID: &auth.UserID,
+				CreatedByUserID: authUserID,
 			})
 			if err != nil {
 				return nil, err
@@ -173,7 +181,7 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
 			ShowID:          show.ID,
 			Type:            lo.ToPtr(internal.TemplateTypeShow),
-			CreatedByUserID: &auth.UserID,
+			CreatedByUserID: authUserID,
 		})
 		if err != nil {
 			return nil, err

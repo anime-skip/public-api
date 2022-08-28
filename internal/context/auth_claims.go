@@ -17,7 +17,7 @@ func GetAuthClaims(ctx context.Context) (internal.AuthClaims, error) {
 	if !ok {
 		return internal.AuthClaims{}, &internal.Error{
 			Code:    internal.EINTERNAL,
-			Message: "AuthClaims is not set yet, does this query/mutation use the @authenticated directive?",
+			Message: "AuthClaims is not set yet, does this query/mutation use the @authenticated or @optionalAuthenticated directive?",
 			Op:      "GetAuthClaims",
 		}
 	}

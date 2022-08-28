@@ -58,9 +58,10 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
-	Authenticated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
-	HasRole       func(ctx context.Context, obj interface{}, next graphql.Resolver, role internal.Role) (res interface{}, err error)
-	IsShowAdmin   func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	Authenticated         func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasRole               func(ctx context.Context, obj interface{}, next graphql.Resolver, role internal.Role) (res interface{}, err error)
+	IsShowAdmin           func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	OptionalAuthenticated func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -2829,13 +2830,16 @@ input InputTimestampOn {
   timestamp: InputTimestamp!
 }
 `, BuiltIn: false},
-	{Name: "../../api/directives.graphqls", Input: `"Check if the user is signed in"
+	{Name: "../../api/directives.graphqls", Input: `"Check if the user is signed in."
 directive @authenticated on FIELD_DEFINITION
 
-"Checks if the user is signed in and has a given role"
+"If the user is signed in, use their details to customize the response, but don't throw an authentication error if a token is not passed."
+directive @optionalAuthenticated on FIELD_DEFINITION
+
+"Checks if the user is signed in and has a given role."
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
-"Checks if the user is signed in and is an admin of the show being operated on"
+"Checks if the user is signed in and is an admin of the show being operated on."
 directive @isShowAdmin on ARGUMENT_DEFINITION
 `, BuiltIn: false},
 	{Name: "../../api/enums.graphqls", Input: `"""
@@ -2989,7 +2993,7 @@ type Episode implements BaseModel {
   "The list of urls and services that the episode can be accessed from"
   urls: [EpisodeUrl!]!
   "If the episode is the source episode for a ` + "`" + `Template` + "`" + `, this will resolve to that template"
-  template: Template @authenticated
+  template: Template @optionalAuthenticated
 }
 
 """
@@ -3225,7 +3229,7 @@ type Show implements BaseModel {
   "All the episodes that belong to the show"
   episodes: [Episode!]!
   "All the templates that belong to this show"
-  templates: [Template!]! @authenticated
+  templates: [Template!]! @optionalAuthenticated
   "Any links to external sites (just Anilist right now) for the show"
   externalLinks: [ExternalLink!]!
 
@@ -3423,7 +3427,7 @@ input InputTemplate {
 "The many to many object that links a timestamp to a template"
 type TemplateTimestamp {
   templateId: ID!
-  template: Template! @authenticated
+  template: Template! @optionalAuthenticated
   timestampId: ID!
   timestamp: Timestamp!
 }
@@ -3792,14 +3796,14 @@ type ExternalLink {
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will get a not found error, same as if the template was not found.
   """
-  findTemplate(templateId: ID!): Template! @authenticated
+  findTemplate(templateId: ID!): Template! @optionalAuthenticated
   """
   Get a list of templates based on the ` + "`" + `Template.showId` + "`" + `
 
   Only templates you've created are returned. If you don't include a token in the authorization
   header, you will receive an empty list.
   """
-  findTemplatesByShowId(showId: ID!): [Template!]! @authenticated
+  findTemplatesByShowId(showId: ID!): [Template!]! @optionalAuthenticated
   """
   Find the most relevant template based on a few search criteria. If multiple templates are found,
   their priority is like so:
@@ -3815,7 +3819,7 @@ type ExternalLink {
     episodeId: ID
     showName: String
     season: String
-  ): Template! @authenticated
+  ): Template! @optionalAuthenticated
 
   "List or search through the authenticated user's API clients"
   myApiClients(
@@ -7484,10 +7488,10 @@ func (ec *executionContext) _Episode_template(ctx context.Context, field graphql
 			return ec.resolvers.Episode().Template(rctx, obj)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, obj, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, obj, directive0)
 		}
 
 		tmp, err := directive1(rctx)
@@ -15127,10 +15131,10 @@ func (ec *executionContext) _Query_findTemplate(ctx context.Context, field graph
 			return ec.resolvers.Query().FindTemplate(rctx, fc.Args["templateId"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, nil, directive0)
 		}
 
 		tmp, err := directive1(rctx)
@@ -15240,10 +15244,10 @@ func (ec *executionContext) _Query_findTemplatesByShowId(ctx context.Context, fi
 			return ec.resolvers.Query().FindTemplatesByShowID(rctx, fc.Args["showId"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, nil, directive0)
 		}
 
 		tmp, err := directive1(rctx)
@@ -15353,10 +15357,10 @@ func (ec *executionContext) _Query_findTemplateByDetails(ctx context.Context, fi
 			return ec.resolvers.Query().FindTemplateByDetails(rctx, fc.Args["episodeId"].(*uuid.UUID), fc.Args["showName"].(*string), fc.Args["season"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, nil, directive0)
 		}
 
 		tmp, err := directive1(rctx)
@@ -16609,10 +16613,10 @@ func (ec *executionContext) _Show_templates(ctx context.Context, field graphql.C
 			return ec.resolvers.Show().Templates(rctx, obj)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, obj, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, obj, directive0)
 		}
 
 		tmp, err := directive1(rctx)
@@ -18544,10 +18548,10 @@ func (ec *executionContext) _TemplateTimestamp_template(ctx context.Context, fie
 			return ec.resolvers.TemplateTimestamp().Template(rctx, obj)
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			if ec.directives.OptionalAuthenticated == nil {
+				return nil, errors.New("directive optionalAuthenticated is not implemented")
 			}
-			return ec.directives.Authenticated(ctx, obj, directive0)
+			return ec.directives.OptionalAuthenticated(ctx, obj, directive0)
 		}
 
 		tmp, err := directive1(rctx)
