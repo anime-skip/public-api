@@ -25,9 +25,10 @@ func NewGraphqlHandler(db internal.Database, services internal.Services, rateLim
 			DB:       db,
 		},
 		Directives: graphql.DirectiveRoot{
-			Authenticated: directives.Authenticated,
-			HasRole:       directives.HasRole,
-			IsShowAdmin:   directives.IsShowAdmin,
+			Authenticated:         directives.Authenticated,
+			OptionalAuthenticated: directives.OptionalAuthenticated,
+			HasRole:               directives.HasRole,
+			IsShowAdmin:           directives.IsShowAdmin,
 		},
 	}
 	srv := handler.New(graphql.NewExecutableSchema(config))

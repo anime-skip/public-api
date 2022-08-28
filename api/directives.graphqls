@@ -1,8 +1,11 @@
-"Check if the user is signed in"
+"Check if the user is signed in."
 directive @authenticated on FIELD_DEFINITION
 
-"Checks if the user is signed in and has a given role"
+"If the user is signed in, use their details to customize the response, but don't throw an authentication error if a token is not passed."
+directive @optionalAuthenticated on FIELD_DEFINITION
+
+"Checks if the user is signed in and has a given role."
 directive @hasRole(role: Role!) on FIELD_DEFINITION
 
-"Checks if the user is signed in and is an admin of the show being operated on"
+"Checks if the user is signed in and is an admin of the show being operated on."
 directive @isShowAdmin on ARGUMENT_DEFINITION
