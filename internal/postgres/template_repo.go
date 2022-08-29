@@ -55,7 +55,9 @@ func findTemplates(ctx context.Context, tx internal.Tx, filter internal.Template
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
 	}
-	query.OrderBy("type", "ASC")
+	if filter.Sort != nil {
+		query.OrderBy(filter.Sort.Column, filter.Sort.Direction)
+	}
 
 	sql, args := query.ToSQL()
 	rows, err := tx.QueryContext(ctx, sql, args...)

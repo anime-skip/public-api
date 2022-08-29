@@ -29,6 +29,7 @@ func (r *Resolver) getTemplateByID(ctx context.Context, id *uuid.UUID) (*interna
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
 		ID:             id,
 		IncludeDeleted: true,
+		Sort:           &internal.SortBy{Column: "created_at", Direction: "DESC"},
 	})
 	if err != nil {
 		return nil, err
@@ -45,6 +46,7 @@ func (r *Resolver) getTemplateByEpisodeID(ctx context.Context, episodeID *uuid.U
 	template, err := r.TemplateService.Get(ctx, internal.TemplatesFilter{
 		SourceEpisodeID: episodeID,
 		CreatedByUserID: authUserID,
+		Sort:            &internal.SortBy{Column: "created_at", Direction: "DESC"},
 	})
 	if err != nil {
 		return nil, err
@@ -61,6 +63,7 @@ func (r *Resolver) getTemplatesByShowID(ctx context.Context, showID *uuid.UUID) 
 	templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
 		ShowID:          showID,
 		CreatedByUserID: authUserID,
+		Sort:            &internal.SortBy{Column: "created_at", Direction: "DESC"},
 	})
 	if err != nil {
 		return nil, err
@@ -140,12 +143,14 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 	if authUserID == nil {
 		return nil, internal.NewNotFound("Template", "GetTemplateByEpisodeID")
 	}
+	sort := &internal.SortBy{Column: "created_at", Direction: "DESC"}
 
 	// 1. Matching source episodeId
 	if episodeID != nil {
 		templates, err := r.TemplateService.List(ctx, internal.TemplatesFilter{
 			SourceEpisodeID: episodeID,
 			CreatedByUserID: authUserID,
+			Sort:            sort,
 		})
 		if err != nil {
 			return nil, err
@@ -169,6 +174,7 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 				Season:          season,
 				Type:            lo.ToPtr(internal.TemplateTypeSeasons),
 				CreatedByUserID: authUserID,
+				Sort:            sort,
 			})
 			if err != nil {
 				return nil, err
@@ -182,6 +188,7 @@ func (r *queryResolver) FindTemplateByDetails(ctx context.Context, episodeID *uu
 			ShowID:          show.ID,
 			Type:            lo.ToPtr(internal.TemplateTypeShow),
 			CreatedByUserID: authUserID,
+			Sort:            sort,
 		})
 		if err != nil {
 			return nil, err
