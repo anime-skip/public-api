@@ -35,6 +35,11 @@ type Pagination struct {
 	Limit  int
 }
 
+type SortBy struct {
+	Column    string
+	Direction string
+}
+
 type APIClientsFilter struct {
 	Pagination     *Pagination
 	ID             *string
@@ -111,6 +116,7 @@ type TemplatesFilter struct {
 	Season          *string
 	Type            *TemplateType
 	IncludeDeleted  bool
+	Sort            *SortBy
 }
 
 type TemplateTimestampsFilter struct {
