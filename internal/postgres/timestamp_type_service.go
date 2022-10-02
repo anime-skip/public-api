@@ -50,3 +50,9 @@ func (s *timestampTypeService) Delete(ctx context.Context, id uuid.UUID, deleted
 		return deleteCascadeTimestampType(ctx, tx, existing, deletedBy)
 	})
 }
+
+func (s *timestampTypeService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM timestamp_types WHERE deleted_at IS NULL")
+	})
+}
