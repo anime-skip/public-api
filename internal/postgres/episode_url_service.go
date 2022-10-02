@@ -50,3 +50,9 @@ func (s *episodeURLService) Delete(ctx context.Context, url string) (internal.Ep
 		return deleteCascadeEpisodeURL(ctx, tx, existing)
 	})
 }
+
+func (s *episodeURLService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM episode_urls")
+	})
+}

@@ -82,3 +82,9 @@ func (s *showService) Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.U
 		return deleteCascadeShow(ctx, tx, existing, deletedBy)
 	})
 }
+
+func (s *showService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM shows WHERE deleted_at IS NULL")
+	})
+}

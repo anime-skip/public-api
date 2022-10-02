@@ -55,6 +55,7 @@ type EpisodeService interface {
 	Create(ctx context.Context, newEpisode Episode, createdBy uuid.UUID) (Episode, error)
 	Update(ctx context.Context, newEpisode Episode, updatedBy uuid.UUID) (Episode, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Episode, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type EpisodeURLService interface {
@@ -63,6 +64,7 @@ type EpisodeURLService interface {
 	Create(ctx context.Context, newEpisodeURL EpisodeURL, createdBy uuid.UUID) (EpisodeURL, error)
 	Update(ctx context.Context, newEpisodeURL EpisodeURL, updatedBy uuid.UUID) (EpisodeURL, error)
 	Delete(ctx context.Context, url string) (EpisodeURL, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type ExternalLinkService interface {
@@ -92,6 +94,7 @@ type ShowService interface {
 	Create(ctx context.Context, newShow Show, createdBy uuid.UUID) (Show, error)
 	Update(ctx context.Context, newShow Show, updatedBy uuid.UUID) (Show, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Show, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type TemplateService interface {
@@ -100,6 +103,7 @@ type TemplateService interface {
 	Create(ctx context.Context, newTemplate Template, createdBy uuid.UUID) (Template, error)
 	Update(ctx context.Context, newTemplate Template, updatedBy uuid.UUID) (Template, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Template, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type TemplateTimestampService interface {
@@ -116,6 +120,7 @@ type TimestampService interface {
 	UpdateAll(ctx context.Context, create []Timestamp, update []Timestamp, delete []Timestamp, updatedBy uuid.UUID) (created []Timestamp, updated []Timestamp, deleted []Timestamp, err error)
 	Update(ctx context.Context, newTimestamp Timestamp, updatedBy uuid.UUID) (Timestamp, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (Timestamp, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type TimestampTypeService interface {
@@ -124,6 +129,7 @@ type TimestampTypeService interface {
 	Create(ctx context.Context, newTimestampType TimestampType, createdBy uuid.UUID) (TimestampType, error)
 	Update(ctx context.Context, newTimestampType TimestampType, updatedBy uuid.UUID) (TimestampType, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (TimestampType, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type UserService interface {
@@ -131,6 +137,7 @@ type UserService interface {
 	List(ctx context.Context, filter UsersFilter) ([]FullUser, error)
 	CreateAccount(ctx context.Context, newUser FullUser) (FullUser, error)
 	Update(ctx context.Context, newUser FullUser) (FullUser, error)
+	Count(ctx context.Context) (int, error)
 }
 
 type ThirdPartyService interface {

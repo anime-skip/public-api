@@ -44,3 +44,9 @@ func (s *templateTimestampService) Delete(ctx context.Context, templateTimestamp
 		return deleteCascadeTemplateTimestamp(ctx, tx, existing)
 	})
 }
+
+func (s *timestampTypeService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM timestamp_types WHERE deleted_at IS NULL")
+	})
+}

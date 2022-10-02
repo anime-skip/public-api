@@ -54,6 +54,7 @@ type ResolverRoot interface {
 	ThirdPartyTimestamp() ThirdPartyTimestampResolver
 	Timestamp() TimestampResolver
 	TimestampType() TimestampTypeResolver
+	TotalCounts() TotalCountsResolver
 	User() UserResolver
 }
 
@@ -218,6 +219,7 @@ type ComplexityRoot struct {
 	Query struct {
 		Account                    func(childComplexity int) int
 		AllTimestampTypes          func(childComplexity int) int
+		Counts                     func(childComplexity int) int
 		FindAPIClient              func(childComplexity int, id string) int
 		FindEpisode                func(childComplexity int, episodeID *uuid.UUID) int
 		FindEpisodeByName          func(childComplexity int, name string) int
@@ -373,6 +375,16 @@ type ComplexityRoot struct {
 		UpdatedByUserID func(childComplexity int) int
 	}
 
+	TotalCounts struct {
+		EpisodeUrls    func(childComplexity int) int
+		Episodes       func(childComplexity int) int
+		Shows          func(childComplexity int) int
+		Templates      func(childComplexity int) int
+		TimestampTypes func(childComplexity int) int
+		Timestamps     func(childComplexity int) int
+		Users          func(childComplexity int) int
+	}
+
 	UpdatedTimestamps struct {
 		Created func(childComplexity int) int
 		Deleted func(childComplexity int) int
@@ -502,6 +514,7 @@ type QueryResolver interface {
 	FindTemplateByDetails(ctx context.Context, episodeID *uuid.UUID, showName *string, season *string) (*internal.Template, error)
 	MyAPIClients(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*internal.APIClient, error)
 	FindAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
+	Counts(ctx context.Context) (*internal.TotalCounts, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *internal.Show) (*internal.User, error)
@@ -566,6 +579,15 @@ type TimestampTypeResolver interface {
 	UpdatedBy(ctx context.Context, obj *internal.TimestampType) (*internal.User, error)
 
 	DeletedBy(ctx context.Context, obj *internal.TimestampType) (*internal.User, error)
+}
+type TotalCountsResolver interface {
+	Episodes(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	EpisodeUrls(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	Shows(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	Timestamps(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	TimestampTypes(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	Users(ctx context.Context, obj *internal.TotalCounts) (int, error)
+	Templates(ctx context.Context, obj *internal.TotalCounts) (int, error)
 }
 type UserResolver interface {
 	AdminOfShows(ctx context.Context, obj *internal.User) ([]*internal.ShowAdmin, error)
@@ -1667,6 +1689,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AllTimestampTypes(childComplexity), true
 
+	case "Query.counts":
+		if e.complexity.Query.Counts == nil {
+			break
+		}
+
+		return e.complexity.Query.Counts(childComplexity), true
+
 	case "Query.findApiClient":
 		if e.complexity.Query.FindAPIClient == nil {
 			break
@@ -2674,6 +2703,55 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TimestampType.UpdatedByUserID(childComplexity), true
 
+	case "TotalCounts.episodeUrls":
+		if e.complexity.TotalCounts.EpisodeUrls == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.EpisodeUrls(childComplexity), true
+
+	case "TotalCounts.episodes":
+		if e.complexity.TotalCounts.Episodes == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.Episodes(childComplexity), true
+
+	case "TotalCounts.shows":
+		if e.complexity.TotalCounts.Shows == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.Shows(childComplexity), true
+
+	case "TotalCounts.templates":
+		if e.complexity.TotalCounts.Templates == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.Templates(childComplexity), true
+
+	case "TotalCounts.timestampTypes":
+		if e.complexity.TotalCounts.TimestampTypes == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.TimestampTypes(childComplexity), true
+
+	case "TotalCounts.timestamps":
+		if e.complexity.TotalCounts.Timestamps == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.Timestamps(childComplexity), true
+
+	case "TotalCounts.users":
+		if e.complexity.TotalCounts.Users == nil {
+			break
+		}
+
+		return e.complexity.TotalCounts.Users(childComplexity), true
+
 	case "UpdatedTimestamps.created":
 		if e.complexity.UpdatedTimestamps.Created == nil {
 			break
@@ -3479,6 +3557,16 @@ type ExternalLink {
   service: String!
   serviceId: String
 }
+
+type TotalCounts {
+  episodes: Int!
+  episodeUrls: Int!
+  shows: Int!
+  timestamps: Int!
+  timestampTypes: Int!
+  users: Int!
+  templates: Int!
+}
 `, BuiltIn: false},
 	{Name: "../../api/mutations.graphqls", Input: `type Mutation {
   # Account
@@ -3831,6 +3919,8 @@ type ExternalLink {
 
   "Find an API Client that you created based on it's ID. This will not return other users' clients"
   findApiClient(id: String!): ApiClient! @authenticated
+
+  counts: TotalCounts
 }
 `, BuiltIn: false},
 	{Name: "../../api/return_types.graphqls", Input: `"""
@@ -15666,6 +15756,63 @@ func (ec *executionContext) fieldContext_Query_findApiClient(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _Query_counts(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_counts(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Counts(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.TotalCounts)
+	fc.Result = res
+	return ec.marshalOTotalCounts2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTotalCounts(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_counts(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "episodes":
+				return ec.fieldContext_TotalCounts_episodes(ctx, field)
+			case "episodeUrls":
+				return ec.fieldContext_TotalCounts_episodeUrls(ctx, field)
+			case "shows":
+				return ec.fieldContext_TotalCounts_shows(ctx, field)
+			case "timestamps":
+				return ec.fieldContext_TotalCounts_timestamps(ctx, field)
+			case "timestampTypes":
+				return ec.fieldContext_TotalCounts_timestampTypes(ctx, field)
+			case "users":
+				return ec.fieldContext_TotalCounts_users(ctx, field)
+			case "templates":
+				return ec.fieldContext_TotalCounts_templates(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type TotalCounts", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Query___type(ctx, field)
 	if err != nil {
@@ -20882,6 +21029,314 @@ func (ec *executionContext) fieldContext_TimestampType_description(ctx context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _TotalCounts_episodes(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_episodes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().Episodes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_episodes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_episodeUrls(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_episodeUrls(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().EpisodeUrls(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_episodeUrls(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_shows(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_shows(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().Shows(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_shows(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_timestamps(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_timestamps(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().Timestamps(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_timestamps(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_timestampTypes(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_timestampTypes(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().TimestampTypes(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_timestampTypes(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_users(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_users(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().Users(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_users(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TotalCounts_templates(ctx context.Context, field graphql.CollectedField, obj *internal.TotalCounts) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_TotalCounts_templates(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.TotalCounts().Templates(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_TotalCounts_templates(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TotalCounts",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UpdatedTimestamps_created(ctx context.Context, field graphql.CollectedField, obj *internal.UpdatedTimestamps) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UpdatedTimestamps_created(ctx, field)
 	if err != nil {
@@ -25654,6 +26109,26 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			out.Concurrently(i, func() graphql.Marshaler {
 				return rrm(innerCtx)
 			})
+		case "counts":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_counts(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
 		case "__type":
 
 			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
@@ -26891,6 +27366,167 @@ func (ec *executionContext) _TimestampType(ctx context.Context, sel ast.Selectio
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var totalCountsImplementors = []string{"TotalCounts"}
+
+func (ec *executionContext) _TotalCounts(ctx context.Context, sel ast.SelectionSet, obj *internal.TotalCounts) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, totalCountsImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("TotalCounts")
+		case "episodes":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_episodes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "episodeUrls":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_episodeUrls(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "shows":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_shows(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "timestamps":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_timestamps(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "timestampTypes":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_timestampTypes(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "users":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_users(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "templates":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._TotalCounts_templates(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -28783,6 +29419,13 @@ func (ec *executionContext) marshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋpubl
 		return graphql.Null
 	}
 	return v
+}
+
+func (ec *executionContext) marshalOTotalCounts2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTotalCounts(ctx context.Context, sel ast.SelectionSet, v *internal.TotalCounts) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._TotalCounts(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOUInt2ᚖuint(ctx context.Context, v interface{}) (*uint, error) {

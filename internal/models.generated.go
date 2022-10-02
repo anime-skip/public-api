@@ -508,6 +508,16 @@ type TimestampType struct {
 
 func (TimestampType) IsBaseModel() {}
 
+type TotalCounts struct {
+	Episodes       int `json:"episodes"`
+	EpisodeUrls    int `json:"episodeUrls"`
+	Shows          int `json:"shows"`
+	Timestamps     int `json:"timestamps"`
+	TimestampTypes int `json:"timestampTypes"`
+	Users          int `json:"users"`
+	Templates      int `json:"templates"`
+}
+
 type UpdatedTimestamps struct {
 	Created []*Timestamp `json:"created"`
 	Updated []*Timestamp `json:"updated"`

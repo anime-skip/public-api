@@ -62,6 +62,9 @@ func (r *Resolver) Timestamp() graphql.TimestampResolver { return &timestampReso
 // TimestampType returns graphql.TimestampTypeResolver implementation.
 func (r *Resolver) TimestampType() graphql.TimestampTypeResolver { return &timestampTypeResolver{r} }
 
+// TimestampType returns graphql.TimestampTypeResolver implementation.
+func (r *Resolver) TotalCounts() graphql.TotalCountsResolver { return &totalCountsResolver{r} }
+
 // User returns graphql.UserResolver implementation.
 func (r *Resolver) User() graphql.UserResolver { return &userResolver{r} }
 
@@ -80,4 +83,5 @@ type templateTimestampResolver struct{ *Resolver }
 type thirdPartyTimestampResolver struct{ *Resolver }
 type timestampResolver struct{ *Resolver }
 type timestampTypeResolver struct{ *Resolver }
+type totalCountsResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }

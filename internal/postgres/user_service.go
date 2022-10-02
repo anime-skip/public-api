@@ -46,3 +46,9 @@ func (s *userService) Update(ctx context.Context, newUser internal.FullUser) (in
 		return updateUser(ctx, tx, newUser)
 	})
 }
+
+func (s *userService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM users")
+	})
+}

@@ -138,4 +138,6 @@ type Query {
 
   "Find an API Client that you created based on it's ID. This will not return other users' clients"
   findApiClient(id: String!): ApiClient! @authenticated
+
+  counts: TotalCounts
 }
