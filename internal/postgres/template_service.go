@@ -50,3 +50,9 @@ func (s *templateService) Delete(ctx context.Context, id uuid.UUID, deletedBy uu
 		return deleteCascadeTemplate(ctx, tx, existing, deletedBy)
 	})
 }
+
+func (s *templateService) Count(ctx context.Context) (int, error) {
+	return inTx(ctx, s.db, false, 0, func(tx internal.Tx) (int, error) {
+		return count(ctx, tx, "SELECT COUNT(*) FROM templates WHERE deleted_at IS NULL")
+	})
+}

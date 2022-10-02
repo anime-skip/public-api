@@ -578,3 +578,13 @@ type ExternalLink {
   service: String!
   serviceId: String
 }
+
+type TotalCounts {
+  episodes: Int!
+  episodeUrls: Int!
+  shows: Int!
+  timestamps: Int!
+  timestampTypes: Int!
+  users: Int!
+  templates: Int!
+}

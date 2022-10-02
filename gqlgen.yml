@@ -169,3 +169,19 @@ models:
         resolver: true
       serviceId:
         resolver: true
+  TotalCounts:
+    fields:
+      episodes:
+        resolver: true
+      episodeUrls:
+        resolver: true
+      shows:
+        resolver: true
+      timestamps:
+        resolver: true
+      timestampTypes:
+        resolver: true
+      users:
+        resolver: true
+      templates:
+        resolver: true
