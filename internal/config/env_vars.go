@@ -72,7 +72,7 @@ func DisableLogColors() bool {
 // Discord
 
 func DiscordBotToken() string {
-	return envString("DISCORD_BOT_TOKEN")
+	return envStringOr("DISCORD_BOT_TOKEN", "")
 }
 func DiscordAlertChannelID() string {
 	return envString("DISCORD_ALERTS_CHANNEL_ID")
