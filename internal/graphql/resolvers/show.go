@@ -13,7 +13,7 @@ import (
 
 // Helpers
 
-func (r *Resolver) getShowById(ctx context.Context, id *uuid.UUID) (*internal.Show, error) {
+func (r *Resolver) getShowByID(ctx context.Context, id *uuid.UUID) (*internal.Show, error) {
 	if id == nil {
 		return nil, nil
 	}
@@ -87,7 +87,7 @@ func (r *mutationResolver) DeleteShow(ctx context.Context, showID *uuid.UUID) (*
 // Queries
 
 func (r *queryResolver) FindShow(ctx context.Context, showID *uuid.UUID) (*internal.Show, error) {
-	return r.getShowById(ctx, showID)
+	return r.getShowByID(ctx, showID)
 }
 
 var defaultSearchShowFilter = internal.ShowsFilter{

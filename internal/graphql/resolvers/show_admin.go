@@ -84,7 +84,7 @@ func (r *showAdminResolver) DeletedBy(ctx context.Context, obj *internal.ShowAdm
 }
 
 func (r *showAdminResolver) Show(ctx context.Context, obj *internal.ShowAdmin) (*internal.Show, error) {
-	return r.getShowById(ctx, obj.ShowID)
+	return r.getShowByID(ctx, obj.ShowID)
 }
 
 func (r *showAdminResolver) User(ctx context.Context, obj *internal.ShowAdmin) (*internal.User, error) {

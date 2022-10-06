@@ -60,7 +60,7 @@ func (r *externalLinkResolver) URL(ctx context.Context, obj *internal.ExternalLi
 }
 
 func (r *externalLinkResolver) Show(ctx context.Context, obj *internal.ExternalLink) (*internal.Show, error) {
-	return r.getShowById(ctx, obj.ShowID)
+	return r.getShowByID(ctx, obj.ShowID)
 }
 
 func (r *externalLinkResolver) Service(ctx context.Context, obj *internal.ExternalLink) (string, error) {
