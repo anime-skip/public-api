@@ -10,7 +10,7 @@ build:
 run: pre-run
 	VERSION=$(VERSION) docker-compose up --build --abort-on-container-exit --exit-code-from public_api
 run-clean: pre-run
-	docker-compose up --build --abort-on-container-exit --exit-code-from public_api -V
+	VERSION=$(VERSION) docker-compose up --build --abort-on-container-exit --exit-code-from public_api -V --remove-orphans
 pre-run:
 	@touch .env
 watch:
