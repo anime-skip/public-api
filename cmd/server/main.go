@@ -72,6 +72,7 @@ func main() {
 		TimestampService:         postgres.NewTimestampService(pg),
 		TimestampTypeService:     postgres.NewTimestampTypeService(pg),
 		UserService:              postgres.NewUserService(pg),
+		UserReportService:        postgres.NewUserReportService(pg),
 		ThirdPartyService: utils.NewAggregateThirdPartyService([]internal.ThirdPartyService{
 			postgres.NewThirdPartyService(pg),
 			utils.NewCachedThirdPartyService(betterVRV, 30*time.Minute),

@@ -68,6 +68,9 @@ func (r *Resolver) TotalCounts() graphql.TotalCountsResolver { return &totalCoun
 // User returns graphql.UserResolver implementation.
 func (r *Resolver) User() graphql.UserResolver { return &userResolver{r} }
 
+// User returns graphql.UserReportResolver implementation.
+func (r *Resolver) UserReport() graphql.UserReportResolver { return &userReportResolver{r} }
+
 type apiClientResolver struct{ *Resolver }
 type accountResolver struct{ *Resolver }
 type episodeResolver struct{ *Resolver }
@@ -85,3 +88,4 @@ type timestampResolver struct{ *Resolver }
 type timestampTypeResolver struct{ *Resolver }
 type totalCountsResolver struct{ *Resolver }
 type userResolver struct{ *Resolver }
+type userReportResolver struct{ *Resolver }

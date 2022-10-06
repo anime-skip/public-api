@@ -185,3 +185,19 @@ models:
         resolver: true
       templates:
         resolver: true
+  UserReport:
+    fields:
+      createdBy:
+        resolver: true
+      updatedBy:
+        resolver: true
+      deletedBy:
+        resolver: true
+      timestamp:
+        resolver: true
+      episode:
+        resolver: true
+      episodeUrl:
+        resolver: true
+      show:
+        resolver: true

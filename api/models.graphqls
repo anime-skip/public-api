@@ -588,3 +588,47 @@ type TotalCounts {
   users: Int!
   templates: Int!
 }
+
+type UserReport implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  message: String!
+  reportedFromUrl: String!
+  resolved: Boolean!
+  timestampId: ID
+  timestamp: Timestamp
+  episodeId: ID
+  episode: Episode
+  episodeUrlString: String
+  episodeUrl: EpisodeUrl
+  showId: ID
+  show: Show
+}
+
+input InputUserReport {
+  "The content of the report stating what is wrong with the reported data."
+  message: String!
+  "The URL the user made the report from so the reviewer can easily navigate to it."
+  reportedFromUrl: String!
+  "The ID of a timestamp if you're reporting an issue with a specific timestamp."
+  timestampId: ID
+  "The ID of an episode if you're reporting an issue with a specific episode."
+  episodeId: ID
+  """
+  The URL of the epiosde URL if you're reporting an issue with a specific episode URL.
+
+  This is different from `reportedFromUrl`, this is related to an EpisodeUrl model, not the url the report is coming from.
+  """
+  episodeUrl: String
+  "The ID of an show if you're reporting an issue with a specific show."
+  showId: ID
+}

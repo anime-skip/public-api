@@ -236,6 +236,23 @@ type InputTimestampType struct {
 	Description string `json:"description"`
 }
 
+type InputUserReport struct {
+	// The content of the report stating what is wrong with the reported data.
+	Message string `json:"message"`
+	// The URL the user made the report from so the reviewer can easily navigate to it.
+	ReportedFromURL string `json:"reportedFromUrl"`
+	// The ID of a timestamp if you're reporting an issue with a specific timestamp.
+	TimestampID *uuid.UUID `json:"timestampId"`
+	// The ID of an episode if you're reporting an issue with a specific episode.
+	EpisodeID *uuid.UUID `json:"episodeId"`
+	// The URL of the epiosde URL if you're reporting an issue with a specific episode URL.
+	//
+	// This is different from `reportedFromUrl`, this is related to an EpisodeUrl model, not the url the report is coming from.
+	EpisodeURL *string `json:"episodeUrl"`
+	// The ID of an show if you're reporting an issue with a specific show.
+	ShowID *uuid.UUID `json:"showId"`
+}
+
 // When logging in with a password or refresh token, you can get new tokens and account info
 type LoginData struct {
 	// A JWT that should be used in the header of all requests: `Authorization: Bearer <authToken>`
@@ -533,6 +550,32 @@ type User struct {
 	ProfileURL   string       `json:"profileUrl"`
 	AdminOfShows []*ShowAdmin `json:"adminOfShows"`
 }
+
+type UserReport struct {
+	ID               *uuid.UUID  `json:"id"`
+	CreatedAt        time.Time   `json:"createdAt"`
+	CreatedByUserID  *uuid.UUID  `json:"createdByUserId"`
+	CreatedBy        *User       `json:"createdBy"`
+	UpdatedAt        time.Time   `json:"updatedAt"`
+	UpdatedByUserID  *uuid.UUID  `json:"updatedByUserId"`
+	UpdatedBy        *User       `json:"updatedBy"`
+	DeletedAt        *time.Time  `json:"deletedAt"`
+	DeletedByUserID  *uuid.UUID  `json:"deletedByUserId"`
+	DeletedBy        *User       `json:"deletedBy"`
+	Message          string      `json:"message"`
+	ReportedFromURL  string      `json:"reportedFromUrl"`
+	Resolved         bool        `json:"resolved"`
+	TimestampID      *uuid.UUID  `json:"timestampId"`
+	Timestamp        *Timestamp  `json:"timestamp"`
+	EpisodeID        *uuid.UUID  `json:"episodeId"`
+	Episode          *Episode    `json:"episode"`
+	EpisodeURLString *string     `json:"episodeUrlString"`
+	EpisodeURL       *EpisodeURL `json:"episodeUrl"`
+	ShowID           *uuid.UUID  `json:"showId"`
+	Show             *Show       `json:"show"`
+}
+
+func (UserReport) IsBaseModel() {}
 
 // Color theme the user prefers
 type ColorTheme string
