@@ -50,6 +50,7 @@ var (
 	ZeroTimestampType          = TimestampType{}
 	ZeroUpdatedTimestamps      = UpdatedTimestamps{}
 	ZeroUser                   = User{}
+	ZeroUserReport             = UserReport{}
 )
 
 func NewPreferences(ctx context.Context, userID uuid.UUID) Preferences {

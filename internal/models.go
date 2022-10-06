@@ -148,6 +148,14 @@ type UsersFilter struct {
 	IncludeDeleted  bool
 }
 
+type UserReportsFilter struct {
+	Pagination     *Pagination
+	Sort           string
+	ID             *uuid.UUID
+	Resolved       *bool
+	IncludeDeleted bool
+}
+
 type FullUser struct {
 	ID            uuid.UUID
 	CreatedAt     time.Time

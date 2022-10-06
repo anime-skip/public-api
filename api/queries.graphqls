@@ -140,4 +140,16 @@ type Query {
   findApiClient(id: String!): ApiClient! @authenticated
 
   counts: TotalCounts
+
+  "List all user reports, by default only unresolved ones."
+  findUserReports(
+    resolved: Boolean = false
+    offset: Int = 0
+    limit: Int = 10
+    "DESC = newest first, ASC = oldest first"
+    sort: String = "DESC"
+  ): [UserReport!]! @hasRole(role: ADMIN)
+
+  "Get a single user report, even if it's been resolved/deleted."
+  findUserReport(id: ID!): UserReport! @hasRole(role: ADMIN)
 }

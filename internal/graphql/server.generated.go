@@ -56,6 +56,7 @@ type ResolverRoot interface {
 	TimestampType() TimestampTypeResolver
 	TotalCounts() TotalCountsResolver
 	User() UserResolver
+	UserReport() UserReportResolver
 }
 
 type DirectiveRoot struct {
@@ -162,6 +163,7 @@ type ComplexityRoot struct {
 		CreateTemplate              func(childComplexity int, newTemplate internal.InputTemplate) int
 		CreateTimestamp             func(childComplexity int, episodeID *uuid.UUID, timestampInput internal.InputTimestamp) int
 		CreateTimestampType         func(childComplexity int, timestampTypeInput internal.InputTimestampType) int
+		CreateUserReport            func(childComplexity int, report *internal.InputUserReport) int
 		DeleteAPIClient             func(childComplexity int, id string) int
 		DeleteAccount               func(childComplexity int, deleteToken string) int
 		DeleteAccountRequest        func(childComplexity int, passwordHash string) int
@@ -177,6 +179,7 @@ type ComplexityRoot struct {
 		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
+		ResolveUserReport           func(childComplexity int, id *uuid.UUID) int
 		SavePreferences             func(childComplexity int, preferences map[string]interface{}) int
 		UpdateAPIClient             func(childComplexity int, id string, changes map[string]interface{}) int
 		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode internal.InputEpisode) int
@@ -239,6 +242,8 @@ type ComplexityRoot struct {
 		FindTimestampsByEpisodeID  func(childComplexity int, episodeID *uuid.UUID) int
 		FindUser                   func(childComplexity int, userID *uuid.UUID) int
 		FindUserByUsername         func(childComplexity int, username string) int
+		FindUserReport             func(childComplexity int, id *uuid.UUID) int
+		FindUserReports            func(childComplexity int, resolved *bool, offset *int, limit *int, sort *string) int
 		Login                      func(childComplexity int, usernameEmail string, passwordHash string) int
 		LoginRefresh               func(childComplexity int, refreshToken string) int
 		MyAPIClients               func(childComplexity int, search *string, offset *int, limit *int, sort *string) int
@@ -399,6 +404,30 @@ type ComplexityRoot struct {
 		ProfileURL   func(childComplexity int) int
 		Username     func(childComplexity int) int
 	}
+
+	UserReport struct {
+		CreatedAt        func(childComplexity int) int
+		CreatedBy        func(childComplexity int) int
+		CreatedByUserID  func(childComplexity int) int
+		DeletedAt        func(childComplexity int) int
+		DeletedBy        func(childComplexity int) int
+		DeletedByUserID  func(childComplexity int) int
+		Episode          func(childComplexity int) int
+		EpisodeID        func(childComplexity int) int
+		EpisodeURL       func(childComplexity int) int
+		EpisodeURLString func(childComplexity int) int
+		ID               func(childComplexity int) int
+		Message          func(childComplexity int) int
+		ReportedFromURL  func(childComplexity int) int
+		Resolved         func(childComplexity int) int
+		Show             func(childComplexity int) int
+		ShowID           func(childComplexity int) int
+		Timestamp        func(childComplexity int) int
+		TimestampID      func(childComplexity int) int
+		UpdatedAt        func(childComplexity int) int
+		UpdatedBy        func(childComplexity int) int
+		UpdatedByUserID  func(childComplexity int) int
+	}
 }
 
 type AccountResolver interface {
@@ -482,6 +511,8 @@ type MutationResolver interface {
 	DeleteAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
 	AddExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
 	RemoveExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
+	CreateUserReport(ctx context.Context, report *internal.InputUserReport) (*internal.UserReport, error)
+	ResolveUserReport(ctx context.Context, id *uuid.UUID) (*internal.UserReport, error)
 }
 type PreferencesResolver interface {
 	User(ctx context.Context, obj *internal.Preferences) (*internal.User, error)
@@ -515,6 +546,8 @@ type QueryResolver interface {
 	MyAPIClients(ctx context.Context, search *string, offset *int, limit *int, sort *string) ([]*internal.APIClient, error)
 	FindAPIClient(ctx context.Context, id string) (*internal.APIClient, error)
 	Counts(ctx context.Context) (*internal.TotalCounts, error)
+	FindUserReports(ctx context.Context, resolved *bool, offset *int, limit *int, sort *string) ([]*internal.UserReport, error)
+	FindUserReport(ctx context.Context, id *uuid.UUID) (*internal.UserReport, error)
 }
 type ShowResolver interface {
 	CreatedBy(ctx context.Context, obj *internal.Show) (*internal.User, error)
@@ -591,6 +624,21 @@ type TotalCountsResolver interface {
 }
 type UserResolver interface {
 	AdminOfShows(ctx context.Context, obj *internal.User) ([]*internal.ShowAdmin, error)
+}
+type UserReportResolver interface {
+	CreatedBy(ctx context.Context, obj *internal.UserReport) (*internal.User, error)
+
+	UpdatedBy(ctx context.Context, obj *internal.UserReport) (*internal.User, error)
+
+	DeletedBy(ctx context.Context, obj *internal.UserReport) (*internal.User, error)
+
+	Timestamp(ctx context.Context, obj *internal.UserReport) (*internal.Timestamp, error)
+
+	Episode(ctx context.Context, obj *internal.UserReport) (*internal.Episode, error)
+
+	EpisodeURL(ctx context.Context, obj *internal.UserReport) (*internal.EpisodeURL, error)
+
+	Show(ctx context.Context, obj *internal.UserReport) (*internal.Show, error)
 }
 
 type executableSchema struct {
@@ -1207,6 +1255,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateTimestampType(childComplexity, args["timestampTypeInput"].(internal.InputTimestampType)), true
 
+	case "Mutation.createUserReport":
+		if e.complexity.Mutation.CreateUserReport == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createUserReport_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateUserReport(childComplexity, args["report"].(*internal.InputUserReport)), true
+
 	case "Mutation.deleteApiClient":
 		if e.complexity.Mutation.DeleteAPIClient == nil {
 			break
@@ -1386,6 +1446,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.ResetPassword(childComplexity, args["passwordResetToken"].(string), args["newPassword"].(string), args["confirmNewPassword"].(string)), true
+
+	case "Mutation.resolveUserReport":
+		if e.complexity.Mutation.ResolveUserReport == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_resolveUserReport_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.ResolveUserReport(childComplexity, args["id"].(*uuid.UUID)), true
 
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
@@ -1923,6 +1995,30 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.FindUserByUsername(childComplexity, args["username"].(string)), true
+
+	case "Query.findUserReport":
+		if e.complexity.Query.FindUserReport == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findUserReport_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindUserReport(childComplexity, args["id"].(*uuid.UUID)), true
+
+	case "Query.findUserReports":
+		if e.complexity.Query.FindUserReports == nil {
+			break
+		}
+
+		args, err := ec.field_Query_findUserReports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.FindUserReports(childComplexity, args["resolved"].(*bool), args["offset"].(*int), args["limit"].(*int), args["sort"].(*string)), true
 
 	case "Query.login":
 		if e.complexity.Query.Login == nil {
@@ -2815,6 +2911,153 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Username(childComplexity), true
 
+	case "UserReport.createdAt":
+		if e.complexity.UserReport.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserReport.CreatedAt(childComplexity), true
+
+	case "UserReport.createdBy":
+		if e.complexity.UserReport.CreatedBy == nil {
+			break
+		}
+
+		return e.complexity.UserReport.CreatedBy(childComplexity), true
+
+	case "UserReport.createdByUserId":
+		if e.complexity.UserReport.CreatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.CreatedByUserID(childComplexity), true
+
+	case "UserReport.deletedAt":
+		if e.complexity.UserReport.DeletedAt == nil {
+			break
+		}
+
+		return e.complexity.UserReport.DeletedAt(childComplexity), true
+
+	case "UserReport.deletedBy":
+		if e.complexity.UserReport.DeletedBy == nil {
+			break
+		}
+
+		return e.complexity.UserReport.DeletedBy(childComplexity), true
+
+	case "UserReport.deletedByUserId":
+		if e.complexity.UserReport.DeletedByUserID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.DeletedByUserID(childComplexity), true
+
+	case "UserReport.episode":
+		if e.complexity.UserReport.Episode == nil {
+			break
+		}
+
+		return e.complexity.UserReport.Episode(childComplexity), true
+
+	case "UserReport.episodeId":
+		if e.complexity.UserReport.EpisodeID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.EpisodeID(childComplexity), true
+
+	case "UserReport.episodeUrl":
+		if e.complexity.UserReport.EpisodeURL == nil {
+			break
+		}
+
+		return e.complexity.UserReport.EpisodeURL(childComplexity), true
+
+	case "UserReport.episodeUrlString":
+		if e.complexity.UserReport.EpisodeURLString == nil {
+			break
+		}
+
+		return e.complexity.UserReport.EpisodeURLString(childComplexity), true
+
+	case "UserReport.id":
+		if e.complexity.UserReport.ID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.ID(childComplexity), true
+
+	case "UserReport.message":
+		if e.complexity.UserReport.Message == nil {
+			break
+		}
+
+		return e.complexity.UserReport.Message(childComplexity), true
+
+	case "UserReport.reportedFromUrl":
+		if e.complexity.UserReport.ReportedFromURL == nil {
+			break
+		}
+
+		return e.complexity.UserReport.ReportedFromURL(childComplexity), true
+
+	case "UserReport.resolved":
+		if e.complexity.UserReport.Resolved == nil {
+			break
+		}
+
+		return e.complexity.UserReport.Resolved(childComplexity), true
+
+	case "UserReport.show":
+		if e.complexity.UserReport.Show == nil {
+			break
+		}
+
+		return e.complexity.UserReport.Show(childComplexity), true
+
+	case "UserReport.showId":
+		if e.complexity.UserReport.ShowID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.ShowID(childComplexity), true
+
+	case "UserReport.timestamp":
+		if e.complexity.UserReport.Timestamp == nil {
+			break
+		}
+
+		return e.complexity.UserReport.Timestamp(childComplexity), true
+
+	case "UserReport.timestampId":
+		if e.complexity.UserReport.TimestampID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.TimestampID(childComplexity), true
+
+	case "UserReport.updatedAt":
+		if e.complexity.UserReport.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.UserReport.UpdatedAt(childComplexity), true
+
+	case "UserReport.updatedBy":
+		if e.complexity.UserReport.UpdatedBy == nil {
+			break
+		}
+
+		return e.complexity.UserReport.UpdatedBy(childComplexity), true
+
+	case "UserReport.updatedByUserId":
+		if e.complexity.UserReport.UpdatedByUserID == nil {
+			break
+		}
+
+		return e.complexity.UserReport.UpdatedByUserID(childComplexity), true
+
 	}
 	return 0, false
 }
@@ -2834,6 +3077,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputInputTimestamp,
 		ec.unmarshalInputInputTimestampOn,
 		ec.unmarshalInputInputTimestampType,
+		ec.unmarshalInputInputUserReport,
 	)
 	first := true
 
@@ -3567,6 +3811,50 @@ type TotalCounts {
   users: Int!
   templates: Int!
 }
+
+type UserReport implements BaseModel {
+  id: ID!
+  createdAt: Time!
+  createdByUserId: ID!
+  createdBy: User!
+  updatedAt: Time!
+  updatedByUserId: ID!
+  updatedBy: User!
+  deletedAt: Time
+  deletedByUserId: ID
+  deletedBy: User
+
+  message: String!
+  reportedFromUrl: String!
+  resolved: Boolean!
+  timestampId: ID
+  timestamp: Timestamp
+  episodeId: ID
+  episode: Episode
+  episodeUrlString: String
+  episodeUrl: EpisodeUrl
+  showId: ID
+  show: Show
+}
+
+input InputUserReport {
+  "The content of the report stating what is wrong with the reported data."
+  message: String!
+  "The URL the user made the report from so the reviewer can easily navigate to it."
+  reportedFromUrl: String!
+  "The ID of a timestamp if you're reporting an issue with a specific timestamp."
+  timestampId: ID
+  "The ID of an episode if you're reporting an issue with a specific episode."
+  episodeId: ID
+  """
+  The URL of the epiosde URL if you're reporting an issue with a specific episode URL.
+
+  This is different from ` + "`" + `reportedFromUrl` + "`" + `, this is related to an EpisodeUrl model, not the url the report is coming from.
+  """
+  episodeUrl: String
+  "The ID of an show if you're reporting an issue with a specific show."
+  showId: ID
+}
 `, BuiltIn: false},
 	{Name: "../../api/mutations.graphqls", Input: `type Mutation {
   # Account
@@ -3777,6 +4065,11 @@ type TotalCounts {
 
   addExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
   removeExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
+
+  "Report an issue with a single timestamp, episode, episode URL, or show."
+  createUserReport(report: InputUserReport): UserReport! @authenticated
+  "Mark a report as fixed"
+  resolveUserReport(id: ID!): UserReport! @authenticated
 }
 `, BuiltIn: false},
 	{Name: "../../api/queries.graphqls", Input: `type Query {
@@ -3921,6 +4214,18 @@ type TotalCounts {
   findApiClient(id: String!): ApiClient! @authenticated
 
   counts: TotalCounts
+
+  "List all user reports, by default only unresolved ones."
+  findUserReports(
+    resolved: Boolean = false
+    offset: Int = 0
+    limit: Int = 10
+    "DESC = newest first, ASC = oldest first"
+    sort: String = "DESC"
+  ): [UserReport!]! @hasRole(role: ADMIN)
+
+  "Get a single user report, even if it's been resolved/deleted."
+  findUserReport(id: ID!): UserReport! @hasRole(role: ADMIN)
 }
 `, BuiltIn: false},
 	{Name: "../../api/return_types.graphqls", Input: `"""
@@ -4264,6 +4569,21 @@ func (ec *executionContext) field_Mutation_createTimestamp_args(ctx context.Cont
 	return args, nil
 }
 
+func (ec *executionContext) field_Mutation_createUserReport_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *internal.InputUserReport
+	if tmp, ok := rawArgs["report"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("report"))
+		arg0, err = ec.unmarshalOInputUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐInputUserReport(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["report"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Mutation_deleteAccountRequest_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -4586,6 +4906,21 @@ func (ec *executionContext) field_Mutation_resetPassword_args(ctx context.Contex
 		}
 	}
 	args["confirmNewPassword"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_resolveUserReport_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -5129,6 +5464,63 @@ func (ec *executionContext) field_Query_findUserByUsername_args(ctx context.Cont
 		}
 	}
 	args["username"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUserReport_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *uuid.UUID
+	if tmp, ok := rawArgs["id"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("id"))
+		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_findUserReports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["resolved"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolved"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resolved"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["offset"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("offset"))
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["offset"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["limit"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("limit"))
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["limit"] = arg2
+	var arg3 *string
+	if tmp, ok := rawArgs["sort"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("sort"))
+		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["sort"] = arg3
 	return args, nil
 }
 
@@ -12284,6 +12676,244 @@ func (ec *executionContext) fieldContext_Mutation_removeExternalLink(ctx context
 	return fc, nil
 }
 
+func (ec *executionContext) _Mutation_createUserReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_createUserReport(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUserReport(rctx, fc.Args["report"].(*internal.InputUserReport))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.UserReport); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.UserReport`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.UserReport)
+	fc.Result = res
+	return ec.marshalNUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_createUserReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReport_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReport_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_UserReport_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_UserReport_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReport_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_UserReport_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_UserReport_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_UserReport_deletedBy(ctx, field)
+			case "message":
+				return ec.fieldContext_UserReport_message(ctx, field)
+			case "reportedFromUrl":
+				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+			case "resolved":
+				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "timestampId":
+				return ec.fieldContext_UserReport_timestampId(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_UserReport_timestamp(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_UserReport_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_UserReport_episode(ctx, field)
+			case "episodeUrlString":
+				return ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+			case "episodeUrl":
+				return ec.fieldContext_UserReport_episodeUrl(ctx, field)
+			case "showId":
+				return ec.fieldContext_UserReport_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_UserReport_show(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_createUserReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Mutation_resolveUserReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Mutation_resolveUserReport(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().ResolveUserReport(rctx, fc.Args["id"].(*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.Authenticated == nil {
+				return nil, errors.New("directive authenticated is not implemented")
+			}
+			return ec.directives.Authenticated(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.UserReport); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.UserReport`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.UserReport)
+	fc.Result = res
+	return ec.marshalNUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Mutation_resolveUserReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReport_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReport_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_UserReport_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_UserReport_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReport_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_UserReport_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_UserReport_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_UserReport_deletedBy(ctx, field)
+			case "message":
+				return ec.fieldContext_UserReport_message(ctx, field)
+			case "reportedFromUrl":
+				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+			case "resolved":
+				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "timestampId":
+				return ec.fieldContext_UserReport_timestampId(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_UserReport_timestamp(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_UserReport_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_UserReport_episode(ctx, field)
+			case "episodeUrlString":
+				return ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+			case "episodeUrl":
+				return ec.fieldContext_UserReport_episodeUrl(ctx, field)
+			case "showId":
+				return ec.fieldContext_UserReport_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_UserReport_show(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Mutation_resolveUserReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _Preferences_id(ctx context.Context, field graphql.CollectedField, obj *internal.Preferences) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Preferences_id(ctx, field)
 	if err != nil {
@@ -15809,6 +16439,252 @@ func (ec *executionContext) fieldContext_Query_counts(ctx context.Context, field
 			}
 			return nil, fmt.Errorf("no field named %q was found under type TotalCounts", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_findUserReports(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_findUserReports(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindUserReports(rctx, fc.Args["resolved"].(*bool), fc.Args["offset"].(*int), fc.Args["limit"].(*int), fc.Args["sort"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*internal.UserReport); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*anime-skip.com/public-api/internal.UserReport`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*internal.UserReport)
+	fc.Result = res
+	return ec.marshalNUserReport2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReportᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_findUserReports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReport_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReport_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_UserReport_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_UserReport_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReport_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_UserReport_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_UserReport_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_UserReport_deletedBy(ctx, field)
+			case "message":
+				return ec.fieldContext_UserReport_message(ctx, field)
+			case "reportedFromUrl":
+				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+			case "resolved":
+				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "timestampId":
+				return ec.fieldContext_UserReport_timestampId(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_UserReport_timestamp(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_UserReport_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_UserReport_episode(ctx, field)
+			case "episodeUrlString":
+				return ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+			case "episodeUrl":
+				return ec.fieldContext_UserReport_episodeUrl(ctx, field)
+			case "showId":
+				return ec.fieldContext_UserReport_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_UserReport_show(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_findUserReports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_findUserReport(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Query_findUserReport(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().FindUserReport(rctx, fc.Args["id"].(*uuid.UUID))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "ADMIN")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*internal.UserReport); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *anime-skip.com/public-api/internal.UserReport`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.UserReport)
+	fc.Result = res
+	return ec.marshalNUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Query_findUserReport(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReport_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReport_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_UserReport_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_UserReport_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReport_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_UserReport_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_UserReport_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_UserReport_deletedBy(ctx, field)
+			case "message":
+				return ec.fieldContext_UserReport_message(ctx, field)
+			case "reportedFromUrl":
+				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+			case "resolved":
+				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "timestampId":
+				return ec.fieldContext_UserReport_timestampId(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_UserReport_timestamp(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_UserReport_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_UserReport_episode(ctx, field)
+			case "episodeUrlString":
+				return ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+			case "episodeUrl":
+				return ec.fieldContext_UserReport_episodeUrl(ctx, field)
+			case "showId":
+				return ec.fieldContext_UserReport_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_UserReport_show(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_findUserReport_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
 	}
 	return fc, nil
 }
@@ -21862,6 +22738,1083 @@ func (ec *executionContext) fieldContext_User_adminOfShows(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _UserReport_id(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_id(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_id(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_createdAt(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_createdAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_createdAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_createdByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_createdByUserId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CreatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_createdByUserId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_createdBy(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_createdBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().CreatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_createdBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "profileUrl":
+				return ec.fieldContext_User_profileUrl(ctx, field)
+			case "adminOfShows":
+				return ec.fieldContext_User_adminOfShows(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_updatedAt(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_updatedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	fc.Result = res
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_updatedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_updatedByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UpdatedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_updatedByUserId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_updatedBy(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_updatedBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().UpdatedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_updatedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "profileUrl":
+				return ec.fieldContext_User_profileUrl(ctx, field)
+			case "adminOfShows":
+				return ec.fieldContext_User_adminOfShows(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_deletedAt(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_deletedAt(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*time.Time)
+	fc.Result = res
+	return ec.marshalOTime2ᚖtimeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_deletedAt(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_deletedByUserId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.DeletedByUserID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_deletedByUserId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_deletedBy(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_deletedBy(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().DeletedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUser(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_deletedBy(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_User_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_User_createdAt(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_User_deletedAt(ctx, field)
+			case "username":
+				return ec.fieldContext_User_username(ctx, field)
+			case "profileUrl":
+				return ec.fieldContext_User_profileUrl(ctx, field)
+			case "adminOfShows":
+				return ec.fieldContext_User_adminOfShows(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type User", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_message(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_message(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Message, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_message(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_reportedFromUrl(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ReportedFromURL, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_reportedFromUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_resolved(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_resolved(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Resolved, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_resolved(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_timestampId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_timestampId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.TimestampID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_timestampId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_timestamp(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_timestamp(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().Timestamp(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.Timestamp)
+	fc.Result = res
+	return ec.marshalOTimestamp2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTimestamp(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_timestamp(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Timestamp_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Timestamp_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_Timestamp_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Timestamp_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Timestamp_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_Timestamp_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Timestamp_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Timestamp_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_Timestamp_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_Timestamp_deletedBy(ctx, field)
+			case "at":
+				return ec.fieldContext_Timestamp_at(ctx, field)
+			case "source":
+				return ec.fieldContext_Timestamp_source(ctx, field)
+			case "typeId":
+				return ec.fieldContext_Timestamp_typeId(ctx, field)
+			case "type":
+				return ec.fieldContext_Timestamp_type(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_Timestamp_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_Timestamp_episode(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Timestamp", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_episodeId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_episodeId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EpisodeID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_episodeId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_episode(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_episode(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().Episode(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.Episode)
+	fc.Result = res
+	return ec.marshalOEpisode2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐEpisode(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_episode(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Episode_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Episode_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_Episode_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Episode_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Episode_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_Episode_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Episode_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Episode_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_Episode_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_Episode_deletedBy(ctx, field)
+			case "season":
+				return ec.fieldContext_Episode_season(ctx, field)
+			case "number":
+				return ec.fieldContext_Episode_number(ctx, field)
+			case "absoluteNumber":
+				return ec.fieldContext_Episode_absoluteNumber(ctx, field)
+			case "baseDuration":
+				return ec.fieldContext_Episode_baseDuration(ctx, field)
+			case "name":
+				return ec.fieldContext_Episode_name(ctx, field)
+			case "show":
+				return ec.fieldContext_Episode_show(ctx, field)
+			case "showId":
+				return ec.fieldContext_Episode_showId(ctx, field)
+			case "timestamps":
+				return ec.fieldContext_Episode_timestamps(ctx, field)
+			case "urls":
+				return ec.fieldContext_Episode_urls(ctx, field)
+			case "template":
+				return ec.fieldContext_Episode_template(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_episodeUrlString(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.EpisodeURLString, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_episodeUrlString(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_episodeUrl(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_episodeUrl(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().EpisodeURL(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.EpisodeURL)
+	fc.Result = res
+	return ec.marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐEpisodeURL(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_episodeUrl(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "url":
+				return ec.fieldContext_EpisodeUrl_url(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_EpisodeUrl_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_EpisodeUrl_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_EpisodeUrl_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_EpisodeUrl_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_EpisodeUrl_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_EpisodeUrl_updatedBy(ctx, field)
+			case "duration":
+				return ec.fieldContext_EpisodeUrl_duration(ctx, field)
+			case "timestampsOffset":
+				return ec.fieldContext_EpisodeUrl_timestampsOffset(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_EpisodeUrl_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_EpisodeUrl_episode(ctx, field)
+			case "source":
+				return ec.fieldContext_EpisodeUrl_source(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type EpisodeUrl", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_showId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_showId(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ShowID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*uuid.UUID)
+	fc.Result = res
+	return ec.marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_showId(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserReport_show(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_show(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.UserReport().Show(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*internal.Show)
+	fc.Result = res
+	return ec.marshalOShow2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐShow(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_show(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_Show_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_Show_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_Show_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_Show_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_Show_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_Show_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_Show_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_Show_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_Show_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_Show_deletedBy(ctx, field)
+			case "name":
+				return ec.fieldContext_Show_name(ctx, field)
+			case "originalName":
+				return ec.fieldContext_Show_originalName(ctx, field)
+			case "website":
+				return ec.fieldContext_Show_website(ctx, field)
+			case "image":
+				return ec.fieldContext_Show_image(ctx, field)
+			case "admins":
+				return ec.fieldContext_Show_admins(ctx, field)
+			case "episodes":
+				return ec.fieldContext_Show_episodes(ctx, field)
+			case "templates":
+				return ec.fieldContext_Show_templates(ctx, field)
+			case "externalLinks":
+				return ec.fieldContext_Show_externalLinks(ctx, field)
+			case "seasonCount":
+				return ec.fieldContext_Show_seasonCount(ctx, field)
+			case "episodeCount":
+				return ec.fieldContext_Show_episodeCount(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type Show", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext___Directive_name(ctx, field)
 	if err != nil {
@@ -24048,6 +26001,69 @@ func (ec *executionContext) unmarshalInputInputTimestampType(ctx context.Context
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputInputUserReport(ctx context.Context, obj interface{}) (internal.InputUserReport, error) {
+	var it internal.InputUserReport
+	asMap := map[string]interface{}{}
+	for k, v := range obj.(map[string]interface{}) {
+		asMap[k] = v
+	}
+
+	for k, v := range asMap {
+		switch k {
+		case "message":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("message"))
+			it.Message, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "reportedFromUrl":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("reportedFromUrl"))
+			it.ReportedFromURL, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "timestampId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("timestampId"))
+			it.TimestampID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "episodeId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeId"))
+			it.EpisodeID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "episodeUrl":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("episodeUrl"))
+			it.EpisodeURL, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "showId":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
+			it.ShowID, err = ec.unmarshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -24098,6 +26114,13 @@ func (ec *executionContext) _BaseModel(ctx context.Context, sel ast.SelectionSet
 			return graphql.Null
 		}
 		return ec._Template(ctx, sel, obj)
+	case internal.UserReport:
+		return ec._UserReport(ctx, sel, &obj)
+	case *internal.UserReport:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._UserReport(ctx, sel, obj)
 	default:
 		panic(fmt.Errorf("unexpected type %T", obj))
 	}
@@ -25259,6 +27282,24 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createUserReport":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_createUserReport(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "resolveUserReport":
+
+			out.Values[i] = ec.OperationContext.RootResolverMiddleware(innerCtx, func(ctx context.Context) (res graphql.Marshaler) {
+				return ec._Mutation_resolveUserReport(ctx, field)
+			})
+
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -26119,6 +28160,52 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_counts(ctx, field)
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "findUserReports":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findUserReports(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx, innerFunc)
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return rrm(innerCtx)
+			})
+		case "findUserReport":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_findUserReport(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 
@@ -27653,6 +29740,232 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var userReportImplementors = []string{"UserReport", "BaseModel"}
+
+func (ec *executionContext) _UserReport(ctx context.Context, sel ast.SelectionSet, obj *internal.UserReport) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, userReportImplementors)
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("UserReport")
+		case "id":
+
+			out.Values[i] = ec._UserReport_id(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdAt":
+
+			out.Values[i] = ec._UserReport_createdAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdByUserId":
+
+			out.Values[i] = ec._UserReport_createdByUserId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "createdBy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_createdBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "updatedAt":
+
+			out.Values[i] = ec._UserReport_updatedAt(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedByUserId":
+
+			out.Values[i] = ec._UserReport_updatedByUserId(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "updatedBy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_updatedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "deletedAt":
+
+			out.Values[i] = ec._UserReport_deletedAt(ctx, field, obj)
+
+		case "deletedByUserId":
+
+			out.Values[i] = ec._UserReport_deletedByUserId(ctx, field, obj)
+
+		case "deletedBy":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_deletedBy(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "message":
+
+			out.Values[i] = ec._UserReport_message(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "reportedFromUrl":
+
+			out.Values[i] = ec._UserReport_reportedFromUrl(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "resolved":
+
+			out.Values[i] = ec._UserReport_resolved(ctx, field, obj)
+
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "timestampId":
+
+			out.Values[i] = ec._UserReport_timestampId(ctx, field, obj)
+
+		case "timestamp":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_timestamp(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "episodeId":
+
+			out.Values[i] = ec._UserReport_episodeId(ctx, field, obj)
+
+		case "episode":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_episode(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "episodeUrlString":
+
+			out.Values[i] = ec._UserReport_episodeUrlString(ctx, field, obj)
+
+		case "episodeUrl":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_episodeUrl(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "showId":
+
+			out.Values[i] = ec._UserReport_showId(ctx, field, obj)
+
+		case "show":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserReport_show(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var __DirectiveImplementors = []string{"__Directive"}
 
 func (ec *executionContext) ___Directive(ctx context.Context, sel ast.SelectionSet, obj *introspection.Directive) graphql.Marshaler {
@@ -28985,6 +31298,64 @@ func (ec *executionContext) marshalNUser2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋ
 	return ec._User(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNUserReport2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx context.Context, sel ast.SelectionSet, v internal.UserReport) graphql.Marshaler {
+	return ec._UserReport(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUserReport2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReportᚄ(ctx context.Context, sel ast.SelectionSet, v []*internal.UserReport) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReport(ctx context.Context, sel ast.SelectionSet, v *internal.UserReport) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._UserReport(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
 	return ec.___Directive(ctx, sel, &v)
 }
@@ -29280,6 +31651,20 @@ func (ec *executionContext) marshalOColorTheme2ᚖanimeᚑskipᚗcomᚋpublicᚑ
 	return v
 }
 
+func (ec *executionContext) marshalOEpisode2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐEpisode(ctx context.Context, sel ast.SelectionSet, v *internal.Episode) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Episode(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalOEpisodeUrl2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐEpisodeURL(ctx context.Context, sel ast.SelectionSet, v *internal.EpisodeURL) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._EpisodeUrl(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOFloat2ᚖfloat64(ctx context.Context, v interface{}) (*float64, error) {
 	if v == nil {
 		return nil, nil
@@ -29312,6 +31697,14 @@ func (ec *executionContext) marshalOID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx
 	return res
 }
 
+func (ec *executionContext) unmarshalOInputUserReport2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐInputUserReport(ctx context.Context, v interface{}) (*internal.InputUserReport, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputInputUserReport(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
 	if v == nil {
 		return nil, nil
@@ -29326,6 +31719,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	}
 	res := graphql.MarshalInt(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOShow2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐShow(ctx context.Context, sel ast.SelectionSet, v *internal.Show) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Show(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
@@ -29403,6 +31803,13 @@ func (ec *executionContext) marshalOTime2ᚖtimeᚐTime(ctx context.Context, sel
 	}
 	res := graphql.MarshalTime(*v)
 	return res
+}
+
+func (ec *executionContext) marshalOTimestamp2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v *internal.Timestamp) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Timestamp(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalOTimestampSource2ᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐTimestampSource(ctx context.Context, v interface{}) (*internal.TimestampSource, error) {

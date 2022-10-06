@@ -207,4 +207,9 @@ type Mutation {
 
   addExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
   removeExternalLink(showId: ID!, url: String!): ExternalLink! @authenticated
+
+  "Report an issue with a single timestamp, episode, episode URL, or show."
+  createUserReport(report: InputUserReport): UserReport! @authenticated
+  "Mark a report as fixed"
+  resolveUserReport(id: ID!): UserReport! @authenticated
 }
