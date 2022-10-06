@@ -159,7 +159,7 @@ func (r *episodeResolver) DeletedBy(ctx context.Context, obj *internal.Episode) 
 }
 
 func (r *episodeResolver) Show(ctx context.Context, obj *internal.Episode) (*internal.Show, error) {
-	return r.getShowById(ctx, obj.ShowID)
+	return r.getShowByID(ctx, obj.ShowID)
 }
 
 func (r *episodeResolver) Timestamps(ctx context.Context, obj *internal.Episode) ([]*internal.Timestamp, error) {

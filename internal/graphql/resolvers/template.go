@@ -215,7 +215,7 @@ func (r *templateResolver) DeletedBy(ctx context.Context, obj *internal.Template
 }
 
 func (r *templateResolver) Show(ctx context.Context, obj *internal.Template) (*internal.Show, error) {
-	return r.getShowById(ctx, obj.ShowID)
+	return r.getShowByID(ctx, obj.ShowID)
 }
 
 func (r *templateResolver) SourceEpisode(ctx context.Context, obj *internal.Template) (*internal.Episode, error) {
