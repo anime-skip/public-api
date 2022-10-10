@@ -128,7 +128,7 @@ func (s *jwtAuthService) validateToken(name string, token string, audience strin
 	return payload, nil
 }
 
-func (s *jwtAuthService) mapAuthClaims(ctx context.Context, claims jwt.MapClaims) (internal.AuthClaims, error) {
+func (s *jwtAuthService) parseAuthClaims(ctx context.Context, claims jwt.MapClaims) (internal.AuthClaims, error) {
 	userID, err := uuid.FromString(claims["userId"].(string))
 	if err != nil {
 		return internal.AuthClaims{}, err
@@ -145,7 +145,7 @@ func (s *jwtAuthService) mapAuthClaims(ctx context.Context, claims jwt.MapClaims
 	}, nil
 }
 
-func (s *jwtAuthService) generateAuthClaims(user internal.FullUser) (jwt.MapClaims, error) {
+func (s *jwtAuthService) createAuthClaims(user internal.FullUser) (jwt.MapClaims, error) {
 	return jwt.MapClaims{
 		"userId": user.ID,
 	}, nil
@@ -156,7 +156,7 @@ func (s *jwtAuthService) ValidateAccessToken(ctx context.Context, token string) 
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(ctx, claims)
+	return s.parseAuthClaims(ctx, claims)
 }
 
 func (s *jwtAuthService) ValidateRefreshToken(ctx context.Context, token string) (internal.AuthClaims, error) {
@@ -164,7 +164,7 @@ func (s *jwtAuthService) ValidateRefreshToken(ctx context.Context, token string)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(ctx, claims)
+	return s.parseAuthClaims(ctx, claims)
 }
 
 func (s *jwtAuthService) ValidateVerifyEmailToken(ctx context.Context, token string) (internal.AuthClaims, error) {
@@ -172,7 +172,7 @@ func (s *jwtAuthService) ValidateVerifyEmailToken(ctx context.Context, token str
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(ctx, claims)
+	return s.parseAuthClaims(ctx, claims)
 }
 
 func (s *jwtAuthService) ValidateResetPasswordToken(ctx context.Context, token string) (internal.AuthClaims, error) {
@@ -180,7 +180,7 @@ func (s *jwtAuthService) ValidateResetPasswordToken(ctx context.Context, token s
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(ctx, claims)
+	return s.parseAuthClaims(ctx, claims)
 }
 
 func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) error {
@@ -196,7 +196,7 @@ func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) 
 }
 
 func (s *jwtAuthService) CreateAccessToken(user internal.FullUser) (string, error) {
-	claims, err := s.generateAuthClaims(user)
+	claims, err := s.createAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
@@ -204,7 +204,7 @@ func (s *jwtAuthService) CreateAccessToken(user internal.FullUser) (string, erro
 }
 
 func (s *jwtAuthService) CreateRefreshToken(user internal.FullUser) (string, error) {
-	claims, err := s.generateAuthClaims(user)
+	claims, err := s.createAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
@@ -212,7 +212,7 @@ func (s *jwtAuthService) CreateRefreshToken(user internal.FullUser) (string, err
 }
 
 func (s *jwtAuthService) CreateVerifyEmailToken(user internal.FullUser) (string, error) {
-	claims, err := s.generateAuthClaims(user)
+	claims, err := s.createAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
@@ -220,7 +220,7 @@ func (s *jwtAuthService) CreateVerifyEmailToken(user internal.FullUser) (string,
 }
 
 func (s *jwtAuthService) CreateResetPasswordToken(user internal.FullUser) (string, error) {
-	claims, err := s.generateAuthClaims(user)
+	claims, err := s.createAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
