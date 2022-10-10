@@ -138,7 +138,6 @@ func (s *jwtAuthService) mapAuthClaims(ctx context.Context, claims jwt.MapClaims
 		ID: &userID,
 	})
 	if err != nil {
-		log.W("User ID in token not found (%v)", claims["userId"])
 		return internal.AuthClaims{}, err
 	}
 	return internal.AuthClaims{
