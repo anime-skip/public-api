@@ -10,7 +10,6 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
 	"golang.org/x/crypto/bcrypt"
-	_ "golang.org/x/crypto/bcrypt"
 )
 
 var day time.Duration = 24 * time.Hour
@@ -146,6 +145,12 @@ func (s *jwtAuthService) mapAuthClaims(ctx context.Context, claims jwt.MapClaims
 	}, nil
 }
 
+func (s *jwtAuthService) generateAuthClaims(user internal.FullUser) (jwt.MapClaims, error) {
+	return jwt.MapClaims{
+		"userId": user.ID,
+	}, nil
+}
+
 func (s *jwtAuthService) ValidateAccessToken(ctx context.Context, token string) (internal.AuthClaims, error) {
 	claims, err := s.validateToken("Access", token, AUD_ACCESS_TOKEN)
 	if err != nil {
@@ -191,47 +196,35 @@ func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) 
 }
 
 func (s *jwtAuthService) CreateAccessToken(user internal.FullUser) (string, error) {
-	roleInt, err := user.Role.Value()
+	claims, err := s.generateAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
-	return s.createToken(AUD_ACCESS_TOKEN, TIMEOUT_ACCESS_TOKEN, jwt.MapClaims{
-		"userId": user.ID,
-		"role":   roleInt,
-	})
+	return s.createToken(AUD_ACCESS_TOKEN, TIMEOUT_ACCESS_TOKEN, claims)
 }
 
 func (s *jwtAuthService) CreateRefreshToken(user internal.FullUser) (string, error) {
-	roleInt, err := user.Role.Value()
+	claims, err := s.generateAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
-	return s.createToken(AUD_REFRESH_TOKEN, TIMEOUT_REFRESH_TOKEN, jwt.MapClaims{
-		"userId": user.ID,
-		"role":   roleInt,
-	})
+	return s.createToken(AUD_REFRESH_TOKEN, TIMEOUT_REFRESH_TOKEN, claims)
 }
 
 func (s *jwtAuthService) CreateVerifyEmailToken(user internal.FullUser) (string, error) {
-	roleInt, err := user.Role.Value()
+	claims, err := s.generateAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
-	return s.createToken(AUD_VERIFY_EMAIL_TOKEN, TIMEOUT_VERIFY_EMAIL_TOKEN, jwt.MapClaims{
-		"userId": user.ID,
-		"role":   roleInt,
-	})
+	return s.createToken(AUD_VERIFY_EMAIL_TOKEN, TIMEOUT_VERIFY_EMAIL_TOKEN, claims)
 }
 
 func (s *jwtAuthService) CreateResetPasswordToken(user internal.FullUser) (string, error) {
-	roleInt, err := user.Role.Value()
+	claims, err := s.generateAuthClaims(user)
 	if err != nil {
 		return "", err
 	}
-	return s.createToken(AUD_RESET_PASSWORD_TOKEN, TIMEOUT_RESET_PASSWORD_TOKEN, jwt.MapClaims{
-		"userId": user.ID,
-		"role":   roleInt,
-	})
+	return s.createToken(AUD_RESET_PASSWORD_TOKEN, TIMEOUT_RESET_PASSWORD_TOKEN, claims)
 }
 
 func (s *jwtAuthService) CreateEncryptedPassword(password string) (string, error) {
