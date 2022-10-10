@@ -77,7 +77,7 @@ func (r *queryResolver) FindUserReports(ctx context.Context, resolved *bool, off
 			Limit:  utils.ValueOr(limit, 10),
 		},
 		Sort:     utils.ValueOr(sort, "DESC"),
-		Resolved: lo.ToPtr(utils.ValueOr(resolved, false)),
+		Resolved: resolved,
 	}
 	reports, err := r.UserReportService.List(ctx, filter)
 	if err != nil {
