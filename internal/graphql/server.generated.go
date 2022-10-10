@@ -179,7 +179,7 @@ type ComplexityRoot struct {
 		RequestPasswordReset        func(childComplexity int, recaptchaResponse string, email string) int
 		ResendVerificationEmail     func(childComplexity int, recaptchaResponse string) int
 		ResetPassword               func(childComplexity int, passwordResetToken string, newPassword string, confirmNewPassword string) int
-		ResolveUserReport           func(childComplexity int, id *uuid.UUID) int
+		ResolveUserReport           func(childComplexity int, id *uuid.UUID, resolvedMessage *string) int
 		SavePreferences             func(childComplexity int, preferences map[string]interface{}) int
 		UpdateAPIClient             func(childComplexity int, id string, changes map[string]interface{}) int
 		UpdateEpisode               func(childComplexity int, episodeID *uuid.UUID, newEpisode internal.InputEpisode) int
@@ -420,6 +420,7 @@ type ComplexityRoot struct {
 		Message          func(childComplexity int) int
 		ReportedFromURL  func(childComplexity int) int
 		Resolved         func(childComplexity int) int
+		ResolvedMessage  func(childComplexity int) int
 		Show             func(childComplexity int) int
 		ShowID           func(childComplexity int) int
 		Timestamp        func(childComplexity int) int
@@ -512,7 +513,7 @@ type MutationResolver interface {
 	AddExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
 	RemoveExternalLink(ctx context.Context, showID *uuid.UUID, url string) (*internal.ExternalLink, error)
 	CreateUserReport(ctx context.Context, report *internal.InputUserReport) (*internal.UserReport, error)
-	ResolveUserReport(ctx context.Context, id *uuid.UUID) (*internal.UserReport, error)
+	ResolveUserReport(ctx context.Context, id *uuid.UUID, resolvedMessage *string) (*internal.UserReport, error)
 }
 type PreferencesResolver interface {
 	User(ctx context.Context, obj *internal.Preferences) (*internal.User, error)
@@ -1457,7 +1458,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.ResolveUserReport(childComplexity, args["id"].(*uuid.UUID)), true
+		return e.complexity.Mutation.ResolveUserReport(childComplexity, args["id"].(*uuid.UUID), args["resolvedMessage"].(*string)), true
 
 	case "Mutation.savePreferences":
 		if e.complexity.Mutation.SavePreferences == nil {
@@ -3009,6 +3010,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserReport.Resolved(childComplexity), true
 
+	case "UserReport.resolvedMessage":
+		if e.complexity.UserReport.ResolvedMessage == nil {
+			break
+		}
+
+		return e.complexity.UserReport.ResolvedMessage(childComplexity), true
+
 	case "UserReport.show":
 		if e.complexity.UserReport.Show == nil {
 			break
@@ -3829,6 +3837,7 @@ type UserReport implements BaseModel {
   message: String!
   reportedFromUrl: String!
   resolved: Boolean!
+  resolvedMessage: String
   timestampId: ID
   timestamp: Timestamp
   episodeId: ID
@@ -4071,7 +4080,8 @@ input InputUserReport {
   "Report an issue with a single timestamp, episode, episode URL, or show."
   createUserReport(report: InputUserReport): UserReport! @authenticated
   "Mark a report as fixed"
-  resolveUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
+  resolveUserReport(id: ID!, resolvedMessage: String): UserReport!
+    @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},
 	{Name: "../../api/queries.graphqls", Input: `type Query {
@@ -4217,9 +4227,10 @@ input InputUserReport {
 
   counts: TotalCounts
 
-  "List all user reports, by default only unresolved ones."
+  "List all user reports."
   findUserReports(
-    resolved: Boolean = false
+    "Pass true to show only resolved, false to show unresolved, or exclude for all"
+    resolved: Boolean
     offset: Int = 0
     limit: Int = 10
     "DESC = newest first, ASC = oldest first"
@@ -4923,6 +4934,15 @@ func (ec *executionContext) field_Mutation_resolveUserReport_args(ctx context.Co
 		}
 	}
 	args["id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["resolvedMessage"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolvedMessage"))
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resolvedMessage"] = arg1
 	return args, nil
 }
 
@@ -12763,6 +12783,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserReport(ctx context.C
 				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
 			case "resolved":
 				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "resolvedMessage":
+				return ec.fieldContext_UserReport_resolvedMessage(ctx, field)
 			case "timestampId":
 				return ec.fieldContext_UserReport_timestampId(ctx, field)
 			case "timestamp":
@@ -12812,7 +12834,7 @@ func (ec *executionContext) _Mutation_resolveUserReport(ctx context.Context, fie
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().ResolveUserReport(rctx, fc.Args["id"].(*uuid.UUID))
+			return ec.resolvers.Mutation().ResolveUserReport(rctx, fc.Args["id"].(*uuid.UUID), fc.Args["resolvedMessage"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "REVIEWER")
@@ -12886,6 +12908,8 @@ func (ec *executionContext) fieldContext_Mutation_resolveUserReport(ctx context.
 				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
 			case "resolved":
 				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "resolvedMessage":
+				return ec.fieldContext_UserReport_resolvedMessage(ctx, field)
 			case "timestampId":
 				return ec.fieldContext_UserReport_timestampId(ctx, field)
 			case "timestamp":
@@ -16538,6 +16562,8 @@ func (ec *executionContext) fieldContext_Query_findUserReports(ctx context.Conte
 				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
 			case "resolved":
 				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "resolvedMessage":
+				return ec.fieldContext_UserReport_resolvedMessage(ctx, field)
 			case "timestampId":
 				return ec.fieldContext_UserReport_timestampId(ctx, field)
 			case "timestamp":
@@ -16661,6 +16687,8 @@ func (ec *executionContext) fieldContext_Query_findUserReport(ctx context.Contex
 				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
 			case "resolved":
 				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "resolvedMessage":
+				return ec.fieldContext_UserReport_resolvedMessage(ctx, field)
 			case "timestampId":
 				return ec.fieldContext_UserReport_timestampId(ctx, field)
 			case "timestamp":
@@ -23349,6 +23377,47 @@ func (ec *executionContext) fieldContext_UserReport_resolved(ctx context.Context
 	return fc, nil
 }
 
+func (ec *executionContext) _UserReport_resolvedMessage(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_UserReport_resolvedMessage(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ResolvedMessage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*string)
+	fc.Result = res
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_UserReport_resolvedMessage(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserReport",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _UserReport_timestampId(ctx context.Context, field graphql.CollectedField, obj *internal.UserReport) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_UserReport_timestampId(ctx, field)
 	if err != nil {
@@ -29877,6 +29946,10 @@ func (ec *executionContext) _UserReport(ctx context.Context, sel ast.SelectionSe
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "resolvedMessage":
+
+			out.Values[i] = ec._UserReport_resolvedMessage(ctx, field, obj)
+
 		case "timestampId":
 
 			out.Values[i] = ec._UserReport_timestampId(ctx, field, obj)

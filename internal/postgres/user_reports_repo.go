@@ -23,6 +23,7 @@ func findUserReports(ctx context.Context, tx internal.Tx, filter internal.UserRe
 		"message":            &scanned.Message,
 		"reported_from_url":  &scanned.ReportedFromURL,
 		"resolved":           &scanned.Resolved,
+		"resolved_message":   &scanned.ResolvedMessage,
 		"timestamp_id":       &scanned.TimestampID,
 		"episode_id":         &scanned.EpisodeID,
 		"episode_url":        &scanned.EpisodeURLString,
@@ -35,12 +36,7 @@ func findUserReports(ctx context.Context, tx internal.Tx, filter internal.UserRe
 		query.Where("id = ?", *filter.ID)
 	}
 	if filter.Resolved != nil {
-		if *filter.Resolved {
-			query.Where("resolved = ?", true)
-			query.IncludeSoftDeleted() // resolved reports are also deleted
-		} else {
-			query.Where("resolved = ?", false)
-		}
+		query.Where("resolved = ?", *filter.Resolved)
 	}
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
@@ -96,6 +92,7 @@ func createUserReport(ctx context.Context, tx internal.Tx, report internal.UserR
 		"message":            report.Message,
 		"reported_from_url":  report.ReportedFromURL,
 		"resolved":           report.Resolved,
+		"resolved_message":   report.ResolvedMessage,
 		"timestamp_id":       report.TimestampID,
 		"episode_id":         report.EpisodeID,
 		"episode_url":        report.EpisodeURLString,
@@ -120,6 +117,7 @@ func updateUserReport(ctx context.Context, tx internal.Tx, report internal.UserR
 		"deleted_at":         report.DeletedAt,
 		"deleted_by_user_id": report.DeletedByUserID,
 		"message":            report.Message,
+		"resolved_message":   report.ResolvedMessage,
 		"reported_from_url":  report.ReportedFromURL,
 		"resolved":           report.Resolved,
 		"timestamp_id":       report.TimestampID,

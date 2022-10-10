@@ -144,7 +144,7 @@ type UserReportService interface {
 	List(ctx context.Context, filter UserReportsFilter) ([]UserReport, error)
 	Create(ctx context.Context, newReport UserReport, createdBy uuid.UUID) (UserReport, error)
 	Update(ctx context.Context, newReport UserReport, updatedBy uuid.UUID) (UserReport, error)
-	Resolve(ctx context.Context, id uuid.UUID, updatedBy uuid.UUID) (UserReport, error)
+	Resolve(ctx context.Context, id uuid.UUID, resolvedMessage *string, updatedBy uuid.UUID) (UserReport, error)
 	Delete(ctx context.Context, id uuid.UUID, deletedBy uuid.UUID) (UserReport, error)
 }
 

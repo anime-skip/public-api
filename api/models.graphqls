@@ -604,6 +604,7 @@ type UserReport implements BaseModel {
   message: String!
   reportedFromUrl: String!
   resolved: Boolean!
+  resolvedMessage: String
   timestampId: ID
   timestamp: Timestamp
   episodeId: ID
