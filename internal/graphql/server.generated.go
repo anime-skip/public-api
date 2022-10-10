@@ -4224,10 +4224,10 @@ input InputUserReport {
     limit: Int = 10
     "DESC = newest first, ASC = oldest first"
     sort: String = "DESC"
-  ): [UserReport!]! @hasRole(role: ADMIN)
+  ): [UserReport!]! @hasRole(role: REVIEWER)
 
   "Get a single user report, even if it's been resolved/deleted."
-  findUserReport(id: ID!): UserReport! @hasRole(role: ADMIN)
+  findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},
 	{Name: "../../api/return_types.graphqls", Input: `"""
@@ -16467,7 +16467,7 @@ func (ec *executionContext) _Query_findUserReports(ctx context.Context, field gr
 			return ec.resolvers.Query().FindUserReports(rctx, fc.Args["resolved"].(*bool), fc.Args["offset"].(*int), fc.Args["limit"].(*int), fc.Args["sort"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "REVIEWER")
 			if err != nil {
 				return nil, err
 			}
@@ -16590,7 +16590,7 @@ func (ec *executionContext) _Query_findUserReport(ctx context.Context, field gra
 			return ec.resolvers.Query().FindUserReport(rctx, fc.Args["id"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "ADMIN")
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "REVIEWER")
 			if err != nil {
 				return nil, err
 			}
