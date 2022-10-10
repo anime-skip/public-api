@@ -7,9 +7,16 @@ import (
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/context"
 	"github.com/99designs/gqlgen/graphql"
+	"github.com/samber/lo"
 )
 
-func HasRole(ctx context1.Context, obj any, next graphql.Resolver, role internal.Role) (res any, err error) {
+var (
+	DEV_ROLES      = []int64{internal.ROLE_DEV}
+	ADMIN_ROLES    = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN}
+	REVIEWER_ROLES = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN, internal.ROLE_REVIEWER}
+)
+
+func HasRole(ctx context1.Context, obj any, next graphql.Resolver, requiredRole internal.Role) (res any, err error) {
 	ctx, err = authenticate(ctx)
 	if err != nil {
 		return nil, err
@@ -21,16 +28,19 @@ func HasRole(ctx context1.Context, obj any, next graphql.Resolver, role internal
 	}
 
 	hasRole := false
-	if role == internal.RoleAdmin {
-		hasRole = auth.IsAdmin || auth.IsDev
-	} else if role == internal.RoleDev {
-		hasRole = auth.IsDev
+	switch requiredRole {
+	case internal.RoleDev:
+		hasRole = lo.Contains(DEV_ROLES, auth.Role)
+	case internal.RoleAdmin:
+		hasRole = lo.Contains(ADMIN_ROLES, auth.Role)
+	case internal.RoleReviewer:
+		hasRole = lo.Contains(REVIEWER_ROLES, auth.Role)
 	}
 
 	if !hasRole {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
-			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (%s)", role),
+			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (%s)", requiredRole),
 			Op:      "hasRole",
 		}
 	}

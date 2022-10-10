@@ -25,9 +25,8 @@ type APIClientService interface {
 }
 
 type AuthClaims struct {
-	IsAdmin bool
-	IsDev   bool
-	UserID  uuid.UUID
+	Role   int64
+	UserID uuid.UUID
 }
 type AuthService interface {
 	ValidateAccessToken(token string) (AuthClaims, error)
