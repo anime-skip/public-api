@@ -7,6 +7,8 @@ enum Role {
   DEV
   "Administrator role. Has some elevated permissions"
   ADMIN
+  "Reviewer role. Lets the user review issues with timestamps"
+  REVIEWER
   "Basic role. Has no elevated permissions"
   USER
 }

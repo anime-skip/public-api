@@ -3173,6 +3173,8 @@ enum Role {
   DEV
   "Administrator role. Has some elevated permissions"
   ADMIN
+  "Reviewer role. Lets the user review issues with timestamps"
+  REVIEWER
   "Basic role. Has no elevated permissions"
   USER
 }
@@ -4069,7 +4071,7 @@ input InputUserReport {
   "Report an issue with a single timestamp, episode, episode URL, or show."
   createUserReport(report: InputUserReport): UserReport! @authenticated
   "Mark a report as fixed"
-  resolveUserReport(id: ID!): UserReport! @authenticated
+  resolveUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},
 	{Name: "../../api/queries.graphqls", Input: `type Query {
@@ -12813,10 +12815,14 @@ func (ec *executionContext) _Mutation_resolveUserReport(ctx context.Context, fie
 			return ec.resolvers.Mutation().ResolveUserReport(rctx, fc.Args["id"].(*uuid.UUID))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.Authenticated == nil {
-				return nil, errors.New("directive authenticated is not implemented")
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "REVIEWER")
+			if err != nil {
+				return nil, err
 			}
-			return ec.directives.Authenticated(ctx, nil, directive0)
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive0, role)
 		}
 
 		tmp, err := directive1(rctx)
