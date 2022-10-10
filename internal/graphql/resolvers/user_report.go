@@ -42,12 +42,12 @@ func (r *mutationResolver) CreateUserReport(ctx context.Context, inputReport *in
 }
 
 // ResolveUserReport implements graphql.MutationResolver
-func (r *mutationResolver) ResolveUserReport(ctx context.Context, id *uuid.UUID) (*internal.UserReport, error) {
+func (r *mutationResolver) ResolveUserReport(ctx context.Context, id *uuid.UUID, resolvedMessage *string) (*internal.UserReport, error) {
 	auth, err := context.GetAuthClaims(ctx)
 	if err != nil {
 		return nil, err
 	}
-	updatedReport, err := r.UserReportService.Resolve(ctx, *id, auth.UserID)
+	updatedReport, err := r.UserReportService.Resolve(ctx, *id, resolvedMessage, auth.UserID)
 	if err != nil {
 		return nil, err
 	}

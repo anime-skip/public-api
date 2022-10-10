@@ -56,7 +56,7 @@ func (s *userReportService) Update(ctx context.Context, newReport internal.UserR
 	})
 }
 
-func (s *userReportService) Resolve(ctx context.Context, id uuid.UUID, updatedBy uuid.UUID) (internal.UserReport, error) {
+func (s *userReportService) Resolve(ctx context.Context, id uuid.UUID, resolvedMessage *string, updatedBy uuid.UUID) (internal.UserReport, error) {
 	return inTx(ctx, s.db, true, internal.ZeroUserReport, func(tx internal.Tx) (internal.UserReport, error) {
 		existing, err := findUserReport(ctx, tx, internal.UserReportsFilter{
 			ID: &id,
@@ -65,6 +65,7 @@ func (s *userReportService) Resolve(ctx context.Context, id uuid.UUID, updatedBy
 			return internal.ZeroUserReport, err
 		}
 		existing.Resolved = true
+		existing.ResolvedMessage = resolvedMessage
 		return updateUserReport(ctx, tx, existing, updatedBy)
 	})
 }

@@ -565,6 +565,7 @@ type UserReport struct {
 	Message          string      `json:"message"`
 	ReportedFromURL  string      `json:"reportedFromUrl"`
 	Resolved         bool        `json:"resolved"`
+	ResolvedMessage  *string     `json:"resolvedMessage"`
 	TimestampID      *uuid.UUID  `json:"timestampId"`
 	Timestamp        *Timestamp  `json:"timestamp"`
 	EpisodeID        *uuid.UUID  `json:"episodeId"`
