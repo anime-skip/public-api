@@ -148,8 +148,8 @@ type Query {
     limit: Int = 10
     "DESC = newest first, ASC = oldest first"
     sort: String = "DESC"
-  ): [UserReport!]! @hasRole(role: ADMIN)
+  ): [UserReport!]! @hasRole(role: REVIEWER)
 
   "Get a single user report, even if it's been resolved/deleted."
-  findUserReport(id: ID!): UserReport! @hasRole(role: ADMIN)
+  findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }

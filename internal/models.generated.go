@@ -726,6 +726,8 @@ const (
 	RoleDev Role = "DEV"
 	// Administrator role. Has some elevated permissions
 	RoleAdmin Role = "ADMIN"
+	// Reviewer role. Lets the user review issues with timestamps
+	RoleReviewer Role = "REVIEWER"
 	// Basic role. Has no elevated permissions
 	RoleUser Role = "USER"
 )
@@ -733,12 +735,13 @@ const (
 var AllRole = []Role{
 	RoleDev,
 	RoleAdmin,
+	RoleReviewer,
 	RoleUser,
 }
 
 func (e Role) IsValid() bool {
 	switch e {
-	case RoleDev, RoleAdmin, RoleUser:
+	case RoleDev, RoleAdmin, RoleReviewer, RoleUser:
 		return true
 	}
 	return false

@@ -1,9 +1,10 @@
 package internal
 
 const (
-	ROLE_DEV   int64 = 0
-	ROLE_ADMIN int64 = 1
-	ROLE_USER  int64 = 2
+	ROLE_DEV      int64 = 0
+	ROLE_ADMIN    int64 = 1
+	ROLE_USER     int64 = 2
+	ROLE_REVIEWER int64 = 3
 )
 
 const (

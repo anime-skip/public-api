@@ -133,9 +133,8 @@ func (s *jwtAuthService) mapAuthClaims(claims jwt.MapClaims) (internal.AuthClaim
 		return internal.AuthClaims{}, err
 	}
 	return internal.AuthClaims{
-		IsAdmin: role == internal.ROLE_ADMIN,
-		IsDev:   role == internal.ROLE_DEV,
-		UserID:  userID,
+		Role:   role,
+		UserID: userID,
 	}, nil
 }
 

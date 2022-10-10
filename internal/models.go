@@ -320,6 +320,8 @@ func (role *Role) Value() (driver.Value, error) {
 		return driver.Value(ROLE_ADMIN), nil
 	case RoleDev:
 		return driver.Value(ROLE_DEV), nil
+	case RoleReviewer:
+		return driver.Value(ROLE_REVIEWER), nil
 	default:
 		return nil, &Error{
 			Code:    EINTERNAL,
@@ -349,6 +351,8 @@ func (role *Role) Scan(src interface{}) error {
 		*role = RoleAdmin
 	case ROLE_DEV:
 		*role = RoleDev
+	case ROLE_REVIEWER:
+		*role = RoleReviewer
 	default:
 		return &Error{
 			Code:    EINTERNAL,

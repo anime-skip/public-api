@@ -34,7 +34,8 @@ func (r *mutationResolver) UpdateAPIClient(ctx context.Context, id string, chang
 	if err != nil {
 		return nil, err
 	}
-	if _, ok := changes["rateLimitRpm"]; ok && !auth.IsAdmin {
+	isAdmin := auth.Role == internal.ROLE_ADMIN || auth.Role == internal.ROLE_DEV
+	if _, ok := changes["rateLimitRpm"]; ok && !isAdmin {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
 			Message: "You must be an admin to change a client's rate limit",
