@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -15,7 +16,8 @@ import (
 var day time.Duration = 24 * time.Hour
 
 type jwtAuthService struct {
-	secret []byte
+	secret      []byte
+	userService internal.UserService
 }
 
 // TODO: simplify audiences, switch to including permissions in the token instead
@@ -36,10 +38,11 @@ var TIMEOUT_RESET_PASSWORD_TOKEN = 10 * time.Minute
 // TODO: Change to api.anime-skip.com
 const ISSUER = "anime-skip.com"
 
-func NewJWTAuthService(secret string) internal.AuthService {
+func NewJWTAuthService(secret string, userService internal.UserService) internal.AuthService {
 	log.D("Using Custom JWT Authentication...")
 	return &jwtAuthService{
-		secret: []byte(secret),
+		secret:      []byte(secret),
+		userService: userService,
 	}
 }
 
@@ -126,48 +129,53 @@ func (s *jwtAuthService) validateToken(name string, token string, audience strin
 	return payload, nil
 }
 
-func (s *jwtAuthService) mapAuthClaims(claims jwt.MapClaims) (internal.AuthClaims, error) {
-	role := int64(claims["role"].(float64))
+func (s *jwtAuthService) mapAuthClaims(ctx context.Context, claims jwt.MapClaims) (internal.AuthClaims, error) {
 	userID, err := uuid.FromString(claims["userId"].(string))
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
+	user, err := s.userService.Get(ctx, internal.UsersFilter{
+		ID: &userID,
+	})
+	if err != nil {
+		return internal.AuthClaims{}, err
+	}
 	return internal.AuthClaims{
-		Role:   role,
-		UserID: userID,
+		Role:   user.Role,
+		UserID: user.ID,
 	}, nil
 }
 
-func (s *jwtAuthService) ValidateAccessToken(token string) (internal.AuthClaims, error) {
+func (s *jwtAuthService) ValidateAccessToken(ctx context.Context, token string) (internal.AuthClaims, error) {
 	claims, err := s.validateToken("Access", token, AUD_ACCESS_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(claims)
+	return s.mapAuthClaims(ctx, claims)
 }
 
-func (s *jwtAuthService) ValidateRefreshToken(token string) (internal.AuthClaims, error) {
+func (s *jwtAuthService) ValidateRefreshToken(ctx context.Context, token string) (internal.AuthClaims, error) {
 	claims, err := s.validateToken("Refresh", token, AUD_REFRESH_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(claims)
+	return s.mapAuthClaims(ctx, claims)
 }
 
-func (s *jwtAuthService) ValidateVerifyEmailToken(token string) (internal.AuthClaims, error) {
+func (s *jwtAuthService) ValidateVerifyEmailToken(ctx context.Context, token string) (internal.AuthClaims, error) {
 	claims, err := s.validateToken("Email", token, AUD_VERIFY_EMAIL_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(claims)
+	return s.mapAuthClaims(ctx, claims)
 }
 
-func (s *jwtAuthService) ValidateResetPasswordToken(token string) (internal.AuthClaims, error) {
+func (s *jwtAuthService) ValidateResetPasswordToken(ctx context.Context, token string) (internal.AuthClaims, error) {
 	claims, err := s.validateToken("Password reset", token, AUD_RESET_PASSWORD_TOKEN)
 	if err != nil {
 		return internal.AuthClaims{}, err
 	}
-	return s.mapAuthClaims(claims)
+	return s.mapAuthClaims(ctx, claims)
 }
 
 func (s *jwtAuthService) ValidatePassword(inputPassword, hashedPassword string) error {

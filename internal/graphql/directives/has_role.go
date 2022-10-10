@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	DEV_ROLES      = []int64{internal.ROLE_DEV}
-	ADMIN_ROLES    = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN}
-	REVIEWER_ROLES = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN, internal.ROLE_REVIEWER}
+	DEV_ROLES      = []internal.Role{internal.RoleDev}
+	ADMIN_ROLES    = []internal.Role{internal.RoleDev, internal.RoleAdmin}
+	REVIEWER_ROLES = []internal.Role{internal.RoleDev, internal.RoleAdmin, internal.RoleReviewer}
 )
 
 func HasRole(ctx context1.Context, obj any, next graphql.Resolver, requiredRole internal.Role) (res any, err error) {
@@ -40,7 +40,7 @@ func HasRole(ctx context1.Context, obj any, next graphql.Resolver, requiredRole 
 	if !hasRole {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
-			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (required: %s, has: %d)", requiredRole, auth.Role),
+			Message: fmt.Sprintf("Forbidden - you don't have the required role to perform this action (required: %s, has: %s)", requiredRole, auth.Role),
 			Op:      "hasRole",
 		}
 	}

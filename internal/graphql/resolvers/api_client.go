@@ -34,7 +34,7 @@ func (r *mutationResolver) UpdateAPIClient(ctx context.Context, id string, chang
 	if err != nil {
 		return nil, err
 	}
-	isAdmin := auth.Role == internal.ROLE_ADMIN || auth.Role == internal.ROLE_DEV
+	isAdmin := auth.Role == internal.RoleAdmin || auth.Role == internal.RoleDev
 	if _, ok := changes["rateLimitRpm"]; ok && !isAdmin {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
