@@ -37,9 +37,11 @@ func main() {
 	pgEpisodeURLService := postgres.NewEpisodeURLService(pg)
 	pgShowAdminService := postgres.NewShowAdminService(pg)
 	pgTemplateService := postgres.NewTemplateService(pg)
+	pgUserService := postgres.NewUserService(pg)
 
 	jwtAuthService := jwt.NewJWTAuthService(
 		config.JWTSecret(),
+		pgUserService,
 	)
 	httpEmailService := http.NewAnimeSkipEmailService(
 		config.EmailServiceHost(),
@@ -76,7 +78,7 @@ func main() {
 		TemplateTimestampService: postgres.NewTemplateTimestampService(pg),
 		TimestampService:         postgres.NewTimestampService(pg),
 		TimestampTypeService:     postgres.NewTimestampTypeService(pg),
-		UserService:              postgres.NewUserService(pg),
+		UserService:              pgUserService,
 		UserReportService:        postgres.NewUserReportService(pg, discord),
 		ThirdPartyService: utils.NewAggregateThirdPartyService([]internal.ThirdPartyService{
 			postgres.NewThirdPartyService(pg),

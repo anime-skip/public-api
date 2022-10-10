@@ -234,7 +234,7 @@ func (r *mutationResolver) ResendVerificationEmail(ctx context.Context, recaptch
 }
 
 func (r *mutationResolver) VerifyEmailAddress(ctx context.Context, validationToken string) (*internal.Account, error) {
-	claims, err := r.AuthService.ValidateVerifyEmailToken(validationToken)
+	claims, err := r.AuthService.ValidateVerifyEmailToken(ctx, validationToken)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +298,7 @@ func (r *mutationResolver) ResetPassword(ctx context.Context, passwordResetToken
 		}
 	}
 
-	claims, err := r.AuthService.ValidateResetPasswordToken(passwordResetToken)
+	claims, err := r.AuthService.ValidateResetPasswordToken(ctx, passwordResetToken)
 	if err != nil {
 		return nil, err
 	}
@@ -365,7 +365,7 @@ func (r *queryResolver) Login(ctx context.Context, usernameOrEmail string, passw
 }
 
 func (r *queryResolver) LoginRefresh(ctx context.Context, refreshToken string) (*internal.LoginData, error) {
-	claims, err := r.AuthService.ValidateRefreshToken(refreshToken)
+	claims, err := r.AuthService.ValidateRefreshToken(ctx, refreshToken)
 	if err != nil {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,

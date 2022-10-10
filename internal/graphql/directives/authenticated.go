@@ -22,7 +22,7 @@ func authenticate(ctx ctx.Context) (ctx.Context, error) {
 			Op:      "authenticate",
 		}
 	}
-	details, err := services.AuthService.ValidateAccessToken(token)
+	details, err := services.AuthService.ValidateAccessToken(ctx, token)
 	if err != nil {
 		return nil, err
 	}

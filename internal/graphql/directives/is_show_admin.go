@@ -134,7 +134,7 @@ func IsShowAdmin(ctx context.Context, params any, next graphql2.Resolver) (any, 
 	if err != nil {
 		return nil, err
 	}
-	if auth.Role == internal.ROLE_ADMIN || auth.Role == internal.ROLE_DEV {
+	if auth.Role == internal.RoleAdmin || auth.Role == internal.RoleDev {
 		log.V("@isShowAdmin - elevated role")
 		return next(ctx)
 	}

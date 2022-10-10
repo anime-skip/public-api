@@ -25,14 +25,14 @@ type APIClientService interface {
 }
 
 type AuthClaims struct {
-	Role   int64
+	Role   Role
 	UserID uuid.UUID
 }
 type AuthService interface {
-	ValidateAccessToken(token string) (AuthClaims, error)
-	ValidateRefreshToken(token string) (AuthClaims, error)
-	ValidateVerifyEmailToken(token string) (AuthClaims, error)
-	ValidateResetPasswordToken(token string) (AuthClaims, error)
+	ValidateAccessToken(ctx context.Context, token string) (AuthClaims, error)
+	ValidateRefreshToken(ctx context.Context, token string) (AuthClaims, error)
+	ValidateVerifyEmailToken(ctx context.Context, token string) (AuthClaims, error)
+	ValidateResetPasswordToken(ctx context.Context, token string) (AuthClaims, error)
 	ValidatePassword(inputPasswordHash, knownPasswordHash string) error
 	CreateAccessToken(user FullUser) (string, error)
 	CreateRefreshToken(user FullUser) (string, error)

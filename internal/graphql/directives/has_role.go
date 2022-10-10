@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	DEV_ROLES      = []int64{internal.ROLE_DEV}
-	ADMIN_ROLES    = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN}
-	REVIEWER_ROLES = []int64{internal.ROLE_DEV, internal.ROLE_ADMIN, internal.ROLE_REVIEWER}
+	DEV_ROLES      = []internal.Role{internal.RoleDev}
+	ADMIN_ROLES    = []internal.Role{internal.RoleDev, internal.RoleAdmin}
+	REVIEWER_ROLES = []internal.Role{internal.RoleDev, internal.RoleAdmin, internal.RoleReviewer}
 )
 
 func HasRole(ctx context1.Context, obj any, next graphql.Resolver, requiredRole internal.Role) (res any, err error) {
