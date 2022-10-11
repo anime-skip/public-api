@@ -4079,7 +4079,11 @@ input InputUserReport {
 
   "Report an issue with a single timestamp, episode, episode URL, or show."
   createUserReport(report: InputUserReport): UserReport! @authenticated
-  "Mark a report as fixed"
+  """
+  Mark a report as fixed
+
+  > ` + "`" + `@hasRole(role: REVIEWER)` + "`" + ` - The user must have the ` + "`" + `REVIEWER` + "`" + ` role to perform this operation.
+  """
   resolveUserReport(id: ID!, resolvedMessage: String): UserReport!
     @hasRole(role: REVIEWER)
 }
@@ -4227,7 +4231,11 @@ input InputUserReport {
 
   counts: TotalCounts
 
-  "List all user reports."
+  """
+  List all user reports.
+
+  > ` + "`" + `@hasRole(role: REVIEWER)` + "`" + ` - The user must have the ` + "`" + `REVIEWER` + "`" + ` role to perform this query.
+  """
   findUserReports(
     "Pass true to show only resolved, false to show unresolved, or exclude for all"
     resolved: Boolean
@@ -4237,7 +4245,11 @@ input InputUserReport {
     sort: String = "DESC"
   ): [UserReport!]! @hasRole(role: REVIEWER)
 
-  "Get a single user report, even if it's been resolved/deleted."
+  """
+  Get a single user report, even if it's been resolved/deleted.
+
+  > ` + "`" + `@hasRole(role: REVIEWER)` + "`" + ` - The user must have the ` + "`" + `REVIEWER` + "`" + ` role to perform this query.
+  """
   findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},

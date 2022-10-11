@@ -210,7 +210,11 @@ type Mutation {
 
   "Report an issue with a single timestamp, episode, episode URL, or show."
   createUserReport(report: InputUserReport): UserReport! @authenticated
-  "Mark a report as fixed"
+  """
+  Mark a report as fixed
+
+  > `@hasRole(role: REVIEWER)` - The user must have the `REVIEWER` role to perform this operation.
+  """
   resolveUserReport(id: ID!, resolvedMessage: String): UserReport!
     @hasRole(role: REVIEWER)
 }
