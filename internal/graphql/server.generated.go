@@ -4257,7 +4257,7 @@ input InputUserReport {
     sort: String = "DESC"
   ): [UserReport!]! @hasRole(role: REVIEWER)
 
-  "Get a single user report, even if it's been resolved/deleted. Requires the "
+  "Get a single user report, even if it's been resolved/deleted."
   findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},
