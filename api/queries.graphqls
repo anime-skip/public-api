@@ -151,6 +151,6 @@ type Query {
     sort: String = "DESC"
   ): [UserReport!]! @hasRole(role: REVIEWER)
 
-  "Get a single user report, even if it's been resolved/deleted."
+  "Get a single user report, even if it's been resolved/deleted. Requires the "
   findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
