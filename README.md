@@ -21,11 +21,15 @@ The project is written in Go. However, all builds are done in a docker container
 - [GNU `make`](https://www.gnu.org/software/make/) to execute the `Makefile`
 - [`docker`](https://docs.docker.com/get-docker/) for building and running locally
 - [`docker-compose`](https://docs.docker.com/compose/install/) for running a database when starting the app
-   > Make sure you have the `docker-compose` command, not `docker compose`. Create an alias for it if needed:
-   >
-   > ```bash
-   > alias docker-compose="docker compose"
-   > ```
+  > Make sure you have the `docker-compose` command, not `docker compose`. Create an alias for it if needed:
+  >
+  > ```bash
+  > alias docker-compose="docker compose"
+  > ```
+- [`ginkgo` CLI](https://onsi.github.io/ginkgo/#getting-started) for running BDD-style unit tests
+  > ```bash
+  > go install github.com/onsi/ginkgo/v2/ginkgo
+  > ```
 
 ### Build Commands
 
