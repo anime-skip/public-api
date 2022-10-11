@@ -153,6 +153,7 @@ type UserReportsFilter struct {
 	Sort           string
 	ID             *uuid.UUID
 	Resolved       *bool
+	EpisodeID      *uuid.UUID
 	IncludeDeleted bool
 }
 

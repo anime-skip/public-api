@@ -35,6 +35,8 @@ models:
         resolver: true
       template:
         resolver: true
+      userReports:
+        resolver: true
   EpisodeUrl:
     fields:
       createdBy:

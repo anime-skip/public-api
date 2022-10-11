@@ -93,6 +93,12 @@ type Episode implements BaseModel {
   urls: [EpisodeUrl!]!
   "If the episode is the source episode for a `Template`, this will resolve to that template"
   template: Template @optionalAuthenticated
+  """
+  List the user reports for the episode. Requires the REVIEWER role.
+
+  > `@hasRole(role: REVIEWER)` - The user must have the `REVIEWER` role to query this property.
+  """
+  userReports(resolved: Boolean): [UserReport!]! @hasRole(role: REVIEWER)
 }
 
 """
