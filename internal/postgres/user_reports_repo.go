@@ -38,6 +38,9 @@ func findUserReports(ctx context.Context, tx internal.Tx, filter internal.UserRe
 	if filter.Resolved != nil {
 		query.Where("resolved = ?", *filter.Resolved)
 	}
+	if filter.EpisodeID != nil {
+		query.Where("episode_id = ?", *filter.EpisodeID)
+	}
 	if filter.Pagination != nil {
 		query.Paginate(*filter.Pagination)
 	}

@@ -9,6 +9,16 @@ import (
 	"github.com/samber/lo"
 )
 
+// Helpers
+
+func (r *Resolver) findUserReports(ctx context.Context, filter internal.UserReportsFilter) ([]*internal.UserReport, error) {
+	reports, err := r.UserReportService.List(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	return lo.ToSlicePtr(reports), nil
+}
+
 // Mutations
 
 // CreateUserReport implements graphql.MutationResolver
@@ -71,19 +81,14 @@ func (r *queryResolver) FindUserReport(ctx context.Context, id *uuid.UUID) (*int
 
 // FindUserReports implements graphql.QueryResolver
 func (r *queryResolver) FindUserReports(ctx context.Context, resolved *bool, offset *int, limit *int, sort *string) ([]*internal.UserReport, error) {
-	filter := internal.UserReportsFilter{
+	return r.findUserReports(ctx, internal.UserReportsFilter{
 		Pagination: &internal.Pagination{
 			Offset: utils.ValueOr(offset, 0),
 			Limit:  utils.ValueOr(limit, 10),
 		},
 		Sort:     utils.ValueOr(sort, "DESC"),
 		Resolved: resolved,
-	}
-	reports, err := r.UserReportService.List(ctx, filter)
-	if err != nil {
-		return nil, err
-	}
-	return lo.ToSlicePtr(reports), nil
+	})
 }
 
 // Fields

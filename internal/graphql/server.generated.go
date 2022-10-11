@@ -119,6 +119,7 @@ type ComplexityRoot struct {
 		UpdatedBy       func(childComplexity int) int
 		UpdatedByUserID func(childComplexity int) int
 		Urls            func(childComplexity int) int
+		UserReports     func(childComplexity int, resolved *bool) int
 	}
 
 	EpisodeUrl struct {
@@ -457,6 +458,7 @@ type EpisodeResolver interface {
 	Timestamps(ctx context.Context, obj *internal.Episode) ([]*internal.Timestamp, error)
 	Urls(ctx context.Context, obj *internal.Episode) ([]*internal.EpisodeURL, error)
 	Template(ctx context.Context, obj *internal.Episode) (*internal.Template, error)
+	UserReports(ctx context.Context, obj *internal.Episode, resolved *bool) ([]*internal.UserReport, error)
 }
 type EpisodeUrlResolver interface {
 	URL(ctx context.Context, obj *internal.EpisodeURL) (string, error)
@@ -971,6 +973,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Episode.Urls(childComplexity), true
+
+	case "Episode.userReports":
+		if e.complexity.Episode.UserReports == nil {
+			break
+		}
+
+		args, err := ec.field_Episode_userReports_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Episode.UserReports(childComplexity, args["resolved"].(*bool)), true
 
 	case "EpisodeUrl.createdAt":
 		if e.complexity.EpisodeUrl.CreatedAt == nil {
@@ -3326,6 +3340,12 @@ type Episode implements BaseModel {
   urls: [EpisodeUrl!]!
   "If the episode is the source episode for a ` + "`" + `Template` + "`" + `, this will resolve to that template"
   template: Template @optionalAuthenticated
+  """
+  List the user reports for the episode. Requires the REVIEWER role.
+
+  > ` + "`" + `@hasRole(role: REVIEWER)` + "`" + ` - The user must have the ` + "`" + `REVIEWER` + "`" + ` role to query this property.
+  """
+  userReports(resolved: Boolean): [UserReport!]! @hasRole(role: REVIEWER)
 }
 
 """
@@ -4237,7 +4257,7 @@ input InputUserReport {
     sort: String = "DESC"
   ): [UserReport!]! @hasRole(role: REVIEWER)
 
-  "Get a single user report, even if it's been resolved/deleted."
+  "Get a single user report, even if it's been resolved/deleted. Requires the "
   findUserReport(id: ID!): UserReport! @hasRole(role: REVIEWER)
 }
 `, BuiltIn: false},
@@ -4294,6 +4314,21 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 		}
 	}
 	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Episode_userReports_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *bool
+	if tmp, ok := rawArgs["resolved"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("resolved"))
+		arg0, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["resolved"] = arg0
 	return args, nil
 }
 
@@ -8073,6 +8108,131 @@ func (ec *executionContext) fieldContext_Episode_template(ctx context.Context, f
 	return fc, nil
 }
 
+func (ec *executionContext) _Episode_userReports(ctx context.Context, field graphql.CollectedField, obj *internal.Episode) (ret graphql.Marshaler) {
+	fc, err := ec.fieldContext_Episode_userReports(ctx, field)
+	if err != nil {
+		return graphql.Null
+	}
+	ctx = graphql.WithFieldContext(ctx, fc)
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Episode().UserReports(rctx, obj, fc.Args["resolved"].(*bool))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNRole2animeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐRole(ctx, "REVIEWER")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, obj, directive0, role)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*internal.UserReport); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*anime-skip.com/public-api/internal.UserReport`, tmp)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*internal.UserReport)
+	fc.Result = res
+	return ec.marshalNUserReport2ᚕᚖanimeᚑskipᚗcomᚋpublicᚑapiᚋinternalᚐUserReportᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) fieldContext_Episode_userReports(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Episode",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_UserReport_id(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_UserReport_createdAt(ctx, field)
+			case "createdByUserId":
+				return ec.fieldContext_UserReport_createdByUserId(ctx, field)
+			case "createdBy":
+				return ec.fieldContext_UserReport_createdBy(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_UserReport_updatedAt(ctx, field)
+			case "updatedByUserId":
+				return ec.fieldContext_UserReport_updatedByUserId(ctx, field)
+			case "updatedBy":
+				return ec.fieldContext_UserReport_updatedBy(ctx, field)
+			case "deletedAt":
+				return ec.fieldContext_UserReport_deletedAt(ctx, field)
+			case "deletedByUserId":
+				return ec.fieldContext_UserReport_deletedByUserId(ctx, field)
+			case "deletedBy":
+				return ec.fieldContext_UserReport_deletedBy(ctx, field)
+			case "message":
+				return ec.fieldContext_UserReport_message(ctx, field)
+			case "reportedFromUrl":
+				return ec.fieldContext_UserReport_reportedFromUrl(ctx, field)
+			case "resolved":
+				return ec.fieldContext_UserReport_resolved(ctx, field)
+			case "resolvedMessage":
+				return ec.fieldContext_UserReport_resolvedMessage(ctx, field)
+			case "timestampId":
+				return ec.fieldContext_UserReport_timestampId(ctx, field)
+			case "timestamp":
+				return ec.fieldContext_UserReport_timestamp(ctx, field)
+			case "episodeId":
+				return ec.fieldContext_UserReport_episodeId(ctx, field)
+			case "episode":
+				return ec.fieldContext_UserReport_episode(ctx, field)
+			case "episodeUrlString":
+				return ec.fieldContext_UserReport_episodeUrlString(ctx, field)
+			case "episodeUrl":
+				return ec.fieldContext_UserReport_episodeUrl(ctx, field)
+			case "showId":
+				return ec.fieldContext_UserReport_showId(ctx, field)
+			case "show":
+				return ec.fieldContext_UserReport_show(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type UserReport", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Episode_userReports_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _EpisodeUrl_url(ctx context.Context, field graphql.CollectedField, obj *internal.EpisodeURL) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_EpisodeUrl_url(ctx, field)
 	if err != nil {
@@ -8614,6 +8774,8 @@ func (ec *executionContext) fieldContext_EpisodeUrl_episode(ctx context.Context,
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -10414,6 +10576,8 @@ func (ec *executionContext) fieldContext_Mutation_createEpisode(ctx context.Cont
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -10531,6 +10695,8 @@ func (ec *executionContext) fieldContext_Mutation_updateEpisode(ctx context.Cont
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -10648,6 +10814,8 @@ func (ec *executionContext) fieldContext_Mutation_deleteEpisode(ctx context.Cont
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -14986,6 +15154,8 @@ func (ec *executionContext) fieldContext_Query_recentlyAddedEpisodes(ctx context
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -15083,6 +15253,8 @@ func (ec *executionContext) fieldContext_Query_findEpisode(ctx context.Context, 
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -15180,6 +15352,8 @@ func (ec *executionContext) fieldContext_Query_findEpisodesByShowId(ctx context.
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -15277,6 +15451,8 @@ func (ec *executionContext) fieldContext_Query_searchEpisodes(ctx context.Contex
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -17645,6 +17821,8 @@ func (ec *executionContext) fieldContext_Show_episodes(ctx context.Context, fiel
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -19414,6 +19592,8 @@ func (ec *executionContext) fieldContext_Template_sourceEpisode(ctx context.Cont
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -21371,6 +21551,8 @@ func (ec *executionContext) fieldContext_Timestamp_episode(ctx context.Context, 
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -23651,6 +23833,8 @@ func (ec *executionContext) fieldContext_UserReport_episode(ctx context.Context,
 				return ec.fieldContext_Episode_urls(ctx, field)
 			case "template":
 				return ec.fieldContext_Episode_template(ctx, field)
+			case "userReports":
+				return ec.fieldContext_Episode_userReports(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Episode", field.Name)
 		},
@@ -26692,6 +26876,26 @@ func (ec *executionContext) _Episode(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Episode_template(ctx, field, obj)
+				return res
+			}
+
+			out.Concurrently(i, func() graphql.Marshaler {
+				return innerFunc(ctx)
+
+			})
+		case "userReports":
+			field := field
+
+			innerFunc := func(ctx context.Context) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Episode_userReports(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			}
 

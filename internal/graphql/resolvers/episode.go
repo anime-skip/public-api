@@ -177,3 +177,11 @@ func (r *episodeResolver) Template(ctx context.Context, obj *internal.Episode) (
 	}
 	return template, err
 }
+
+// UserReports implements graphql.EpisodeResolver
+func (r *episodeResolver) UserReports(ctx context.Context, obj *internal.Episode, resolved *bool) ([]*internal.UserReport, error) {
+	return r.findUserReports(ctx, internal.UserReportsFilter{
+		Resolved:  resolved,
+		EpisodeID: obj.ID,
+	})
+}

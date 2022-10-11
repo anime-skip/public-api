@@ -119,6 +119,10 @@ type Episode struct {
 	Urls []*EpisodeURL `json:"urls"`
 	// If the episode is the source episode for a `Template`, this will resolve to that template
 	Template *Template `json:"template"`
+	// List the user reports for the episode. Requires the REVIEWER role.
+	//
+	// > `@hasRole(role: REVIEWER)` - The user must have the `REVIEWER` role to query this property.
+	UserReports []*UserReport `json:"userReports"`
 }
 
 func (Episode) IsBaseModel() {}
