@@ -8,9 +8,9 @@ require (
 	github.com/bwmarrin/discordgo v0.25.0
 	github.com/cortesi/modd v0.0.0-20211215124449-6083f9d1c171
 	github.com/davecgh/go-spew v1.1.1
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi v1.5.4
 	github.com/gofrs/uuid v4.2.0+incompatible
+	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	github.com/mitchellh/mapstructure v1.3.1

@@ -7,8 +7,8 @@ import (
 
 	"anime-skip.com/public-api/internal"
 	"anime-skip.com/public-api/internal/log"
-	"github.com/dgrijalva/jwt-go"
 	"github.com/gofrs/uuid"
+	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
 )
 
