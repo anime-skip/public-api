@@ -68,30 +68,28 @@ func (r *mutationResolver) CreateAccount(ctx context.Context, username string, e
 	_, err = r.UserService.Get(ctx, internal.UsersFilter{
 		Username: &username,
 	})
-	if !internal.IsNotFound(err) {
-		return nil, err
-	}
 	if err == nil {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
 			Message: fmt.Sprintf("Username '%s' is already taken, use a different one", username),
 			Op:      "CreateAccount",
 		}
+	} else if !internal.IsNotFound(err) {
+		return nil, err
 	}
 
 	log.V("Checking for existing email")
 	_, err = r.UserService.Get(ctx, internal.UsersFilter{
 		Email: &email,
 	})
-	if !internal.IsNotFound(err) {
-		return nil, err
-	}
 	if err == nil {
 		return nil, &internal.Error{
 			Code:    internal.EINVALID,
 			Message: fmt.Sprintf("Email '%s' is already taken, use a different one", email),
 			Op:      "CreateAccount",
 		}
+	} else if !internal.IsNotFound(err) {
+		return nil, err
 	}
 
 	log.V("Generating passwordHash")
