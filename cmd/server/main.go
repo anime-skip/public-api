@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/alerts"
 	"anime-skip.com/public-api/internal/config"
 	"anime-skip.com/public-api/internal/graphql/handler"
 	"anime-skip.com/public-api/internal/http"
@@ -58,10 +57,6 @@ func main() {
 	)
 
 	rateLimiter := http.NewRequestRateLimiter()
-	discord, err := alerts.NewDiscordAPIClient(config.DiscordBotToken(), config.DiscordAlertChannelID())
-	if err != nil {
-		panic(err)
-	}
 
 	services := internal.Services{
 		APIClientService:         postgres.NewAPIClientService(pg),
@@ -79,7 +74,7 @@ func main() {
 		TimestampService:         postgres.NewTimestampService(pg),
 		TimestampTypeService:     postgres.NewTimestampTypeService(pg),
 		UserService:              pgUserService,
-		UserReportService:        postgres.NewUserReportService(pg, discord),
+		UserReportService:        postgres.NewUserReportService(pg),
 		ThirdPartyService: utils.NewAggregateThirdPartyService([]internal.ThirdPartyService{
 			postgres.NewThirdPartyService(pg),
 			utils.NewCachedThirdPartyService(betterVRV, 30*time.Minute),
@@ -105,7 +100,7 @@ func main() {
 		internal.SHARED_CLIENT_ID,
 	)
 
-	err = server.Start()
+	err := server.Start()
 	if err != nil {
 		panic(err)
 	}

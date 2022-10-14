@@ -2,23 +2,18 @@ package postgres
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"anime-skip.com/public-api/internal"
-	"anime-skip.com/public-api/internal/log"
 	"github.com/gofrs/uuid"
 )
 
 type userReportService struct {
-	db      internal.Database
-	alerter internal.Alerter
+	db internal.Database
 }
 
-func NewUserReportService(db internal.Database, alerter internal.Alerter) internal.UserReportService {
+func NewUserReportService(db internal.Database) internal.UserReportService {
 	return &userReportService{
-		db:      db,
-		alerter: alerter,
+		db: db,
 	}
 }
 
@@ -36,17 +31,7 @@ func (s *userReportService) List(ctx context.Context, filter internal.UserReport
 
 func (s *userReportService) Create(ctx context.Context, newReport internal.UserReport, createdBy uuid.UUID) (internal.UserReport, error) {
 	return inTx(ctx, s.db, true, internal.ZeroUserReport, func(tx internal.Tx) (internal.UserReport, error) {
-		createdReport, err := createUserReport(ctx, tx, newReport, createdBy)
-		if err != nil {
-			return internal.ZeroUserReport, err
-		}
-		alertErr := s.sendNewReportAlert(createdReport)
-		if alertErr != nil {
-			log.E("Failed to send alert for new user report: %v", alertErr)
-		} else {
-			log.I("Sent alert for new user report: %s", createdReport.ID.String())
-		}
-		return createdReport, err
+		return createUserReport(ctx, tx, newReport, createdBy)
 	})
 }
 
@@ -80,14 +65,4 @@ func (s *userReportService) Delete(ctx context.Context, id uuid.UUID, deletedBy 
 		}
 		return deleteCascadeUserReport(ctx, tx, existing, deletedBy)
 	})
-}
-
-func (s *userReportService) sendNewReportAlert(report internal.UserReport) error {
-	lines := []string{}
-	lines = append(lines, fmt.Sprintf("New User Report `%s`", report.ID.String()))
-	for _, messageLine := range strings.Split(report.Message, "\n") {
-		lines = append(lines, fmt.Sprintf("> %s", messageLine))
-	}
-	lines = append(lines, fmt.Sprintf("> %s", report.ReportedFromURL))
-	return s.alerter.Send(strings.Join(lines, "\n"))
 }
