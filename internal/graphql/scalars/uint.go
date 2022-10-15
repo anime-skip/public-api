@@ -11,7 +11,10 @@ import (
 
 func MarshalUInt(i *uint) graphql.Marshaler {
 	return graphql.WriterFunc(func(w io.Writer) {
-		str := fmt.Sprintf("%d", i)
+		str := "null"
+		if i != nil {
+			str = fmt.Sprintf("%d", *i)
+		}
 		w.Write([]byte(str))
 	})
 }

@@ -5,6 +5,7 @@ import (
 	"anime-skip.com/public-api/internal/context"
 	"anime-skip.com/public-api/internal/mappers"
 	"anime-skip.com/public-api/internal/utils"
+	"github.com/samber/lo"
 )
 
 // Helpers
@@ -18,7 +19,8 @@ func (r *mutationResolver) CreateAPIClient(ctx context.Context, client internal.
 	}
 
 	newAPIClient := internal.APIClient{
-		UserID: &auth.UserID,
+		UserID:       &auth.UserID,
+		RateLimitRpm: lo.ToPtr[uint](60),
 	}
 	mappers.ApplyCreateAPIClient(client, &newAPIClient)
 	created, err := r.APIClientService.Create(ctx, newAPIClient, auth.UserID)
