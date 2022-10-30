@@ -20,8 +20,7 @@ func Open(url string, disableSsl bool, targetVersion *int, enableSeeding bool) i
 	if err != nil {
 		panic(err)
 	}
-	db.SetMaxIdleConns(5)
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(150)
 
 	if targetVersion != nil {
 		err = migrate(db, *targetVersion, enableSeeding)
