@@ -15,5 +15,5 @@ import (
 // Fields
 
 func (r *thirdPartyTimestampResolver) Type(ctx context.Context, obj *internal.ThirdPartyTimestamp) (*internal.TimestampType, error) {
-	return r.getTimestampTypeByID(ctx, obj.TypeID)
+	return r.getTimestampTypeByIDOrUnknown(ctx, obj.TypeID)
 }
