@@ -173,7 +173,7 @@ func (r *timestampResolver) DeletedBy(ctx context.Context, obj *internal.Timesta
 }
 
 func (r *timestampResolver) Type(ctx context.Context, obj *internal.Timestamp) (*internal.TimestampType, error) {
-	return r.getTimestampTypeByID(ctx, obj.TypeID)
+	return r.getTimestampTypeByIDOrUnknown(ctx, obj.TypeID)
 }
 
 func (r *timestampResolver) Episode(ctx context.Context, obj *internal.Timestamp) (*internal.Episode, error) {

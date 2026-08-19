@@ -25,6 +25,17 @@ func (r *Resolver) getTimestampTypeByID(ctx context.Context, id *uuid.UUID) (*in
 	return &timestampType, nil
 }
 
+func (r *Resolver) getTimestampTypeByIDOrUnknown(ctx context.Context, id *uuid.UUID) (*internal.TimestampType, error) {
+	timestampType, err := r.getTimestampTypeByID(ctx, id)
+	// fallback to Unknown for a type_id with no matching row to avoid hiding
+	// the entire show over one bad timestamp in findEpisodesByShowId
+	if internal.IsNotFound(err) {
+		log.W("Timestamp type %v does not exist, falling back to Unknown", id)
+		return r.getTimestampTypeByID(ctx, &internal.TIMESTAMP_ID_UNKNOWN)
+	}
+	return timestampType, err
+}
+
 // Mutations
 
 func (r *mutationResolver) CreateTimestampType(ctx context.Context, input internal.InputTimestampType) (*internal.TimestampType, error) {
