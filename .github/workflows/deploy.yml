@@ -10,13 +10,13 @@ jobs:
     uses: ./.github/workflows/validate.yml
 
   versioning:
-    uses: anime-skip/github-actions/.github/workflows/bump-version.yml@v10
+    uses: anime-skip/github-actions/.github/workflows/bump-version.yml@v11
     needs: validate
     with:
       versionFile: ./meta.json
 
   deploy:
-    uses: anime-skip/github-actions/.github/workflows/deploy-go-docker-image.yml@v10
+    uses: anime-skip/github-actions/.github/workflows/deploy-go-docker-image.yml@v11
     needs: versioning
     if: needs.versioning.outputs.skipped != 'true'
     with:
