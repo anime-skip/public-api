@@ -18,7 +18,7 @@ jobs:
   deploy:
     uses: anime-skip/github-actions/.github/workflows/deploy-go-docker-image.yml@v11
     needs: versioning
-    if: needs.versioning.outputs.skipped != 'true'
+    # if: needs.versioning.outputs.skipped != 'true'
     with:
       stage: production
       githubImage: public-api/server
