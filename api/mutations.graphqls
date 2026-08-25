@@ -63,8 +63,10 @@ type Mutation {
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authenticated
   """
   Update show data
+
+  > `@isShowAdmin` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID!, newShow: InputShow!): Show! @authenticated
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show! @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 

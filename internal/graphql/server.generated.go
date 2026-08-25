@@ -3952,8 +3952,10 @@ input InputUserReport {
   createShow(showInput: InputShow!, becomeAdmin: Boolean!): Show! @authenticated
   """
   Update show data
+
+  > ` + "`" + `@isShowAdmin` + "`" + ` - You need to be an admin of the show to do this action
   """
-  updateShow(showId: ID!, newShow: InputShow!): Show! @authenticated
+  updateShow(showId: ID! @isShowAdmin, newShow: InputShow!): Show! @authenticated
   """
   Delete a show and all it's children (episodes, episode urls, timestamps, admins, etc)
 
@@ -5086,9 +5088,26 @@ func (ec *executionContext) field_Mutation_updateShow_args(ctx context.Context, 
 	var arg0 *uuid.UUID
 	if tmp, ok := rawArgs["showId"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("showId"))
-		arg0, err = ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		directive0 := func(ctx context.Context) (interface{}, error) {
+			return ec.unmarshalNID2ᚖgithubᚗcomᚋgofrsᚋuuidᚐUUID(ctx, tmp)
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.IsShowAdmin == nil {
+				return nil, errors.New("directive isShowAdmin is not implemented")
+			}
+			return ec.directives.IsShowAdmin(ctx, rawArgs, directive0)
+		}
+
+		tmp, err = directive1(ctx)
 		if err != nil {
-			return nil, err
+			return nil, graphql.ErrorOnPath(ctx, err)
+		}
+		if data, ok := tmp.(*uuid.UUID); ok {
+			arg0 = data
+		} else if tmp == nil {
+			arg0 = nil
+		} else {
+			return nil, graphql.ErrorOnPath(ctx, fmt.Errorf(`unexpected type %T from directive, should be *github.com/gofrs/uuid.UUID`, tmp))
 		}
 	}
 	args["showId"] = arg0
