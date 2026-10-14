@@ -120,6 +120,10 @@ func updateShow(ctx context.Context, tx internal.Tx, show internal.Show, updated
 		"updated_by_user_id": show.UpdatedByUserID,
 		"deleted_at":         show.DeletedAt,
 		"deleted_by_user_id": show.DeletedByUserID,
+		"name":               show.Name,
+		"original_name":      show.OriginalName,
+		"website":            show.Website,
+		"image":              show.Image,
 	}).ToSQL()
 
 	_, err := tx.ExecContext(ctx, sql, args...)
